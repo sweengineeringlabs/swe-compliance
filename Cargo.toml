@@ -1,0 +1,3 @@
+[workspace]
+members = ["doc-engine"]
+resolver = "2"
