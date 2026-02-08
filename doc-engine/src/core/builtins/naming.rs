@@ -202,3 +202,132 @@ impl CheckRunner for TestingFilePlacement {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::api::types::{RuleDef, RuleType};
+    use crate::spi::types::{ProjectType, Severity};
+    use std::collections::HashMap;
+    use std::path::PathBuf;
+    use tempfile::TempDir;
+
+    fn make_def(id: u8) -> RuleDef {
+        RuleDef {
+            id,
+            category: "naming".to_string(),
+            description: "test".to_string(),
+            severity: Severity::Warning,
+            rule_type: RuleType::Builtin { handler: "test".to_string() },
+            project_type: None,
+        }
+    }
+
+    fn make_ctx(root: &std::path::Path, files: Vec<PathBuf>) -> ScanContext {
+        ScanContext {
+            root: root.to_path_buf(),
+            files,
+            file_contents: HashMap::new(),
+            project_type: ProjectType::OpenSource,
+        }
+    }
+
+    // --- SnakeLowerCase (checks 21, 22, 23) ---
+
+    #[test]
+    fn test_snake_lowercase_pass() {
+        let tmp = TempDir::new().unwrap();
+        let handler = SnakeLowerCase { def: make_def(21) };
+        let files = vec![PathBuf::from("docs/hello_world.md")];
+        let ctx = make_ctx(tmp.path(), files);
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_snake_lowercase_fail_uppercase() {
+        let tmp = TempDir::new().unwrap();
+        let handler = SnakeLowerCase { def: make_def(21) };
+        let files = vec![PathBuf::from("docs/HelloWorld.md")];
+        let ctx = make_ctx(tmp.path(), files);
+        assert!(matches!(handler.run(&ctx), CheckResult::Fail { .. }));
+    }
+
+    #[test]
+    fn test_snake_hyphen_fail() {
+        let tmp = TempDir::new().unwrap();
+        let handler = SnakeLowerCase { def: make_def(22) };
+        let files = vec![PathBuf::from("docs/hello-world.md")];
+        let ctx = make_ctx(tmp.path(), files);
+        assert!(matches!(handler.run(&ctx), CheckResult::Fail { .. }));
+    }
+
+    #[test]
+    fn test_snake_space_fail() {
+        let tmp = TempDir::new().unwrap();
+        let handler = SnakeLowerCase { def: make_def(23) };
+        let files = vec![PathBuf::from("docs/hello world.md")];
+        let ctx = make_ctx(tmp.path(), files);
+        assert!(matches!(handler.run(&ctx), CheckResult::Fail { .. }));
+    }
+
+    #[test]
+    fn test_snake_skip_readme_adr() {
+        let tmp = TempDir::new().unwrap();
+        let handler = SnakeLowerCase { def: make_def(21) };
+        // README.md (uppercase convention) and ADR files should be skipped
+        let files = vec![
+            PathBuf::from("docs/README.md"),
+            PathBuf::from("docs/3-design/adr/001-use-rust.md"),
+        ];
+        let ctx = make_ctx(tmp.path(), files);
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    // --- GuideNaming (check 24) ---
+
+    #[test]
+    fn test_guide_naming_pass() {
+        let tmp = TempDir::new().unwrap();
+        let handler = GuideNaming { def: make_def(24) };
+        let files = vec![PathBuf::from("docs/4-development/guide/api_development_guide.md")];
+        let ctx = make_ctx(tmp.path(), files);
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_guide_naming_fail() {
+        let tmp = TempDir::new().unwrap();
+        let handler = GuideNaming { def: make_def(24) };
+        let files = vec![PathBuf::from("docs/4-development/guide/bad-name.md")];
+        let ctx = make_ctx(tmp.path(), files);
+        assert!(matches!(handler.run(&ctx), CheckResult::Fail { .. }));
+    }
+
+    #[test]
+    fn test_guide_naming_skip_no_guides() {
+        let tmp = TempDir::new().unwrap();
+        let handler = GuideNaming { def: make_def(24) };
+        let ctx = make_ctx(tmp.path(), vec![]);
+        assert!(matches!(handler.run(&ctx), CheckResult::Skip { .. }));
+    }
+
+    // --- TestingFilePlacement (check 25) ---
+
+    #[test]
+    fn test_testing_placement_pass() {
+        let tmp = TempDir::new().unwrap();
+        let handler = TestingFilePlacement { def: make_def(25) };
+        let files = vec![PathBuf::from("docs/5-testing/unit_testing_guide.md")];
+        let ctx = make_ctx(tmp.path(), files);
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_testing_placement_fail() {
+        let tmp = TempDir::new().unwrap();
+        let handler = TestingFilePlacement { def: make_def(25) };
+        let files = vec![PathBuf::from("docs/3-design/unit_testing_plan.md")];
+        let ctx = make_ctx(tmp.path(), files);
+        assert!(matches!(handler.run(&ctx), CheckResult::Fail { .. }));
+    }
+}

@@ -104,3 +104,71 @@ impl ComplianceEngine for DocComplianceEngine {
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::api::traits::ComplianceEngine;
+    use crate::spi::types::ProjectType;
+    use tempfile::TempDir;
+
+    #[test]
+    fn test_nonexistent_path() {
+        let engine = DocComplianceEngine;
+        let result = engine.scan(std::path::Path::new("/nonexistent/path/xyz"));
+        assert!(result.is_err());
+        assert!(matches!(result.unwrap_err(), ScanError::Path(_)));
+    }
+
+    #[test]
+    fn test_default_config() {
+        let tmp = TempDir::new().unwrap();
+        let engine = DocComplianceEngine;
+        let report = engine.scan(tmp.path()).unwrap();
+        assert_eq!(report.results.len(), 50);
+        assert_eq!(report.summary.total, 50);
+    }
+
+    #[test]
+    fn test_check_filter() {
+        let tmp = TempDir::new().unwrap();
+        let engine = DocComplianceEngine;
+        let config = ScanConfig {
+            project_type: ProjectType::OpenSource,
+            checks: Some(vec![1, 2, 3]),
+            rules_path: None,
+        };
+        let report = engine.scan_with_config(tmp.path(), &config).unwrap();
+        assert_eq!(report.results.len(), 3);
+        let ids: Vec<u8> = report.results.iter().map(|e| e.id.0).collect();
+        assert_eq!(ids, vec![1, 2, 3]);
+    }
+
+    #[test]
+    fn test_project_type_skip() {
+        let tmp = TempDir::new().unwrap();
+        let engine = DocComplianceEngine;
+        // Checks 31 and 32 are open_source only; with Internal, they should be skipped
+        let config = ScanConfig {
+            project_type: ProjectType::Internal,
+            checks: Some(vec![31, 32]),
+            rules_path: None,
+        };
+        let report = engine.scan_with_config(tmp.path(), &config).unwrap();
+        assert_eq!(report.results.len(), 2);
+        for entry in &report.results {
+            assert!(matches!(entry.result, CheckResult::Skip { .. }));
+        }
+    }
+
+    #[test]
+    fn test_summary_counts() {
+        let tmp = TempDir::new().unwrap();
+        let engine = DocComplianceEngine;
+        let report = engine.scan(tmp.path()).unwrap();
+        assert_eq!(
+            report.summary.total,
+            report.summary.passed + report.summary.failed + report.summary.skipped
+        );
+    }
+}

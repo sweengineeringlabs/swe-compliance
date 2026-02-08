@@ -101,3 +101,82 @@ impl CheckRunner for LinkResolution {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::api::types::{RuleDef, RuleType};
+    use crate::spi::types::{ProjectType, Severity};
+    use std::collections::HashMap;
+    use std::path::PathBuf;
+    use tempfile::TempDir;
+
+    fn make_def(id: u8) -> RuleDef {
+        RuleDef {
+            id,
+            category: "cross_ref".to_string(),
+            description: "test".to_string(),
+            severity: Severity::Error,
+            rule_type: RuleType::Builtin { handler: "link_resolution".to_string() },
+            project_type: None,
+        }
+    }
+
+    fn make_ctx(root: &std::path::Path, files: Vec<PathBuf>) -> ScanContext {
+        ScanContext {
+            root: root.to_path_buf(),
+            files,
+            file_contents: HashMap::new(),
+            project_type: ProjectType::OpenSource,
+        }
+    }
+
+    #[test]
+    fn test_broken_md_link_fail() {
+        let tmp = TempDir::new().unwrap();
+        fs::create_dir_all(tmp.path().join("docs")).unwrap();
+        fs::write(tmp.path().join("docs/index.md"),
+            "See [other](nonexistent.md) for info\n"
+        ).unwrap();
+        let handler = LinkResolution { def: make_def(44) };
+        let ctx = make_ctx(tmp.path(), vec![PathBuf::from("docs/index.md")]);
+        assert!(matches!(handler.run(&ctx), CheckResult::Fail { .. }));
+    }
+
+    #[test]
+    fn test_broken_relative_fail() {
+        let tmp = TempDir::new().unwrap();
+        fs::create_dir_all(tmp.path().join("docs")).unwrap();
+        fs::write(tmp.path().join("docs/index.md"),
+            "See [image](assets/logo.png) for info\n"
+        ).unwrap();
+        let handler = LinkResolution { def: make_def(45) };
+        let ctx = make_ctx(tmp.path(), vec![PathBuf::from("docs/index.md")]);
+        assert!(matches!(handler.run(&ctx), CheckResult::Fail { .. }));
+    }
+
+    #[test]
+    fn test_external_and_anchor_skipped() {
+        let tmp = TempDir::new().unwrap();
+        fs::create_dir_all(tmp.path().join("docs")).unwrap();
+        fs::write(tmp.path().join("docs/index.md"),
+            "See [Google](https://google.com) and [section](#intro)\n"
+        ).unwrap();
+        let handler = LinkResolution { def: make_def(44) };
+        let ctx = make_ctx(tmp.path(), vec![PathBuf::from("docs/index.md")]);
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_valid_link_pass() {
+        let tmp = TempDir::new().unwrap();
+        fs::create_dir_all(tmp.path().join("docs")).unwrap();
+        fs::write(tmp.path().join("docs/index.md"),
+            "See [other](other.md) for info\n"
+        ).unwrap();
+        fs::write(tmp.path().join("docs/other.md"), "# Other\n").unwrap();
+        let handler = LinkResolution { def: make_def(44) };
+        let ctx = make_ctx(tmp.path(), vec![PathBuf::from("docs/index.md")]);
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+}

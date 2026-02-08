@@ -179,3 +179,310 @@ pub fn build_registry(rules: &[RuleDef]) -> Result<Vec<Box<dyn CheckRunner>>, Sc
     runners.sort_by_key(|r| r.id().0);
     Ok(runners)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_file_exists() {
+        let toml = r#"
+[[rules]]
+id = 1
+category = "structure"
+description = "Root docs/ folder exists"
+severity = "error"
+type = "file_exists"
+path = "docs/README.md"
+"#;
+        let rs = parse_rules(toml).unwrap();
+        assert_eq!(rs.rules.len(), 1);
+        assert_eq!(rs.rules[0].id, 1);
+        assert!(matches!(rs.rules[0].rule_type, RuleType::FileExists { .. }));
+    }
+
+    #[test]
+    fn test_parse_all_declarative_types() {
+        let toml = r#"
+[[rules]]
+id = 1
+category = "a"
+description = "d"
+severity = "error"
+type = "file_exists"
+path = "x"
+
+[[rules]]
+id = 2
+category = "a"
+description = "d"
+severity = "warning"
+type = "dir_exists"
+path = "x"
+
+[[rules]]
+id = 3
+category = "a"
+description = "d"
+severity = "info"
+type = "dir_not_exists"
+path = "x"
+message = "no"
+
+[[rules]]
+id = 4
+category = "a"
+description = "d"
+severity = "error"
+type = "file_content_matches"
+path = "x"
+pattern = "y"
+
+[[rules]]
+id = 5
+category = "a"
+description = "d"
+severity = "error"
+type = "file_content_not_matches"
+path = "x"
+pattern = "y"
+
+[[rules]]
+id = 6
+category = "a"
+description = "d"
+severity = "error"
+type = "glob_content_matches"
+glob = "**/*.md"
+pattern = "y"
+
+[[rules]]
+id = 7
+category = "a"
+description = "d"
+severity = "error"
+type = "glob_content_not_matches"
+glob = "**/*.md"
+pattern = "y"
+
+[[rules]]
+id = 8
+category = "a"
+description = "d"
+severity = "error"
+type = "glob_naming_matches"
+glob = "**/*.md"
+pattern = "y"
+
+[[rules]]
+id = 9
+category = "a"
+description = "d"
+severity = "error"
+type = "glob_naming_not_matches"
+glob = "**/*.md"
+pattern = "y"
+"#;
+        let rs = parse_rules(toml).unwrap();
+        assert_eq!(rs.rules.len(), 9);
+    }
+
+    #[test]
+    fn test_parse_builtin_rule() {
+        let toml = r#"
+[[rules]]
+id = 4
+category = "structure"
+description = "Module docs plural"
+severity = "error"
+type = "builtin"
+handler = "module_docs_plural"
+"#;
+        let rs = parse_rules(toml).unwrap();
+        assert!(matches!(rs.rules[0].rule_type, RuleType::Builtin { ref handler } if handler == "module_docs_plural"));
+    }
+
+    #[test]
+    fn test_parse_with_project_type() {
+        let toml = r#"
+[[rules]]
+id = 31
+category = "root_files"
+description = "Community files"
+severity = "warning"
+type = "builtin"
+handler = "open_source_community_files"
+project_type = "open_source"
+"#;
+        let rs = parse_rules(toml).unwrap();
+        assert_eq!(rs.rules[0].project_type, Some(ProjectType::OpenSource));
+
+        let toml2 = r#"
+[[rules]]
+id = 31
+category = "root_files"
+description = "Internal only"
+severity = "warning"
+type = "builtin"
+handler = "open_source_community_files"
+project_type = "internal"
+"#;
+        let rs2 = parse_rules(toml2).unwrap();
+        assert_eq!(rs2.rules[0].project_type, Some(ProjectType::Internal));
+    }
+
+    #[test]
+    fn test_parse_invalid_toml() {
+        let result = parse_rules("not valid toml {{{{");
+        assert!(result.is_err());
+        assert!(matches!(result.unwrap_err(), ScanError::Config(_)));
+    }
+
+    #[test]
+    fn test_parse_unknown_type() {
+        let toml = r#"
+[[rules]]
+id = 1
+category = "a"
+description = "d"
+severity = "error"
+type = "nonexistent_type"
+"#;
+        let result = parse_rules(toml);
+        assert!(matches!(result.unwrap_err(), ScanError::Config(_)));
+    }
+
+    #[test]
+    fn test_parse_missing_required_field() {
+        // file_exists without path
+        let toml = r#"
+[[rules]]
+id = 1
+category = "a"
+description = "d"
+severity = "error"
+type = "file_exists"
+"#;
+        assert!(matches!(parse_rules(toml).unwrap_err(), ScanError::Config(_)));
+
+        // glob_content_matches without pattern
+        let toml2 = r#"
+[[rules]]
+id = 1
+category = "a"
+description = "d"
+severity = "error"
+type = "glob_content_matches"
+glob = "**/*.md"
+"#;
+        assert!(matches!(parse_rules(toml2).unwrap_err(), ScanError::Config(_)));
+
+        // builtin without handler
+        let toml3 = r#"
+[[rules]]
+id = 1
+category = "a"
+description = "d"
+severity = "error"
+type = "builtin"
+"#;
+        assert!(matches!(parse_rules(toml3).unwrap_err(), ScanError::Config(_)));
+    }
+
+    #[test]
+    fn test_parse_unknown_severity() {
+        let toml = r#"
+[[rules]]
+id = 1
+category = "a"
+description = "d"
+severity = "critical"
+type = "file_exists"
+path = "x"
+"#;
+        assert!(matches!(parse_rules(toml).unwrap_err(), ScanError::Config(_)));
+    }
+
+    #[test]
+    fn test_parse_default_rules_valid() {
+        let rs = parse_rules(DEFAULT_RULES).unwrap();
+        assert_eq!(rs.rules.len(), 50);
+    }
+
+    #[test]
+    fn test_build_registry_declarative() {
+        let rules = vec![RuleDef {
+            id: 1,
+            category: "test".to_string(),
+            description: "test".to_string(),
+            severity: Severity::Error,
+            rule_type: RuleType::FileExists { path: "x".to_string() },
+            project_type: None,
+        }];
+        let reg = build_registry(&rules).unwrap();
+        assert_eq!(reg.len(), 1);
+        assert_eq!(reg[0].id().0, 1);
+    }
+
+    #[test]
+    fn test_build_registry_builtin() {
+        let rules = vec![RuleDef {
+            id: 4,
+            category: "structure".to_string(),
+            description: "test".to_string(),
+            severity: Severity::Error,
+            rule_type: RuleType::Builtin { handler: "module_docs_plural".to_string() },
+            project_type: None,
+        }];
+        let reg = build_registry(&rules).unwrap();
+        assert_eq!(reg.len(), 1);
+        assert_eq!(reg[0].id().0, 4);
+    }
+
+    #[test]
+    fn test_build_registry_unknown_handler() {
+        let rules = vec![RuleDef {
+            id: 99,
+            category: "test".to_string(),
+            description: "test".to_string(),
+            severity: Severity::Error,
+            rule_type: RuleType::Builtin { handler: "nonexistent".to_string() },
+            project_type: None,
+        }];
+        let result = build_registry(&rules);
+        assert!(result.is_err());
+        assert!(matches!(result.err().unwrap(), ScanError::Config(_)));
+    }
+
+    #[test]
+    fn test_build_registry_sorted() {
+        let rules = vec![
+            RuleDef {
+                id: 5,
+                category: "a".to_string(),
+                description: "d".to_string(),
+                severity: Severity::Error,
+                rule_type: RuleType::FileExists { path: "x".to_string() },
+                project_type: None,
+            },
+            RuleDef {
+                id: 1,
+                category: "a".to_string(),
+                description: "d".to_string(),
+                severity: Severity::Error,
+                rule_type: RuleType::DirExists { path: "y".to_string() },
+                project_type: None,
+            },
+        ];
+        let reg = build_registry(&rules).unwrap();
+        assert_eq!(reg[0].id().0, 1);
+        assert_eq!(reg[1].id().0, 5);
+    }
+
+    #[test]
+    fn test_build_registry_default_rules() {
+        let rs = parse_rules(DEFAULT_RULES).unwrap();
+        let reg = build_registry(&rs.rules).unwrap();
+        assert_eq!(reg.len(), 50);
+    }
+}

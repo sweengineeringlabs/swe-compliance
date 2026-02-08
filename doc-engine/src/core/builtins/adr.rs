@@ -143,3 +143,111 @@ impl CheckRunner for AdrIndexCompleteness {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::api::types::{RuleDef, RuleType};
+    use crate::spi::types::{ProjectType, Severity};
+    use std::collections::HashMap;
+    use std::path::PathBuf;
+    use tempfile::TempDir;
+
+    fn make_def(id: u8) -> RuleDef {
+        RuleDef {
+            id,
+            category: "adr".to_string(),
+            description: "test".to_string(),
+            severity: Severity::Warning,
+            rule_type: RuleType::Builtin { handler: "test".to_string() },
+            project_type: None,
+        }
+    }
+
+    fn make_ctx(root: &std::path::Path, files: Vec<PathBuf>) -> ScanContext {
+        ScanContext {
+            root: root.to_path_buf(),
+            files,
+            file_contents: HashMap::new(),
+            project_type: ProjectType::OpenSource,
+        }
+    }
+
+    // --- AdrNaming (check 49) ---
+
+    #[test]
+    fn test_adr_naming_pass() {
+        let tmp = TempDir::new().unwrap();
+        fs::create_dir_all(tmp.path().join("docs/3-design/adr")).unwrap();
+        fs::write(tmp.path().join("docs/3-design/adr/001-use-rust.md"), "# ADR").unwrap();
+        let handler = AdrNaming { def: make_def(49) };
+        let files = vec![PathBuf::from("docs/3-design/adr/001-use-rust.md")];
+        let ctx = make_ctx(tmp.path(), files);
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_adr_naming_fail() {
+        let tmp = TempDir::new().unwrap();
+        fs::create_dir_all(tmp.path().join("docs/3-design/adr")).unwrap();
+        fs::write(tmp.path().join("docs/3-design/adr/bad_name.md"), "# ADR").unwrap();
+        let handler = AdrNaming { def: make_def(49) };
+        let files = vec![PathBuf::from("docs/3-design/adr/bad_name.md")];
+        let ctx = make_ctx(tmp.path(), files);
+        assert!(matches!(handler.run(&ctx), CheckResult::Fail { .. }));
+    }
+
+    #[test]
+    fn test_adr_naming_skip_no_dir() {
+        let tmp = TempDir::new().unwrap();
+        let handler = AdrNaming { def: make_def(49) };
+        let ctx = make_ctx(tmp.path(), vec![]);
+        assert!(matches!(handler.run(&ctx), CheckResult::Skip { .. }));
+    }
+
+    // --- AdrIndexCompleteness (check 50) ---
+
+    #[test]
+    fn test_adr_index_pass() {
+        let tmp = TempDir::new().unwrap();
+        let adr_dir = tmp.path().join("docs/3-design/adr");
+        fs::create_dir_all(&adr_dir).unwrap();
+        fs::write(adr_dir.join("README.md"), "# ADR Index\n- [001-use-rust.md](001-use-rust.md)\n").unwrap();
+        fs::write(adr_dir.join("001-use-rust.md"), "# ADR").unwrap();
+        let handler = AdrIndexCompleteness { def: make_def(50) };
+        let files = vec![
+            PathBuf::from("docs/3-design/adr/README.md"),
+            PathBuf::from("docs/3-design/adr/001-use-rust.md"),
+        ];
+        let ctx = make_ctx(tmp.path(), files);
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_adr_index_fail_missing_ref() {
+        let tmp = TempDir::new().unwrap();
+        let adr_dir = tmp.path().join("docs/3-design/adr");
+        fs::create_dir_all(&adr_dir).unwrap();
+        fs::write(adr_dir.join("README.md"), "# ADR Index\nNothing listed\n").unwrap();
+        fs::write(adr_dir.join("001-use-rust.md"), "# ADR").unwrap();
+        let handler = AdrIndexCompleteness { def: make_def(50) };
+        let files = vec![
+            PathBuf::from("docs/3-design/adr/README.md"),
+            PathBuf::from("docs/3-design/adr/001-use-rust.md"),
+        ];
+        let ctx = make_ctx(tmp.path(), files);
+        assert!(matches!(handler.run(&ctx), CheckResult::Fail { .. }));
+    }
+
+    #[test]
+    fn test_adr_index_skip_no_index() {
+        let tmp = TempDir::new().unwrap();
+        let adr_dir = tmp.path().join("docs/3-design/adr");
+        fs::create_dir_all(&adr_dir).unwrap();
+        fs::write(adr_dir.join("001-use-rust.md"), "# ADR").unwrap();
+        let handler = AdrIndexCompleteness { def: make_def(50) };
+        let files = vec![PathBuf::from("docs/3-design/adr/001-use-rust.md")];
+        let ctx = make_ctx(tmp.path(), files);
+        assert!(matches!(handler.run(&ctx), CheckResult::Skip { .. }));
+    }
+}

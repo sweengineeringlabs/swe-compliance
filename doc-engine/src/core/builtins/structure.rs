@@ -281,3 +281,182 @@ impl CheckRunner for OpenSourceGithubTemplates {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::api::types::{RuleDef, RuleType};
+    use crate::spi::types::{ProjectType, Severity};
+    use std::collections::HashMap;
+    use std::path::PathBuf;
+    use tempfile::TempDir;
+
+    fn make_def(id: u8, handler: &str) -> RuleDef {
+        RuleDef {
+            id,
+            category: "structure".to_string(),
+            description: "test".to_string(),
+            severity: Severity::Error,
+            rule_type: RuleType::Builtin { handler: handler.to_string() },
+            project_type: None,
+        }
+    }
+
+    fn make_ctx(root: &std::path::Path, files: Vec<PathBuf>) -> ScanContext {
+        ScanContext {
+            root: root.to_path_buf(),
+            files,
+            file_contents: HashMap::new(),
+            project_type: ProjectType::OpenSource,
+        }
+    }
+
+    // --- ModuleDocsPlural (checks 4, 5) ---
+
+    #[test]
+    fn test_module_docs_plural_pass() {
+        let tmp = TempDir::new().unwrap();
+        let handler = ModuleDocsPlural { def: make_def(4, "module_docs_plural") };
+        // No doc/ dirs, only docs/ is fine
+        let files = vec![PathBuf::from("modules/auth/docs/README.md")];
+        let ctx = make_ctx(tmp.path(), files);
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_module_docs_plural_fail_singular() {
+        let tmp = TempDir::new().unwrap();
+        let handler = ModuleDocsPlural { def: make_def(4, "module_docs_plural") };
+        let files = vec![PathBuf::from("modules/auth/doc/README.md")];
+        let ctx = make_ctx(tmp.path(), files);
+        assert!(matches!(handler.run(&ctx), CheckResult::Fail { .. }));
+    }
+
+    // --- SdlcPhaseNumbering (checks 9, 10) ---
+
+    #[test]
+    fn test_sdlc_numbering_pass() {
+        let tmp = TempDir::new().unwrap();
+        let docs = tmp.path().join("docs");
+        fs::create_dir_all(docs.join("0-overview")).unwrap();
+        fs::create_dir_all(docs.join("1-requirements")).unwrap();
+        fs::create_dir_all(docs.join("3-design")).unwrap();
+        let handler = SdlcPhaseNumbering { def: make_def(9, "sdlc_phase_numbering") };
+        let ctx = make_ctx(tmp.path(), vec![]);
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_sdlc_numbering_fail_high() {
+        let tmp = TempDir::new().unwrap();
+        let docs = tmp.path().join("docs");
+        fs::create_dir_all(docs.join("9-extra")).unwrap();
+        let handler = SdlcPhaseNumbering { def: make_def(9, "sdlc_phase_numbering") };
+        let ctx = make_ctx(tmp.path(), vec![]);
+        assert!(matches!(handler.run(&ctx), CheckResult::Fail { .. }));
+    }
+
+    #[test]
+    fn test_sdlc_numbering_skip_no_docs() {
+        let tmp = TempDir::new().unwrap();
+        let handler = SdlcPhaseNumbering { def: make_def(9, "sdlc_phase_numbering") };
+        let ctx = make_ctx(tmp.path(), vec![]);
+        assert!(matches!(handler.run(&ctx), CheckResult::Skip { .. }));
+    }
+
+    #[test]
+    fn test_sdlc_ordering_pass() {
+        let tmp = TempDir::new().unwrap();
+        let docs = tmp.path().join("docs");
+        fs::create_dir_all(docs.join("0-overview")).unwrap();
+        fs::create_dir_all(docs.join("1-requirements")).unwrap();
+        fs::create_dir_all(docs.join("3-design")).unwrap();
+        let handler = SdlcPhaseNumbering { def: make_def(10, "sdlc_phase_numbering") };
+        let ctx = make_ctx(tmp.path(), vec![]);
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_sdlc_ordering_fail_duplicate() {
+        let tmp = TempDir::new().unwrap();
+        let docs = tmp.path().join("docs");
+        fs::create_dir_all(docs.join("1-requirements")).unwrap();
+        fs::create_dir_all(docs.join("1-also_requirements")).unwrap();
+        let handler = SdlcPhaseNumbering { def: make_def(10, "sdlc_phase_numbering") };
+        let ctx = make_ctx(tmp.path(), vec![]);
+        assert!(matches!(handler.run(&ctx), CheckResult::Fail { .. }));
+    }
+
+    // --- ChecklistCompleteness (check 8) ---
+
+    #[test]
+    fn test_checklist_pass() {
+        let tmp = TempDir::new().unwrap();
+        let dir = tmp.path().join("docs/3-design/compliance");
+        fs::create_dir_all(&dir).unwrap();
+        let content = (0..15).map(|i| format!("- [x] Rule {}", i)).collect::<Vec<_>>().join("\n");
+        fs::write(dir.join("compliance_checklist.md"), &content).unwrap();
+        let handler = ChecklistCompleteness { def: make_def(8, "checklist_completeness") };
+        let ctx = make_ctx(tmp.path(), vec![]);
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_checklist_fail_few_checkboxes() {
+        let tmp = TempDir::new().unwrap();
+        let dir = tmp.path().join("docs/3-design/compliance");
+        fs::create_dir_all(&dir).unwrap();
+        fs::write(dir.join("compliance_checklist.md"), "- [x] one\n- [ ] two\n").unwrap();
+        let handler = ChecklistCompleteness { def: make_def(8, "checklist_completeness") };
+        let ctx = make_ctx(tmp.path(), vec![]);
+        assert!(matches!(handler.run(&ctx), CheckResult::Fail { .. }));
+    }
+
+    #[test]
+    fn test_checklist_skip_missing() {
+        let tmp = TempDir::new().unwrap();
+        let handler = ChecklistCompleteness { def: make_def(8, "checklist_completeness") };
+        let ctx = make_ctx(tmp.path(), vec![]);
+        assert!(matches!(handler.run(&ctx), CheckResult::Skip { .. }));
+    }
+
+    // --- OpenSourceCommunityFiles (check 31) ---
+
+    #[test]
+    fn test_community_files_pass() {
+        let tmp = TempDir::new().unwrap();
+        fs::write(tmp.path().join("CODE_OF_CONDUCT.md"), "conduct").unwrap();
+        fs::write(tmp.path().join("SUPPORT.md"), "support").unwrap();
+        let handler = OpenSourceCommunityFiles { def: make_def(31, "open_source_community_files") };
+        let ctx = make_ctx(tmp.path(), vec![]);
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_community_files_fail() {
+        let tmp = TempDir::new().unwrap();
+        let handler = OpenSourceCommunityFiles { def: make_def(31, "open_source_community_files") };
+        let ctx = make_ctx(tmp.path(), vec![]);
+        assert!(matches!(handler.run(&ctx), CheckResult::Fail { .. }));
+    }
+
+    // --- OpenSourceGithubTemplates (check 32) ---
+
+    #[test]
+    fn test_github_templates_pass() {
+        let tmp = TempDir::new().unwrap();
+        fs::create_dir_all(tmp.path().join(".github/ISSUE_TEMPLATE")).unwrap();
+        fs::write(tmp.path().join(".github/PULL_REQUEST_TEMPLATE.md"), "template").unwrap();
+        let handler = OpenSourceGithubTemplates { def: make_def(32, "open_source_github_templates") };
+        let ctx = make_ctx(tmp.path(), vec![]);
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_github_templates_fail() {
+        let tmp = TempDir::new().unwrap();
+        let handler = OpenSourceGithubTemplates { def: make_def(32, "open_source_github_templates") };
+        let ctx = make_ctx(tmp.path(), vec![]);
+        assert!(matches!(handler.run(&ctx), CheckResult::Fail { .. }));
+    }
+}

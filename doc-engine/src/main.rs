@@ -65,6 +65,41 @@ fn parse_checks(input: &str) -> Result<Vec<u8>, String> {
     Ok(result)
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_single() {
+        assert_eq!(parse_checks("5").unwrap(), vec![5]);
+    }
+
+    #[test]
+    fn test_parse_comma_list() {
+        assert_eq!(parse_checks("1,5,10").unwrap(), vec![1, 5, 10]);
+    }
+
+    #[test]
+    fn test_parse_range() {
+        assert_eq!(parse_checks("1-5").unwrap(), vec![1, 2, 3, 4, 5]);
+    }
+
+    #[test]
+    fn test_parse_mixed() {
+        assert_eq!(parse_checks("1-3,7,10-12").unwrap(), vec![1, 2, 3, 7, 10, 11, 12]);
+    }
+
+    #[test]
+    fn test_parse_invalid_range() {
+        assert!(parse_checks("5-3").is_err());
+    }
+
+    #[test]
+    fn test_parse_invalid_number() {
+        assert!(parse_checks("abc").is_err());
+    }
+}
+
 fn main() {
     let cli = Cli::parse();
 

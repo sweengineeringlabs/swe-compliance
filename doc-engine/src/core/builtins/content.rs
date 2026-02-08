@@ -260,3 +260,165 @@ impl CheckRunner for GlossaryAcronyms {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::api::types::{RuleDef, RuleType};
+    use crate::spi::types::{ProjectType, Severity};
+    use std::collections::HashMap;
+    use std::path::PathBuf;
+    use tempfile::TempDir;
+
+    fn make_def(id: u8) -> RuleDef {
+        RuleDef {
+            id,
+            category: "content".to_string(),
+            description: "test".to_string(),
+            severity: Severity::Warning,
+            rule_type: RuleType::Builtin { handler: "test".to_string() },
+            project_type: None,
+        }
+    }
+
+    fn make_ctx(root: &std::path::Path, files: Vec<PathBuf>) -> ScanContext {
+        ScanContext {
+            root: root.to_path_buf(),
+            files,
+            file_contents: HashMap::new(),
+            project_type: ProjectType::OpenSource,
+        }
+    }
+
+    // --- TldrConditional (checks 35, 36) ---
+
+    #[test]
+    fn test_tldr_long_no_tldr_fail() {
+        let tmp = TempDir::new().unwrap();
+        fs::create_dir_all(tmp.path().join("docs")).unwrap();
+        // 200+ lines with no TLDR
+        let content = (0..210).map(|i| format!("Line {}", i)).collect::<Vec<_>>().join("\n");
+        fs::write(tmp.path().join("docs/long.md"), &content).unwrap();
+        let handler = TldrConditional { def: make_def(35) };
+        let ctx = make_ctx(tmp.path(), vec![PathBuf::from("docs/long.md")]);
+        assert!(matches!(handler.run(&ctx), CheckResult::Fail { .. }));
+    }
+
+    #[test]
+    fn test_tldr_short_with_tldr_fail() {
+        let tmp = TempDir::new().unwrap();
+        fs::create_dir_all(tmp.path().join("docs")).unwrap();
+        fs::write(tmp.path().join("docs/short.md"), "# Title\n\n## TLDR\nShort doc\n").unwrap();
+        let handler = TldrConditional { def: make_def(36) };
+        let ctx = make_ctx(tmp.path(), vec![PathBuf::from("docs/short.md")]);
+        assert!(matches!(handler.run(&ctx), CheckResult::Fail { .. }));
+    }
+
+    #[test]
+    fn test_tldr_long_with_tldr_pass() {
+        let tmp = TempDir::new().unwrap();
+        fs::create_dir_all(tmp.path().join("docs")).unwrap();
+        let mut content: Vec<String> = (0..210).map(|i| format!("Line {}", i)).collect();
+        content.insert(0, "## TLDR\nSummary here".to_string());
+        fs::write(tmp.path().join("docs/long.md"), content.join("\n")).unwrap();
+        let handler = TldrConditional { def: make_def(35) };
+        let ctx = make_ctx(tmp.path(), vec![PathBuf::from("docs/long.md")]);
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_tldr_short_no_tldr_pass() {
+        let tmp = TempDir::new().unwrap();
+        fs::create_dir_all(tmp.path().join("docs")).unwrap();
+        fs::write(tmp.path().join("docs/short.md"), "# Title\nShort content\n").unwrap();
+        let handler = TldrConditional { def: make_def(36) };
+        let ctx = make_ctx(tmp.path(), vec![PathBuf::from("docs/short.md")]);
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    // --- GlossaryFormat (check 37) ---
+
+    #[test]
+    fn test_glossary_format_pass() {
+        let tmp = TempDir::new().unwrap();
+        fs::create_dir_all(tmp.path().join("docs")).unwrap();
+        fs::write(tmp.path().join("docs/glossary.md"),
+            "# Glossary\n\n**API** - Application Programming Interface\n**CLI** - Command Line Interface\n"
+        ).unwrap();
+        let handler = GlossaryFormat { def: make_def(37) };
+        let ctx = make_ctx(tmp.path(), vec![]);
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_glossary_format_fail() {
+        let tmp = TempDir::new().unwrap();
+        fs::create_dir_all(tmp.path().join("docs")).unwrap();
+        fs::write(tmp.path().join("docs/glossary.md"),
+            "# Glossary\n\n**API**\n"
+        ).unwrap();
+        let handler = GlossaryFormat { def: make_def(37) };
+        let ctx = make_ctx(tmp.path(), vec![]);
+        assert!(matches!(handler.run(&ctx), CheckResult::Fail { .. }));
+    }
+
+    #[test]
+    fn test_glossary_format_skip() {
+        let tmp = TempDir::new().unwrap();
+        let handler = GlossaryFormat { def: make_def(37) };
+        let ctx = make_ctx(tmp.path(), vec![]);
+        assert!(matches!(handler.run(&ctx), CheckResult::Skip { .. }));
+    }
+
+    // --- GlossaryAlphabetized (check 38) ---
+
+    #[test]
+    fn test_glossary_alphabetized_pass() {
+        let tmp = TempDir::new().unwrap();
+        fs::create_dir_all(tmp.path().join("docs")).unwrap();
+        fs::write(tmp.path().join("docs/glossary.md"),
+            "**API** - Application\n**CLI** - Command\n**SDK** - Software\n"
+        ).unwrap();
+        let handler = GlossaryAlphabetized { def: make_def(38) };
+        let ctx = make_ctx(tmp.path(), vec![]);
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_glossary_alphabetized_fail() {
+        let tmp = TempDir::new().unwrap();
+        fs::create_dir_all(tmp.path().join("docs")).unwrap();
+        fs::write(tmp.path().join("docs/glossary.md"),
+            "**SDK** - Software\n**API** - Application\n"
+        ).unwrap();
+        let handler = GlossaryAlphabetized { def: make_def(38) };
+        let ctx = make_ctx(tmp.path(), vec![]);
+        assert!(matches!(handler.run(&ctx), CheckResult::Fail { .. }));
+    }
+
+    // --- GlossaryAcronyms (check 39) ---
+
+    #[test]
+    fn test_glossary_acronyms_pass() {
+        let tmp = TempDir::new().unwrap();
+        fs::create_dir_all(tmp.path().join("docs")).unwrap();
+        fs::write(tmp.path().join("docs/glossary.md"),
+            "**API** - Application Programming Interface\n"
+        ).unwrap();
+        let handler = GlossaryAcronyms { def: make_def(39) };
+        let ctx = make_ctx(tmp.path(), vec![]);
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_glossary_acronyms_fail() {
+        let tmp = TempDir::new().unwrap();
+        fs::create_dir_all(tmp.path().join("docs")).unwrap();
+        fs::write(tmp.path().join("docs/glossary.md"),
+            "**API** - API API API\n"
+        ).unwrap();
+        let handler = GlossaryAcronyms { def: make_def(39) };
+        let ctx = make_ctx(tmp.path(), vec![]);
+        assert!(matches!(handler.run(&ctx), CheckResult::Fail { .. }));
+    }
+}

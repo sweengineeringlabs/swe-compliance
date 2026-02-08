@@ -181,3 +181,117 @@ impl CheckRunner for NoDeepLinks {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::api::types::{RuleDef, RuleType};
+    use crate::spi::types::{ProjectType, Severity};
+    use std::collections::HashMap;
+    use std::path::PathBuf;
+    use tempfile::TempDir;
+
+    fn make_def(id: u8) -> RuleDef {
+        RuleDef {
+            id,
+            category: "navigation".to_string(),
+            description: "test".to_string(),
+            severity: Severity::Warning,
+            rule_type: RuleType::Builtin { handler: "test".to_string() },
+            project_type: None,
+        }
+    }
+
+    fn make_ctx(root: &std::path::Path, files: Vec<PathBuf>) -> ScanContext {
+        ScanContext {
+            root: root.to_path_buf(),
+            files,
+            file_contents: HashMap::new(),
+            project_type: ProjectType::OpenSource,
+        }
+    }
+
+    // --- W3hHub (check 41) ---
+
+    #[test]
+    fn test_w3h_hub_pass() {
+        let tmp = TempDir::new().unwrap();
+        fs::create_dir_all(tmp.path().join("docs")).unwrap();
+        fs::write(tmp.path().join("docs/README.md"),
+            "# Hub\n## Who\nTeam\n## What\nProduct\n## Why\nReason\n## How\nProcess\n"
+        ).unwrap();
+        let handler = W3hHub { def: make_def(41) };
+        let ctx = make_ctx(tmp.path(), vec![]);
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_w3h_hub_fail() {
+        let tmp = TempDir::new().unwrap();
+        fs::create_dir_all(tmp.path().join("docs")).unwrap();
+        fs::write(tmp.path().join("docs/README.md"), "# Hub\nJust some text\n").unwrap();
+        let handler = W3hHub { def: make_def(41) };
+        let ctx = make_ctx(tmp.path(), vec![]);
+        assert!(matches!(handler.run(&ctx), CheckResult::Fail { .. }));
+    }
+
+    #[test]
+    fn test_w3h_hub_skip() {
+        let tmp = TempDir::new().unwrap();
+        let handler = W3hHub { def: make_def(41) };
+        let ctx = make_ctx(tmp.path(), vec![]);
+        assert!(matches!(handler.run(&ctx), CheckResult::Skip { .. }));
+    }
+
+    // --- HubLinksPhases (check 42) ---
+
+    #[test]
+    fn test_hub_links_phases_pass() {
+        let tmp = TempDir::new().unwrap();
+        let docs = tmp.path().join("docs");
+        fs::create_dir_all(docs.join("0-overview")).unwrap();
+        fs::create_dir_all(docs.join("1-requirements")).unwrap();
+        fs::write(docs.join("README.md"),
+            "# Hub\n- [Overview](0-overview/)\n- [Requirements](1-requirements/)\n"
+        ).unwrap();
+        let handler = HubLinksPhases { def: make_def(42) };
+        let ctx = make_ctx(tmp.path(), vec![]);
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_hub_links_phases_fail() {
+        let tmp = TempDir::new().unwrap();
+        let docs = tmp.path().join("docs");
+        fs::create_dir_all(docs.join("0-overview")).unwrap();
+        fs::create_dir_all(docs.join("1-requirements")).unwrap();
+        fs::write(docs.join("README.md"), "# Hub\nNo links here\n").unwrap();
+        let handler = HubLinksPhases { def: make_def(42) };
+        let ctx = make_ctx(tmp.path(), vec![]);
+        assert!(matches!(handler.run(&ctx), CheckResult::Fail { .. }));
+    }
+
+    // --- NoDeepLinks (check 43) ---
+
+    #[test]
+    fn test_no_deep_links_pass() {
+        let tmp = TempDir::new().unwrap();
+        fs::write(tmp.path().join("README.md"),
+            "# Project\nSee [docs](docs/README.md) for details.\n"
+        ).unwrap();
+        let handler = NoDeepLinks { def: make_def(43) };
+        let ctx = make_ctx(tmp.path(), vec![]);
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_no_deep_links_fail() {
+        let tmp = TempDir::new().unwrap();
+        fs::write(tmp.path().join("README.md"),
+            "# Project\nSee [architecture](docs/3-design/architecture.md) for details.\n"
+        ).unwrap();
+        let handler = NoDeepLinks { def: make_def(43) };
+        let ctx = make_ctx(tmp.path(), vec![]);
+        assert!(matches!(handler.run(&ctx), CheckResult::Fail { .. }));
+    }
+}

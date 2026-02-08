@@ -82,3 +82,140 @@ impl Reporter for JsonReporter {
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::api::types::{ScanSummary, CheckEntry};
+    use crate::spi::types::{CheckId, ProjectType, Violation, Severity};
+
+    fn make_report(entries: Vec<CheckEntry>) -> ScanReport {
+        let total = entries.len() as u8;
+        let passed = entries.iter().filter(|e| matches!(e.result, CheckResult::Pass)).count() as u8;
+        let failed = entries.iter().filter(|e| matches!(e.result, CheckResult::Fail { .. })).count() as u8;
+        let skipped = entries.iter().filter(|e| matches!(e.result, CheckResult::Skip { .. })).count() as u8;
+        ScanReport {
+            results: entries,
+            summary: ScanSummary { total, passed, failed, skipped },
+            project_type: ProjectType::OpenSource,
+        }
+    }
+
+    #[test]
+    fn test_text_pass_only() {
+        let report = make_report(vec![
+            CheckEntry {
+                id: CheckId(1),
+                category: "structure".to_string(),
+                description: "docs/ exists".to_string(),
+                result: CheckResult::Pass,
+            },
+        ]);
+        let text = TextReporter.report(&report);
+        assert!(text.contains("[PASS]"));
+        assert!(!text.contains("[FAIL]"));
+    }
+
+    #[test]
+    fn test_text_mixed() {
+        let report = make_report(vec![
+            CheckEntry {
+                id: CheckId(1),
+                category: "structure".to_string(),
+                description: "check pass".to_string(),
+                result: CheckResult::Pass,
+            },
+            CheckEntry {
+                id: CheckId(2),
+                category: "structure".to_string(),
+                description: "check fail".to_string(),
+                result: CheckResult::Fail {
+                    violations: vec![Violation {
+                        check_id: CheckId(2),
+                        path: Some("docs/bad.md".into()),
+                        message: "violation msg".to_string(),
+                        severity: Severity::Error,
+                    }],
+                },
+            },
+            CheckEntry {
+                id: CheckId(3),
+                category: "structure".to_string(),
+                description: "check skip".to_string(),
+                result: CheckResult::Skip { reason: "not applicable".to_string() },
+            },
+        ]);
+        let text = TextReporter.report(&report);
+        assert!(text.contains("[PASS]"));
+        assert!(text.contains("[FAIL]"));
+        assert!(text.contains("[SKIP]"));
+        assert!(text.contains("violation msg"));
+        assert!(text.contains("not applicable"));
+    }
+
+    #[test]
+    fn test_text_summary() {
+        let report = make_report(vec![
+            CheckEntry {
+                id: CheckId(1),
+                category: "a".to_string(),
+                description: "d".to_string(),
+                result: CheckResult::Pass,
+            },
+            CheckEntry {
+                id: CheckId(2),
+                category: "a".to_string(),
+                description: "d".to_string(),
+                result: CheckResult::Fail { violations: vec![] },
+            },
+        ]);
+        let text = TextReporter.report(&report);
+        assert!(text.contains("1/2 passed, 1 failed, 0 skipped"));
+    }
+
+    #[test]
+    fn test_json_valid() {
+        let report = make_report(vec![
+            CheckEntry {
+                id: CheckId(1),
+                category: "a".to_string(),
+                description: "d".to_string(),
+                result: CheckResult::Pass,
+            },
+        ]);
+        let json = JsonReporter.report(&report);
+        let val: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert!(val.is_object());
+    }
+
+    #[test]
+    fn test_json_roundtrip() {
+        let report = make_report(vec![
+            CheckEntry {
+                id: CheckId(1),
+                category: "structure".to_string(),
+                description: "docs/ exists".to_string(),
+                result: CheckResult::Pass,
+            },
+            CheckEntry {
+                id: CheckId(2),
+                category: "structure".to_string(),
+                description: "fail check".to_string(),
+                result: CheckResult::Fail {
+                    violations: vec![Violation {
+                        check_id: CheckId(2),
+                        path: Some("bad.md".into()),
+                        message: "bad".to_string(),
+                        severity: Severity::Warning,
+                    }],
+                },
+            },
+        ]);
+        let json = JsonReporter.report(&report);
+        let deserialized: ScanReport = serde_json::from_str(&json).unwrap();
+        assert_eq!(deserialized.results.len(), 2);
+        assert_eq!(deserialized.summary.total, 2);
+        assert_eq!(deserialized.summary.passed, 1);
+        assert_eq!(deserialized.summary.failed, 1);
+    }
+}
