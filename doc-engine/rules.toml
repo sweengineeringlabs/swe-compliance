@@ -1,0 +1,442 @@
+# doc-engine rules — 50 base documentation compliance checks
+# Embedded in binary via include_str!("../../rules.toml")
+
+# =============================================================================
+# Checks 1-13: Structure
+# =============================================================================
+
+[[rules]]
+id = 1
+category = "structure"
+description = "Root docs/ folder exists (plural)"
+severity = "error"
+type = "dir_exists"
+path = "docs"
+
+[[rules]]
+id = 2
+category = "structure"
+description = "docs/README.md hub document exists"
+severity = "error"
+type = "file_exists"
+path = "docs/README.md"
+
+[[rules]]
+id = 3
+category = "structure"
+description = "docs/glossary.md exists"
+severity = "error"
+type = "file_exists"
+path = "docs/glossary.md"
+
+[[rules]]
+id = 4
+category = "structure"
+description = "All module doc folders use docs/ (plural), not doc/"
+severity = "error"
+type = "builtin"
+handler = "module_docs_plural"
+
+[[rules]]
+id = 5
+category = "structure"
+description = "No module has both doc/ and docs/"
+severity = "error"
+type = "builtin"
+handler = "module_docs_plural"
+
+[[rules]]
+id = 6
+category = "structure"
+description = "docs/3-design/compliance/compliance_checklist.md exists"
+severity = "warning"
+type = "file_exists"
+path = "docs/3-design/compliance/compliance_checklist.md"
+
+[[rules]]
+id = 7
+category = "structure"
+description = "Compliance checklist references architecture.md"
+severity = "info"
+type = "file_content_matches"
+path = "docs/3-design/compliance/compliance_checklist.md"
+pattern = "architecture\\.md"
+
+[[rules]]
+id = 8
+category = "structure"
+description = "Every enforceable rule has a checkbox"
+severity = "info"
+type = "builtin"
+handler = "checklist_completeness"
+
+[[rules]]
+id = 9
+category = "structure"
+description = "SDLC phase numbering correct (0-7)"
+severity = "warning"
+type = "builtin"
+handler = "sdlc_phase_numbering"
+
+[[rules]]
+id = 10
+category = "structure"
+description = "SDLC phases in correct order"
+severity = "warning"
+type = "builtin"
+handler = "sdlc_phase_numbering"
+
+[[rules]]
+id = 11
+category = "structure"
+description = "ADR directory docs/3-design/adr/ exists"
+severity = "warning"
+type = "dir_exists"
+path = "docs/3-design/adr"
+
+[[rules]]
+id = 12
+category = "structure"
+description = "Developer guides in 4-development/guide/ (singular, not guides/)"
+severity = "warning"
+type = "dir_not_exists"
+path = "docs/4-development/guides"
+message = "Use guide/ (singular), not guides/"
+
+[[rules]]
+id = 13
+category = "structure"
+description = "UX/UI assets in uxui/ (not uiux/)"
+severity = "warning"
+type = "dir_not_exists"
+path = "docs/uiux"
+message = "Use uxui/, not uiux/"
+
+# =============================================================================
+# Checks 14-25: Naming
+# =============================================================================
+
+[[rules]]
+id = 14
+category = "naming"
+description = "README.md exists (uppercase)"
+severity = "error"
+type = "file_exists"
+path = "README.md"
+
+[[rules]]
+id = 15
+category = "naming"
+description = "CONTRIBUTING.md exists (uppercase)"
+severity = "error"
+type = "file_exists"
+path = "CONTRIBUTING.md"
+
+[[rules]]
+id = 16
+category = "naming"
+description = "CHANGELOG.md exists (uppercase)"
+severity = "error"
+type = "file_exists"
+path = "CHANGELOG.md"
+
+[[rules]]
+id = 17
+category = "naming"
+description = "SECURITY.md exists (uppercase)"
+severity = "error"
+type = "file_exists"
+path = "SECURITY.md"
+
+[[rules]]
+id = 18
+category = "naming"
+description = "LICENSE file exists (uppercase)"
+severity = "error"
+type = "file_exists"
+path = "LICENSE"
+
+[[rules]]
+id = 19
+category = "naming"
+description = ".gitignore exists"
+severity = "error"
+type = "file_exists"
+path = ".gitignore"
+
+[[rules]]
+id = 20
+category = "naming"
+description = ".editorconfig exists"
+severity = "warning"
+type = "file_exists"
+path = ".editorconfig"
+
+[[rules]]
+id = 21
+category = "naming"
+description = "All filenames in docs/ are lowercase"
+severity = "error"
+type = "builtin"
+handler = "snake_lower_case"
+
+[[rules]]
+id = 22
+category = "naming"
+description = "All filenames in docs/ use underscores, not hyphens"
+severity = "error"
+type = "builtin"
+handler = "snake_lower_case"
+
+[[rules]]
+id = 23
+category = "naming"
+description = "No spaces in docs/ filenames"
+severity = "error"
+type = "builtin"
+handler = "snake_lower_case"
+
+[[rules]]
+id = 24
+category = "naming"
+description = "Guide files follow name_{phase}_guide.md convention"
+severity = "warning"
+type = "builtin"
+handler = "guide_naming"
+
+[[rules]]
+id = 25
+category = "naming"
+description = "No *_testing_* files outside 5-testing/"
+severity = "warning"
+type = "builtin"
+handler = "testing_file_placement"
+
+# =============================================================================
+# Checks 26-32: Root Files
+# =============================================================================
+
+[[rules]]
+id = 26
+category = "root_files"
+description = "README.md exists"
+severity = "error"
+type = "file_exists"
+path = "README.md"
+
+[[rules]]
+id = 27
+category = "root_files"
+description = "CONTRIBUTING.md exists"
+severity = "error"
+type = "file_exists"
+path = "CONTRIBUTING.md"
+
+[[rules]]
+id = 28
+category = "root_files"
+description = "CHANGELOG.md exists"
+severity = "warning"
+type = "file_exists"
+path = "CHANGELOG.md"
+
+[[rules]]
+id = 29
+category = "root_files"
+description = "SECURITY.md exists"
+severity = "error"
+type = "file_exists"
+path = "SECURITY.md"
+
+[[rules]]
+id = 30
+category = "root_files"
+description = "LICENSE file exists"
+severity = "error"
+type = "file_exists"
+path = "LICENSE"
+
+[[rules]]
+id = 31
+category = "root_files"
+description = "CODE_OF_CONDUCT.md and SUPPORT.md exist (open-source)"
+severity = "warning"
+type = "builtin"
+handler = "open_source_community_files"
+project_type = "open_source"
+
+[[rules]]
+id = 32
+category = "root_files"
+description = "GitHub issue/PR templates exist (open-source)"
+severity = "warning"
+type = "builtin"
+handler = "open_source_github_templates"
+project_type = "open_source"
+
+# =============================================================================
+# Checks 33-39: Content
+# =============================================================================
+
+[[rules]]
+id = 33
+category = "content"
+description = "Every .md file in docs/ has **Audience**: declaration"
+severity = "error"
+type = "glob_content_matches"
+glob = "docs/**/*.md"
+pattern = "\\*\\*Audience\\*\\*:"
+
+[[rules]]
+id = 34
+category = "content"
+description = "Module README.md files have **Audience**: declaration"
+severity = "error"
+type = "glob_content_matches"
+glob = "**/docs/README.md"
+pattern = "\\*\\*Audience\\*\\*:"
+
+[[rules]]
+id = 35
+category = "content"
+description = "Docs >=200 lines should have TLDR section"
+severity = "warning"
+type = "builtin"
+handler = "tldr_conditional"
+
+[[rules]]
+id = 36
+category = "content"
+description = "Docs <200 lines should not need TLDR section"
+severity = "info"
+type = "builtin"
+handler = "tldr_conditional"
+
+[[rules]]
+id = 37
+category = "content"
+description = "Glossary uses **Term** - Definition format"
+severity = "warning"
+type = "builtin"
+handler = "glossary_format"
+
+[[rules]]
+id = 38
+category = "content"
+description = "Glossary terms are alphabetized"
+severity = "warning"
+type = "builtin"
+handler = "glossary_alphabetized"
+
+[[rules]]
+id = 39
+category = "content"
+description = "Glossary acronyms have expansions"
+severity = "info"
+type = "builtin"
+handler = "glossary_acronyms"
+
+# =============================================================================
+# Checks 40-43: Navigation
+# =============================================================================
+
+[[rules]]
+id = 40
+category = "navigation"
+description = "Root README links to docs/README.md"
+severity = "error"
+type = "file_content_matches"
+path = "README.md"
+pattern = "docs/README\\.md"
+
+[[rules]]
+id = 41
+category = "navigation"
+description = "docs/README.md hub uses W3H structure"
+severity = "warning"
+type = "builtin"
+handler = "w3h_hub"
+
+[[rules]]
+id = 42
+category = "navigation"
+description = "Hub links to all present SDLC phase directories"
+severity = "warning"
+type = "builtin"
+handler = "hub_links_phases"
+
+[[rules]]
+id = 43
+category = "navigation"
+description = "Root README does not deep-link into docs/ subdirectories"
+severity = "warning"
+type = "builtin"
+handler = "no_deep_links"
+
+# =============================================================================
+# Checks 44-47: Cross-References
+# =============================================================================
+
+[[rules]]
+id = 44
+category = "cross_ref"
+description = "All internal markdown links resolve to existing files"
+severity = "error"
+type = "builtin"
+handler = "link_resolution"
+
+[[rules]]
+id = 45
+category = "cross_ref"
+description = "All relative links are valid"
+severity = "warning"
+type = "builtin"
+handler = "link_resolution"
+
+[[rules]]
+id = 46
+category = "cross_ref"
+description = "All references use docs/ (plural), not doc/"
+severity = "error"
+type = "glob_content_not_matches"
+glob = "docs/**/*.md"
+pattern = "\\bdoc/"
+exclude_pattern = "docs/"
+
+[[rules]]
+id = 47
+category = "cross_ref"
+description = "All references use guide/ (singular), not guides/"
+severity = "error"
+type = "glob_content_not_matches"
+glob = "docs/**/*.md"
+pattern = "\\bguides/"
+exclude_pattern = "guide/"
+
+# =============================================================================
+# Checks 48-50: ADR
+# =============================================================================
+
+[[rules]]
+id = 48
+category = "adr"
+description = "ADR index file exists"
+severity = "warning"
+type = "file_exists"
+path = "docs/3-design/adr/README.md"
+
+[[rules]]
+id = 49
+category = "adr"
+description = "ADR files follow NNN-title.md naming convention"
+severity = "warning"
+type = "builtin"
+handler = "adr_naming"
+
+[[rules]]
+id = 50
+category = "adr"
+description = "ADR index references all ADR files"
+severity = "info"
+type = "builtin"
+handler = "adr_index_completeness"
