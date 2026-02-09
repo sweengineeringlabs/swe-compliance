@@ -10,6 +10,15 @@ doc-engine uses a Single-Crate Modular SEA architecture with a CLI binary and re
 
 doc-engine is a Rust CLI tool and library that programmatically audits any project against the 66 compliance checks (53 base + 13 backlog) plus 15 opt-in spec checks defined by the template-engine documentation framework. It follows the Single-Crate Modular SEA (Stratified Encapsulation Architecture) pattern.
 
+## Who
+
+| Stakeholder | Concerns |
+|-------------|----------|
+| Developers | Extensibility (adding new checks), testability, build times |
+| Architects | Layer separation (SEA), dependency direction, module boundaries |
+| CI/CD operators | Exit codes, JSON output, integration into pipelines |
+| Project leads | Coverage completeness, severity model, compliance reporting |
+
 ## Why
 
 Manual documentation audits are slow, inconsistent, and error-prone. doc-engine automates compliance verification so teams can enforce documentation standards in CI.

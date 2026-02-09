@@ -669,7 +669,7 @@ handler = "srs_29148_attributes"
 [[rules]]
 id = 90
 category = "requirements"
-description = "Architecture document has ISO/IEC/IEEE 42010:2022 sections"
+description = "Architecture documents have ISO/IEC/IEEE 42010:2022 sections"
 severity = "info"
 type = "builtin"
 handler = "arch_42010_sections"
@@ -678,7 +678,7 @@ handler = "arch_42010_sections"
 [[rules]]
 id = 91
 category = "requirements"
-description = "Testing strategy has ISO/IEC/IEEE 29119-3:2021 sections"
+description = "Testing strategies have ISO/IEC/IEEE 29119-3:2021 sections"
 severity = "info"
 type = "builtin"
 handler = "test_29119_sections"

@@ -108,9 +108,60 @@ impl CheckRunner for Srs29148Attributes {
     }
 }
 
+use std::path::PathBuf;
+use super::module::discover_modules;
+
+/// Shared helper: check a single file against a set of regex categories.
+/// Returns the list of missing category names, or None if the file doesn't
+/// exist or is empty (caller decides whether that's a skip or pass).
+enum FileCheckResult<'a> {
+    Missing(Vec<&'a str>),
+    FileAbsent,
+    FileEmpty,
+    #[allow(dead_code)]
+    ReadError(String),
+}
+
+fn check_file_sections<'a>(
+    path: &std::path::Path,
+    categories: &'a [(&'a str, Regex)],
+) -> FileCheckResult<'a> {
+    if !path.exists() {
+        return FileCheckResult::FileAbsent;
+    }
+    let content = match fs::read_to_string(path) {
+        Ok(c) => c,
+        Err(e) => return FileCheckResult::ReadError(e.to_string()),
+    };
+    if content.trim().is_empty() {
+        return FileCheckResult::FileEmpty;
+    }
+    let missing: Vec<&str> = categories.iter()
+        .filter(|(_, re)| !re.is_match(&content))
+        .map(|(name, _)| *name)
+        .collect();
+    FileCheckResult::Missing(missing)
+}
+
+fn arch_42010_categories() -> Vec<(&'static str, Regex)> {
+    vec![
+        ("Stakeholders", Regex::new(r"(?i)(stakeholder|## who\b)").unwrap()),
+        ("Concerns/rationale", Regex::new(r"(?i)(concern|rationale|## why\b|design.decision)").unwrap()),
+        ("Viewpoints/views", Regex::new(r"(?i)(viewpoint|## what\b|## how\b|layer.model|layer.architect|system.diagram)").unwrap()),
+    ]
+}
+
+fn test_29119_categories() -> Vec<(&'static str, Regex)> {
+    vec![
+        ("Strategy/scope", Regex::new(r"(?i)(test.strateg|test.scope|test.design|test.approach)").unwrap()),
+        ("Test cases/categories", Regex::new(r"(?i)(test.categor|test.case|test.plan|test.pyramid)").unwrap()),
+        ("Coverage/criteria", Regex::new(r"(?i)(coverage.target|exit.criteria|entry.criteria|test.procedure)").unwrap()),
+    ]
+}
+
 /// Check 90: arch_42010_sections
-/// Validates that docs/3-design/architecture.md has key ISO/IEC/IEEE 42010:2022
-/// sections: stakeholder identification, architectural concerns, and viewpoints.
+/// Validates that docs/3-design/architecture.md (project-level and module-level)
+/// has key ISO/IEC/IEEE 42010:2022 sections: stakeholders, concerns, viewpoints.
 pub struct Arch42010Sections {
     pub def: RuleDef,
 }
@@ -121,61 +172,73 @@ impl CheckRunner for Arch42010Sections {
     fn description(&self) -> &str { &self.def.description }
 
     fn run(&self, ctx: &ScanContext) -> CheckResult {
-        let arch_path = ctx.root.join("docs/3-design/architecture.md");
-        if !arch_path.exists() {
-            return CheckResult::Skip {
-                reason: "docs/3-design/architecture.md does not exist".to_string(),
-            };
-        }
+        let categories = arch_42010_categories();
+        let mut violations = Vec::new();
+        let mut any_file_found = false;
 
-        let content = match fs::read_to_string(&arch_path) {
-            Ok(c) => c,
-            Err(e) => {
-                return CheckResult::Skip {
-                    reason: format!("Cannot read architecture.md: {}", e),
-                };
+        // Project-level
+        let project_path = ctx.root.join("docs/3-design/architecture.md");
+        match check_file_sections(&project_path, &categories) {
+            FileCheckResult::Missing(missing) => {
+                any_file_found = true;
+                if !missing.is_empty() {
+                    violations.push(Violation {
+                        check_id: CheckId(self.def.id),
+                        path: Some("docs/3-design/architecture.md".into()),
+                        message: format!(
+                            "Architecture document missing 42010 section{}: {}",
+                            if missing.len() > 1 { "s" } else { "" },
+                            missing.join(", ")
+                        ),
+                        severity: self.def.severity.clone(),
+                    });
+                }
             }
-        };
+            FileCheckResult::FileEmpty | FileCheckResult::FileAbsent | FileCheckResult::ReadError(_) => {}
+        }
 
-        if content.trim().is_empty() {
+        // Module-level
+        for m in discover_modules(ctx) {
+            let rel: PathBuf = m.path.join("docs/3-design/architecture.md");
+            let abs = ctx.root.join(&rel);
+            match check_file_sections(&abs, &categories) {
+                FileCheckResult::Missing(missing) => {
+                    any_file_found = true;
+                    if !missing.is_empty() {
+                        violations.push(Violation {
+                            check_id: CheckId(self.def.id),
+                            path: Some(rel),
+                            message: format!(
+                                "Module '{}' architecture missing 42010 section{}: {}",
+                                m.name,
+                                if missing.len() > 1 { "s" } else { "" },
+                                missing.join(", ")
+                            ),
+                            severity: self.def.severity.clone(),
+                        });
+                    }
+                }
+                FileCheckResult::FileEmpty | FileCheckResult::FileAbsent | FileCheckResult::ReadError(_) => {}
+            }
+        }
+
+        if !any_file_found {
             return CheckResult::Skip {
-                reason: "architecture.md is empty".to_string(),
+                reason: "No architecture.md files found (project or module level)".to_string(),
             };
         }
 
-        let categories: &[(&str, Regex)] = &[
-            ("Stakeholders", Regex::new(r"(?i)(stakeholder|## who\b)").unwrap()),
-            ("Concerns/rationale", Regex::new(r"(?i)(concern|rationale|## why\b|design.decision)").unwrap()),
-            ("Viewpoints/views", Regex::new(r"(?i)(viewpoint|## what\b|## how\b|layer.model|layer.architect|system.diagram)").unwrap()),
-        ];
-
-        let missing: Vec<&str> = categories.iter()
-            .filter(|(_, re)| !re.is_match(&content))
-            .map(|(name, _)| *name)
-            .collect();
-
-        if missing.is_empty() {
+        if violations.is_empty() {
             CheckResult::Pass
         } else {
-            CheckResult::Fail {
-                violations: vec![Violation {
-                    check_id: CheckId(self.def.id),
-                    path: Some("docs/3-design/architecture.md".into()),
-                    message: format!(
-                        "Architecture document missing 42010 section{}: {}",
-                        if missing.len() > 1 { "s" } else { "" },
-                        missing.join(", ")
-                    ),
-                    severity: self.def.severity.clone(),
-                }],
-            }
+            CheckResult::Fail { violations }
         }
     }
 }
 
 /// Check 91: test_29119_sections
-/// Validates that docs/5-testing/testing_strategy.md has key ISO/IEC/IEEE 29119-3:2021
-/// sections: test strategy/scope, test categories/cases, and coverage/criteria.
+/// Validates that docs/5-testing/testing_strategy.md (project-level and module-level)
+/// has key ISO/IEC/IEEE 29119-3:2021 sections: strategy, cases, coverage.
 pub struct Test29119Sections {
     pub def: RuleDef,
 }
@@ -186,54 +249,66 @@ impl CheckRunner for Test29119Sections {
     fn description(&self) -> &str { &self.def.description }
 
     fn run(&self, ctx: &ScanContext) -> CheckResult {
-        let test_path = ctx.root.join("docs/5-testing/testing_strategy.md");
-        if !test_path.exists() {
-            return CheckResult::Skip {
-                reason: "docs/5-testing/testing_strategy.md does not exist".to_string(),
-            };
-        }
+        let categories = test_29119_categories();
+        let mut violations = Vec::new();
+        let mut any_file_found = false;
 
-        let content = match fs::read_to_string(&test_path) {
-            Ok(c) => c,
-            Err(e) => {
-                return CheckResult::Skip {
-                    reason: format!("Cannot read testing_strategy.md: {}", e),
-                };
+        // Project-level
+        let project_path = ctx.root.join("docs/5-testing/testing_strategy.md");
+        match check_file_sections(&project_path, &categories) {
+            FileCheckResult::Missing(missing) => {
+                any_file_found = true;
+                if !missing.is_empty() {
+                    violations.push(Violation {
+                        check_id: CheckId(self.def.id),
+                        path: Some("docs/5-testing/testing_strategy.md".into()),
+                        message: format!(
+                            "Testing strategy missing 29119-3 section{}: {}",
+                            if missing.len() > 1 { "s" } else { "" },
+                            missing.join(", ")
+                        ),
+                        severity: self.def.severity.clone(),
+                    });
+                }
             }
-        };
+            FileCheckResult::FileEmpty | FileCheckResult::FileAbsent | FileCheckResult::ReadError(_) => {}
+        }
 
-        if content.trim().is_empty() {
+        // Module-level
+        for m in discover_modules(ctx) {
+            let rel: PathBuf = m.path.join("docs/5-testing/testing_strategy.md");
+            let abs = ctx.root.join(&rel);
+            match check_file_sections(&abs, &categories) {
+                FileCheckResult::Missing(missing) => {
+                    any_file_found = true;
+                    if !missing.is_empty() {
+                        violations.push(Violation {
+                            check_id: CheckId(self.def.id),
+                            path: Some(rel),
+                            message: format!(
+                                "Module '{}' testing strategy missing 29119-3 section{}: {}",
+                                m.name,
+                                if missing.len() > 1 { "s" } else { "" },
+                                missing.join(", ")
+                            ),
+                            severity: self.def.severity.clone(),
+                        });
+                    }
+                }
+                FileCheckResult::FileEmpty | FileCheckResult::FileAbsent | FileCheckResult::ReadError(_) => {}
+            }
+        }
+
+        if !any_file_found {
             return CheckResult::Skip {
-                reason: "testing_strategy.md is empty".to_string(),
+                reason: "No testing_strategy.md files found (project or module level)".to_string(),
             };
         }
 
-        let categories: &[(&str, Regex)] = &[
-            ("Strategy/scope", Regex::new(r"(?i)(test.strateg|test.scope|test.design|test.approach)").unwrap()),
-            ("Test cases/categories", Regex::new(r"(?i)(test.categor|test.case|test.plan|test.pyramid)").unwrap()),
-            ("Coverage/criteria", Regex::new(r"(?i)(coverage.target|exit.criteria|entry.criteria|test.procedure)").unwrap()),
-        ];
-
-        let missing: Vec<&str> = categories.iter()
-            .filter(|(_, re)| !re.is_match(&content))
-            .map(|(name, _)| *name)
-            .collect();
-
-        if missing.is_empty() {
+        if violations.is_empty() {
             CheckResult::Pass
         } else {
-            CheckResult::Fail {
-                violations: vec![Violation {
-                    check_id: CheckId(self.def.id),
-                    path: Some("docs/5-testing/testing_strategy.md".into()),
-                    message: format!(
-                        "Testing strategy missing 29119-3 section{}: {}",
-                        if missing.len() > 1 { "s" } else { "" },
-                        missing.join(", ")
-                    ),
-                    severity: self.def.severity.clone(),
-                }],
-            }
+            CheckResult::Fail { violations }
         }
     }
 }
@@ -669,5 +744,116 @@ mod tests {
         let handler = Test29119Sections { def: make_test_def() };
         let ctx = make_ctx(tmp.path());
         assert!(matches!(handler.run(&ctx), CheckResult::Skip { .. }));
+    }
+
+    // =========================================================================
+    // Check 90: Module-level architecture
+    // =========================================================================
+
+    #[test]
+    fn test_arch_42010_pass_module_level() {
+        let tmp = TempDir::new().unwrap();
+        // Module with architecture doc that has 42010 sections
+        std::fs::create_dir_all(tmp.path().join("crates/auth")).unwrap();
+        std::fs::write(tmp.path().join("crates/auth/Cargo.toml"), "[package]").unwrap();
+        write_file(tmp.path(), "crates/auth/docs/3-design/architecture.md",
+            "# Auth Architecture\n\n\
+             ## Stakeholders\nAuth team\n\n\
+             ## Concerns\nSecurity, latency\n\n\
+             ## Viewpoints\nStructural\n");
+
+        let handler = Arch42010Sections { def: make_arch_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_arch_42010_fail_module_missing_sections() {
+        let tmp = TempDir::new().unwrap();
+        // Project-level passes, module-level fails
+        write_file(tmp.path(), "docs/3-design/architecture.md",
+            "# Architecture\n\n## Stakeholders\nTeam\n\n## Concerns\nPerf\n\n## Viewpoints\nStructural\n");
+        std::fs::create_dir_all(tmp.path().join("crates/auth")).unwrap();
+        std::fs::write(tmp.path().join("crates/auth/Cargo.toml"), "[package]").unwrap();
+        write_file(tmp.path(), "crates/auth/docs/3-design/architecture.md",
+            "# Auth Architecture\n\nJust some text.\n");
+
+        let handler = Arch42010Sections { def: make_arch_def() };
+        let ctx = make_ctx(tmp.path());
+        match handler.run(&ctx) {
+            CheckResult::Fail { violations } => {
+                assert_eq!(violations.len(), 1);
+                assert!(violations[0].message.contains("auth"));
+            }
+            other => panic!("Expected Fail, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_arch_42010_pass_no_module_arch() {
+        let tmp = TempDir::new().unwrap();
+        // Project-level passes, module has no architecture.md (skip module)
+        write_file(tmp.path(), "docs/3-design/architecture.md",
+            "# Architecture\n\n## Stakeholders\nTeam\n\n## Concerns\nPerf\n\n## Viewpoints\nStructural\n");
+        std::fs::create_dir_all(tmp.path().join("crates/auth")).unwrap();
+        std::fs::write(tmp.path().join("crates/auth/Cargo.toml"), "[package]").unwrap();
+
+        let handler = Arch42010Sections { def: make_arch_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    // =========================================================================
+    // Check 91: Module-level testing strategy
+    // =========================================================================
+
+    #[test]
+    fn test_29119_pass_module_level() {
+        let tmp = TempDir::new().unwrap();
+        std::fs::create_dir_all(tmp.path().join("crates/auth")).unwrap();
+        std::fs::write(tmp.path().join("crates/auth/Cargo.toml"), "[package]").unwrap();
+        write_file(tmp.path(), "crates/auth/docs/5-testing/testing_strategy.md",
+            "# Auth Testing\n\n\
+             ## Test Strategy\nUnit-first.\n\n\
+             ## Test Cases\nLogin, logout.\n\n\
+             ## Coverage Targets\n90%.\n");
+
+        let handler = Test29119Sections { def: make_test_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_29119_fail_module_missing_sections() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/5-testing/testing_strategy.md",
+            "# Testing\n\n## Test Strategy\nOk.\n\n## Test Pyramid\nOk.\n\n## Coverage Targets\nOk.\n");
+        std::fs::create_dir_all(tmp.path().join("crates/auth")).unwrap();
+        std::fs::write(tmp.path().join("crates/auth/Cargo.toml"), "[package]").unwrap();
+        write_file(tmp.path(), "crates/auth/docs/5-testing/testing_strategy.md",
+            "# Auth Testing\n\nNo sections here.\n");
+
+        let handler = Test29119Sections { def: make_test_def() };
+        let ctx = make_ctx(tmp.path());
+        match handler.run(&ctx) {
+            CheckResult::Fail { violations } => {
+                assert_eq!(violations.len(), 1);
+                assert!(violations[0].message.contains("auth"));
+            }
+            other => panic!("Expected Fail, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_29119_pass_no_module_testing() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/5-testing/testing_strategy.md",
+            "# Testing\n\n## Test Strategy\nOk.\n\n## Test Pyramid\nOk.\n\n## Coverage Targets\nOk.\n");
+        std::fs::create_dir_all(tmp.path().join("crates/auth")).unwrap();
+        std::fs::write(tmp.path().join("crates/auth/Cargo.toml"), "[package]").unwrap();
+
+        let handler = Test29119Sections { def: make_test_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
     }
 }
