@@ -108,8 +108,8 @@ This checklist tracks doc-engine's compliance against its own documentation fram
 ## Requirements (Checks 89-91)
 
 - [ ] Check 89: SRS requirements have ISO/IEC/IEEE 29148:2018 attribute tables
-- [ ] Check 90: Architecture document has ISO/IEC/IEEE 42010:2022 sections
-- [ ] Check 91: Testing strategy has ISO/IEC/IEEE 29119-3:2021 sections
+- [ ] Check 90: Architecture documents have ISO/IEC/IEEE 42010:2022 sections
+- [ ] Check 91: Testing strategies have ISO/IEC/IEEE 29119-3:2021 sections
 
 ## Module Checks (Checks 77-81)
 

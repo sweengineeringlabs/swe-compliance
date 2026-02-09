@@ -8,7 +8,7 @@ doc-engine uses a Single-Crate Modular SEA architecture with a CLI binary and re
 
 ## What
 
-doc-engine is a Rust CLI tool and library that programmatically audits any project against the 66 compliance checks (53 base + 13 backlog) plus 15 opt-in spec checks defined by the template-engine documentation framework. It follows the Single-Crate Modular SEA (Stratified Encapsulation Architecture) pattern.
+doc-engine is a Rust CLI tool and library that programmatically audits any project against the 76 compliance checks (53 base + 23 extended) plus 15 opt-in spec checks defined by the template-engine documentation framework. It follows the Single-Crate Modular SEA (Stratified Encapsulation Architecture) pattern.
 
 ## Who
 
@@ -24,8 +24,6 @@ doc-engine is a Rust CLI tool and library that programmatically audits any proje
 Manual documentation audits are slow, inconsistent, and error-prone. doc-engine automates compliance verification so teams can enforce documentation standards in CI.
 
 ## How
-
-Rules are **config-driven**: simple checks are defined declaratively in a TOML file (`rules.toml`), complex checks are implemented as builtin Rust handlers referenced by name from the same TOML file. A default rules file is embedded in the binary; users can override with `--rules <path>`.
 
 Rules are **config-driven**: simple checks are defined declaratively in a TOML file (`rules.toml`), complex checks are implemented as builtin Rust handlers referenced by name from the same TOML file. A default rules file is embedded in the binary; users can override with `--rules <path>`.
 
@@ -75,6 +73,8 @@ Both formats are discovered, validated, and cross-referenced. YAML specs additio
 │       │   │   ├── cross_ref.rs     # link_resolution
 │       │   │   ├── adr.rs           # adr_naming, adr_index_completeness
 │       │   │   ├── traceability.rs  # phase_artifact_presence, design_traces_requirements, plan_traces_design
+│       │   │   ├── module.rs        # module discovery, module_readme_w3h, examples_tests, toolchain, deployment
+│       │   │   ├── requirements.rs  # srs_29148_attributes, arch_42010_sections, test_29119_sections
 │       │   │   └── spec.rs          # 12 spec check handlers (thin wrappers to core/spec/)
 │       │   └── spec/
 │       │       ├── mod.rs           # DocSpecEngine impl
@@ -302,6 +302,18 @@ handler = "glossary_alphabetized"
 | `phase_artifact_presence` | 51 | Verify SDLC phase dirs contain expected artifacts |
 | `design_traces_requirements` | 52 | Design docs reference requirements |
 | `plan_traces_design` | 53 | Planning docs reference architecture |
+| `backlog_traces_requirements` | 82 | Backlog references requirements/SRS |
+| `templates_populated` | 73 | Verify docs/templates/ contains template files |
+| `w3h_extended` | 74 | W3H structure enforcement in hub documents |
+| `readme_line_count` | 75 | Root README.md under 100 lines |
+| `fr_naming` | 76 | FR artifacts follow FR_NNN naming |
+| `module_readme_w3h` | 77 | Module READMEs follow W3H structure |
+| `module_examples_tests` | 78-79 | Modules have examples directory and integration tests |
+| `module_toolchain_docs` | 80 | Modules have toolchain documentation |
+| `module_deployment_docs` | 81 | Module deployment docs complete |
+| `srs_29148_attributes` | 89 | SRS requirements have 29148 attribute tables |
+| `arch_42010_sections` | 90 | Architecture documents have 42010 sections (project + module) |
+| `test_29119_sections` | 91 | Testing strategies have 29119-3 sections (project + module) |
 
 ## SPI Layer (L1)
 
@@ -826,6 +838,59 @@ Cross-referencing works across both formats, using format-appropriate strategies
 | 51 | Populated SDLC phase dirs contain expected artifact | `builtin: phase_artifact_presence` | Warning |
 | 52 | Design documents reference requirements | `builtin: design_traces_requirements` | Warning |
 | 53 | Planning documents reference architecture | `builtin: plan_traces_design` | Warning |
+
+### Checks 69-72: Structure & Backlog
+
+| Check | Description | Rule Type | Severity |
+|-------|-------------|-----------|----------|
+| 69 | `docs/4-development/developer_guide.md` exists | `file_exists` | Warning |
+| 70 | `INTERNAL_USAGE.md` exists (internal projects) | `file_exists` | Warning |
+| 71 | `docs/2-planning/backlog.md` exists | `file_exists` | Warning |
+| 72 | `docs/templates/` directory exists | `dir_exists` | Info |
+
+### Checks 73-76: Extended Builtins
+
+| Check | Description | Rule Type | Severity |
+|-------|-------------|-----------|----------|
+| 73 | `docs/templates/` contains template files | `builtin: templates_populated` | Info |
+| 74 | Hub documents use W3H structure | `builtin: w3h_extended` | Info |
+| 75 | Root README.md under 100 lines | `builtin: readme_line_count` | Info |
+| 76 | FR artifacts follow FR_NNN naming | `builtin: fr_naming` | Info |
+
+### Checks 77-81: Module
+
+| Check | Description | Rule Type | Severity |
+|-------|-------------|-----------|----------|
+| 77 | Module READMEs follow W3H structure | `builtin: module_readme_w3h` | Warning |
+| 78 | Modules have examples directory | `builtin: module_examples_tests` | Warning |
+| 79 | Modules have integration tests | `builtin: module_examples_tests` | Warning |
+| 80 | Modules have toolchain documentation | `builtin: module_toolchain_docs` | Warning |
+| 81 | Module deployment docs complete | `builtin: module_deployment_docs` | Warning |
+
+### Check 82: Backlog Traceability
+
+| Check | Description | Rule Type | Severity |
+|-------|-------------|-----------|----------|
+| 82 | Backlog references requirements/SRS | `builtin: backlog_traces_requirements` | Warning |
+
+### Checks 83-88: Planning
+
+| Check | Description | Rule Type | Severity |
+|-------|-------------|-----------|----------|
+| 83 | Risk register exists | `file_exists` | Info |
+| 84 | Estimation records exist | `file_exists` | Info |
+| 85 | Schedule exists (open-source) | `file_exists` | Info |
+| 86 | Resource plan exists (open-source) | `file_exists` | Info |
+| 87 | Communication plan exists (open-source) | `file_exists` | Info |
+| 88 | Quality plan exists | `file_exists` | Info |
+
+### Checks 89-91: Requirements (ISO/IEC/IEEE Standards)
+
+| Check | Description | Rule Type | Severity |
+|-------|-------------|-----------|----------|
+| 89 | SRS requirements have 29148:2018 attribute tables | `builtin: srs_29148_attributes` | Warning |
+| 90 | Architecture documents have 42010:2022 sections (project + module) | `builtin: arch_42010_sections` | Info |
+| 91 | Testing strategies have 29119-3:2021 sections (project + module) | `builtin: test_29119_sections` | Info |
 
 ### Checks 54-68: Spec (opt-in)
 
