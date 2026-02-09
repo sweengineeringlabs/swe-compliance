@@ -4,6 +4,7 @@ pub mod content;
 pub mod navigation;
 pub mod cross_ref;
 pub mod adr;
+pub mod traceability;
 
 use crate::api::types::RuleDef;
 use crate::spi::traits::CheckRunner;
@@ -39,6 +40,11 @@ pub fn get_handler(name: &str, def: &RuleDef) -> Option<Box<dyn CheckRunner>> {
         // ADR handlers
         "adr_naming" => Some(Box::new(adr::AdrNaming { def: def.clone() })),
         "adr_index_completeness" => Some(Box::new(adr::AdrIndexCompleteness { def: def.clone() })),
+
+        // Traceability handlers
+        "phase_artifact_presence" => Some(Box::new(traceability::PhaseArtifactPresence { def: def.clone() })),
+        "design_traces_requirements" => Some(Box::new(traceability::DesignTracesRequirements { def: def.clone() })),
+        "plan_traces_design" => Some(Box::new(traceability::PlanTracesDesign { def: def.clone() })),
 
         _ => None,
     }

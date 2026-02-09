@@ -74,3 +74,9 @@ This checklist tracks doc-engine's compliance against its own documentation fram
 - [ ] Check 48: ADR index file exists
 - [ ] Check 49: ADR files follow NNN-title.md convention
 - [ ] Check 50: ADR index references all ADR files
+
+## Traceability (Checks 51-53)
+
+- [ ] Check 51: Populated SDLC phase directories contain their expected artifact
+- [ ] Check 52: Design documents reference requirements
+- [ ] Check 53: Planning documents reference architecture

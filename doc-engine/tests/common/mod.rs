@@ -4,7 +4,7 @@ use tempfile::TempDir;
 
 /// Create a minimal project structure that passes core checks.
 pub fn create_minimal_project() -> TempDir {
-    let tmp = TempDir::new().unwrap();
+    let tmp = tempfile::Builder::new().prefix("test_").tempdir().unwrap();
     let root = tmp.path();
 
     // Root files
@@ -24,18 +24,24 @@ pub fn create_minimal_project() -> TempDir {
 
     // docs/ structure
     write_file(root, "docs/README.md",
-        "# Hub\n\n**Audience**: All\n\n## Who\nTeam\n## What\nProduct\n## Why\nReason\n## How\nProcess\n\n- [0-overview](0-overview/)\n- [1-requirements](1-requirements/)\n- [3-design](3-design/)\n- [4-development](4-development/)\n- [5-testing](5-testing/)\n"
+        "# Hub\n\n**Audience**: All\n\n## Who\nTeam\n## What\nProduct\n## Why\nReason\n## How\nProcess\n\n- [0-overview](0-overview/)\n- [1-requirements](1-requirements/)\n- [2-planning](2-planning/)\n- [3-design](3-design/)\n- [4-development](4-development/)\n- [5-testing](5-testing/)\n"
     );
     write_file(root, "docs/glossary.md",
         "# Glossary\n\n**Audience**: All\n\n**API** - Application Programming Interface\n**CLI** - Command Line Interface\n**SDK** - Software Development Kit\n"
     );
 
     // Phase directories
-    for phase in &["0-overview", "1-requirements", "3-design", "4-development", "5-testing"] {
+    for phase in &["0-overview", "1-requirements", "2-planning", "3-design", "4-development", "5-testing"] {
         let dir = format!("docs/{}", phase);
         write_file(root, &format!("{}/README.md", dir),
             &format!("# {}\n\n**Audience**: Developers\n", phase));
     }
+
+    // Traceability artifacts (checks 51-53)
+    write_file(root, "docs/1-requirements/requirements.md",
+        "# Requirements\n\n**Audience**: Developers\n\nSTK-01: The system shall comply.\n");
+    write_file(root, "docs/2-planning/implementation_plan.md",
+        "# Implementation Plan\n\n**Audience**: Developers\n\nSee architecture.md for the design.\n");
 
     // Compliance checklist
     let checklist_content: String = (1..=20)
@@ -45,8 +51,9 @@ pub fn create_minimal_project() -> TempDir {
     write_file(root, "docs/3-design/compliance/compliance_checklist.md",
         &format!("# Compliance Checklist\n\n**Audience**: All\n\n{}\n\nSee [architecture](../architecture.md)\n", checklist_content));
 
-    // architecture.md for the checklist reference
-    write_file(root, "docs/3-design/architecture.md", "# Architecture\n\n**Audience**: Developers\n");
+    // architecture.md for the checklist reference (also references requirements for check 52)
+    write_file(root, "docs/3-design/architecture.md",
+        "# Architecture\n\n**Audience**: Developers\n\nSee requirements.md for FR-001.\n");
 
     // ADR directory
     write_file(root, "docs/3-design/adr/README.md",

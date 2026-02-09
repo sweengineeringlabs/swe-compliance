@@ -1,4 +1,4 @@
-# doc-engine rules — 50 base documentation compliance checks
+# doc-engine rules — 53 base documentation compliance checks
 # Embedded in binary via include_str!("../../rules.toml")
 
 # =============================================================================
@@ -440,3 +440,31 @@ description = "ADR index references all ADR files"
 severity = "info"
 type = "builtin"
 handler = "adr_index_completeness"
+
+# =============================================================================
+# Checks 51-53: Traceability
+# =============================================================================
+
+[[rules]]
+id = 51
+category = "traceability"
+description = "Populated SDLC phase directories contain their expected artifact"
+severity = "warning"
+type = "builtin"
+handler = "phase_artifact_presence"
+
+[[rules]]
+id = 52
+category = "traceability"
+description = "Design documents reference requirements"
+severity = "warning"
+type = "builtin"
+handler = "design_traces_requirements"
+
+[[rules]]
+id = 53
+category = "traceability"
+description = "Planning documents reference architecture"
+severity = "warning"
+type = "builtin"
+handler = "plan_traces_design"
