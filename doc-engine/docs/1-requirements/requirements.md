@@ -4,7 +4,7 @@
 
 ## TLDR
 
-This SRS defines requirements for doc-engine, a Rust CLI tool that audits project documentation against 50 compliance checks from the template-engine framework. It covers stakeholder needs, functional requirements for rule evaluation and reporting, non-functional requirements for performance and extensibility, and traceability from stakeholder goals to implementation modules.
+This SRS defines requirements for doc-engine, a Rust CLI tool that audits project documentation against 53 compliance checks (50 structural + 3 traceability) from the template-engine framework. It covers stakeholder needs, functional requirements for rule evaluation and reporting, non-functional requirements for performance and extensibility, and traceability from stakeholder goals to implementation modules.
 
 **Version**: 1.0
 **Date**: 2026-02-07
@@ -16,7 +16,7 @@ This SRS defines requirements for doc-engine, a Rust CLI tool that audits projec
 
 ### 1.1 Purpose
 
-This SRS defines the stakeholder, system, and software requirements for **doc-engine**, a Rust CLI tool and library that audits project documentation against the compliance standard defined by the template-engine documentation framework. The engine supports both the original 50 markdown-based checks and an extended set of YAML spec validation checks (51-65).
+This SRS defines the stakeholder, system, and software requirements for **doc-engine**, a Rust CLI tool and library that audits project documentation against the compliance standard defined by the template-engine documentation framework. The engine supports the original 50 structural checks, 3 traceability checks (51-53), and an extended set of YAML spec validation checks (54-68).
 
 ### 1.2 Scope
 
@@ -76,7 +76,7 @@ doc-engine does **not**:
 | Stakeholder | Role | Needs |
 |-------------|------|-------|
 | Developer | Runs scans during local development | Fast feedback on doc compliance, clear violation messages |
-| Architect | Audits projects, defines standards | Customizable rules, comprehensive coverage of 65 checks (50 base + 15 spec) |
+| Architect | Audits projects, defines standards | Customizable rules, comprehensive coverage of 68 checks (53 base + 15 spec) |
 | Documentation maintainer | Tweaks rules without coding | Declarative TOML rules, no recompilation for simple changes |
 | CI system | Automated gate in pipeline | JSON output, deterministic exit codes, non-interactive |
 | Library consumer | Integrates scanning programmatically | Clean public API, well-typed report structures |
@@ -85,7 +85,7 @@ doc-engine does **not**:
 
 #### OS-1: Developer local scan
 
-A developer runs `doc-engine scan .` from their project root. The tool discovers all files, runs all 65 checks (50 base + 15 spec), and prints a text report showing which checks passed and which failed with file paths and messages. The developer fixes violations and re-runs until clean.
+A developer runs `doc-engine scan .` from their project root. The tool discovers all files, runs all 68 checks (53 base + 15 spec), and prints a text report showing which checks passed and which failed with file paths and messages. The developer fixes violations and re-runs until clean.
 
 #### OS-2: CI pipeline gate
 
@@ -119,7 +119,7 @@ A developer runs `doc-engine spec generate docs/1-requirements/auth/login.spec.y
 
 | ID | Requirement | Source | Priority | Rationale |
 |----|-------------|--------|----------|-----------|
-| STK-01 | The tool shall audit any project directory against 50 documentation compliance checks | Compliance Checklist | Must | Replaces manual bash-based auditing |
+| STK-01 | The tool shall audit any project directory against 53 documentation compliance checks | Compliance Checklist | Must | Replaces manual bash-based auditing |
 | STK-02 | Simple rules shall be modifiable without recompiling | Architect feedback | Must | Non-developers need to customize rules |
 | STK-03 | The tool shall produce machine-readable output for CI integration | CI pipeline needs | Must | Enables automated compliance gating |
 | STK-04 | The tool shall be usable as a Rust library | Library consumer needs | Should | Enables programmatic integration |
@@ -137,7 +137,7 @@ A developer runs `doc-engine spec generate docs/1-requirements/auth/login.spec.y
 ```
 template-engine/templates/
 ├── framework.md              ← defines the standard
-└── compliance-checklist.md   ← defines the 50 checks
+└── compliance-checklist.md   ← defines the 53 checks
          │
          ▼
 doc-engine/rules.toml         ← encodes checks as TOML rules
@@ -200,7 +200,7 @@ Each requirement includes:
 | **State** | Approved |
 | **Verification** | Test |
 | **Traces to** | STK-01, STK-02 -> `core/rules.rs` |
-| **Acceptance** | When no `--rules` flag is provided, the engine loads rules from the embedded default and produces a valid `ScanReport` with 65 check results |
+| **Acceptance** | When no `--rules` flag is provided, the engine loads rules from the embedded default and produces a valid `ScanReport` with 68 check results |
 
 The binary shall embed a default `rules.toml` via `include_str!`. When no `--rules` flag is provided, the embedded rules are used.
 
@@ -230,7 +230,7 @@ Each rule entry shall contain:
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `id` | u8 | Yes | Unique check number (1-65) |
+| `id` | u8 | Yes | Unique check number (1-68) |
 | `category` | string | Yes | Grouping category |
 | `description` | string | Yes | Human-readable description |
 | `severity` | string | Yes | `"error"`, `"warning"`, or `"info"` |
@@ -300,6 +300,9 @@ When `type = "builtin"`, the engine shall look up a Rust handler by `handler` na
 | `adr_index_completeness` | Cross-reference ADR index against ADR files |
 | `open_source_community_files` | Check CODE_OF_CONDUCT.md, SUPPORT.md |
 | `open_source_github_templates` | Check .github/ISSUE_TEMPLATE/, PULL_REQUEST_TEMPLATE.md |
+| `phase_artifact_presence` | Verify SDLC phase dirs contain expected artifacts |
+| `design_traces_requirements` | Design docs reference requirements |
+| `plan_traces_design` | Planning docs reference architecture |
 | `spec_brd_exists` | Check BRD spec file exists in 1-requirements/ |
 | `spec_domain_coverage` | Check domain directories have .spec.yaml files |
 | `spec_schema_valid` | Validate all .spec/.arch/.test/.deploy.yaml files parse and conform to schema |
@@ -365,17 +368,17 @@ All discovered file paths shall be relative to the project root.
 
 ### 4.3 Check Execution
 
-#### FR-300: All checks (50 base + 15 spec)
+#### FR-300: All checks (53 base + 15 spec)
 
 | Attribute | Value |
 |-----------|-------|
 | **Priority** | Must |
 | **State** | Approved |
 | **Verification** | Test |
-| **Traces to** | STK-01, STK-08 -> `core/engine.rs`, `core/builtins/spec.rs`, `rules.toml` |
-| **Acceptance** | Default `rules.toml` contains 65 rules; a full scan produces 50 base results + up to 15 spec results (spec checks produce Skip if no `.spec.yaml` files exist) |
+| **Traces to** | STK-01, STK-08 -> `core/engine.rs`, `core/builtins/spec.rs`, `core/builtins/traceability.rs`, `rules.toml` |
+| **Acceptance** | Default `rules.toml` contains 68 rules; a full scan produces 53 base results + up to 15 spec results (spec checks produce Skip if no `.spec.yaml` files exist) |
 
-The engine shall support 65 checks:
+The engine shall support 68 checks:
 
 | Category | Check IDs | Count |
 |----------|-----------|-------|
@@ -386,8 +389,9 @@ The engine shall support 65 checks:
 | navigation | 40-43 | 4 |
 | cross_ref | 44-47 | 4 |
 | adr | 48-50 | 3 |
-| spec | 51-65 | 15 |
-| **Total** | | **65** |
+| traceability | 51-53 | 3 |
+| spec | 54-68 | 15 |
+| **Total** | | **68** |
 
 #### FR-301: Check filtering
 
@@ -853,9 +857,9 @@ Cross-reference analysis shall produce a `CrossRefReport` with results categoriz
 | **State** | Approved |
 | **Verification** | Test |
 | **Traces to** | STK-08 -> `core/builtins/spec.rs` |
-| **Acceptance** | A project with no spec files (neither `.spec`/`.arch`/`.test`/`.deploy` nor `.spec.yaml`/`.arch.yaml`/`.test.yaml`/`.deploy.yaml`) produces `Skip` for checks 51-65, not `Fail` |
+| **Acceptance** | A project with no spec files (neither `.spec`/`.arch`/`.test`/`.deploy` nor `.spec.yaml`/`.arch.yaml`/`.test.yaml`/`.deploy.yaml`) produces `Skip` for checks 54-68, not `Fail` |
 
-Spec checks (51-65) shall be opt-in: if no spec files of either format exist in the project, all spec checks shall produce `Skip` results.
+Spec checks (54-68) shall be opt-in: if no spec files of either format exist in the project, all spec checks shall produce `Skip` results.
 
 ### 4.10 Markdown Generation
 
@@ -931,9 +935,9 @@ The engine shall generate markdown documents from YAML spec files, matching the 
 | **State** | Approved |
 | **Verification** | Test |
 | **Traces to** | STK-08 -> `core/builtins/spec.rs`, `rules.toml` |
-| **Acceptance** | Checks 51-65 appear in `rules.toml` and execute during a normal `doc-engine scan`; results appear in both text and JSON output |
+| **Acceptance** | Checks 54-68 appear in `rules.toml` and execute during a normal `doc-engine scan`; results appear in both text and JSON output |
 
-Checks 51-65 shall be integrated into the standard scan pipeline as builtin handlers in `rules.toml`.
+Checks 54-68 shall be integrated into the standard scan pipeline as builtin handlers in `rules.toml`.
 
 #### FR-741: Spec check category
 
@@ -943,7 +947,7 @@ Checks 51-65 shall be integrated into the standard scan pipeline as builtin hand
 | **State** | Approved |
 | **Verification** | Inspection |
 | **Traces to** | STK-08 -> `rules.toml` |
-| **Acceptance** | All checks 51-65 have `category = "spec"` in `rules.toml` |
+| **Acceptance** | All checks 54-68 have `category = "spec"` in `rules.toml` |
 
 All spec checks shall use the `spec` category for grouping in reports.
 
@@ -955,7 +959,7 @@ All spec checks shall use the `spec` category for grouping in reports.
 | **State** | Approved |
 | **Verification** | Inspection |
 | **Traces to** | STK-05, STK-08 -> `rules.toml` |
-| **Acceptance** | Each check 51-65 has a unique, descriptive `description` field in `rules.toml` |
+| **Acceptance** | Each check 54-68 has a unique, descriptive `description` field in `rules.toml` |
 
 ### 4.12 Spec Subcommand
 

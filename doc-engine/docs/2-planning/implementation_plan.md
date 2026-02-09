@@ -4,7 +4,7 @@
 
 ## TLDR
 
-This plan describes the implementation strategy for doc-engine using a Single-Crate Modular SEA architecture. It covers three milestones: a working CLI with 50 base checks, a comprehensive test suite, and self-compliance. Rules are config-driven via TOML with builtin Rust handlers for complex checks.
+This plan describes the implementation strategy for doc-engine using a Single-Crate Modular SEA architecture. It covers three milestones: a working CLI with 53 base checks (50 structural + 3 traceability), a comprehensive test suite, and self-compliance. Rules are config-driven via TOML with builtin Rust handlers for complex checks.
 
 ## Architecture Decision
 
@@ -158,9 +158,9 @@ Rust implementations for complex checks, registered by handler name:
 
 ### Phase 10: Default rules.toml + Self-Compliant Docs
 
-> Implements: FR-300 (50 checks in rules.toml), FR-600, FR-601
+> Implements: FR-300 (53 checks in rules.toml), FR-600, FR-601
 
-- Write the default `rules.toml` with all 50 checks
+- Write the default `rules.toml` with all 53 checks (50 structural + 3 traceability)
 - `README.md` (root)
 - `docs/README.md` (hub)
 - `docs/glossary.md`
@@ -233,25 +233,25 @@ Rust implementations for complex checks, registered by handler name:
   - Output to stdout (default) or file via `--output` (FR-735)
 - `DocSpecEngine` implements `SpecEngine::generate()`
 
-### Phase 15: Scan Pipeline Checks 51-65
+### Phase 15: Scan Pipeline Checks 54-68
 
 > Implements: FR-740, FR-741, FR-742
 
 - Create `core/builtins/spec.rs`: 12 new `CheckRunner` implementations
-  - `spec_brd_exists` (check 51)
-  - `spec_domain_coverage` (check 52)
-  - `spec_schema_valid` (checks 53-56, dispatches by CheckId to validate specific extension pair)
-  - `spec_id_format` (check 57)
-  - `spec_no_duplicate_ids` (check 58)
-  - `spec_test_coverage` (check 59)
-  - `spec_deps_resolve` (check 60)
-  - `spec_inventory_accuracy` (check 61)
-  - `spec_links_resolve` (check 62)
-  - `spec_test_traces` (check 63)
-  - `spec_naming_convention` (check 64, validates snake_lower_case on discovered spec files of both formats)
-  - `spec_stem_consistency` (check 65, verifies stems match across SDLC phases)
+  - `spec_brd_exists` (check 54)
+  - `spec_domain_coverage` (check 55)
+  - `spec_schema_valid` (checks 56-59, dispatches by CheckId to validate specific extension pair)
+  - `spec_id_format` (check 60)
+  - `spec_no_duplicate_ids` (check 61)
+  - `spec_test_coverage` (check 62)
+  - `spec_deps_resolve` (check 63)
+  - `spec_inventory_accuracy` (check 64)
+  - `spec_links_resolve` (check 65)
+  - `spec_test_traces` (check 66)
+  - `spec_naming_convention` (check 67, validates snake_lower_case on discovered spec files of both formats)
+  - `spec_stem_consistency` (check 68, verifies stems match across SDLC phases)
 - Register all spec handlers in `core/builtins/mod.rs`
-- Update `rules.toml` with checks 51-65 (category: `spec`)
+- Update `rules.toml` with checks 54-68 (category: `spec`)
 - All spec handlers implement opt-in: `Skip` if no spec files exist
 
 ### Phase 16: CLI `spec` Subcommand
@@ -293,7 +293,7 @@ Rust implementations for complex checks, registered by handler name:
 
 - Create `tests/` directory with integration test modules
 - **Fixture projects**: Build minimal project directories exercising each check:
-  - `tests/fixtures/compliant/` — passes all 65 checks
+  - `tests/fixtures/compliant/` — passes all 68 checks
   - `tests/fixtures/non_compliant/` — fails known checks with predictable violations
   - `tests/fixtures/spec_yaml/` — valid and invalid YAML spec files
   - `tests/fixtures/spec_markdown/` — valid and invalid markdown spec files
@@ -307,7 +307,7 @@ Rust implementations for complex checks, registered by handler name:
   - `core/spec/cross_ref.rs`: dependency resolution, SDLC chain, inventory accuracy, test traceability (FR-720-727)
   - `core/spec/generate.rs`: markdown output per kind (FR-730-734)
 - **Integration tests** (`tests/`):
-  - Full scan of compliant fixture returns exit code 0, all 65 checks pass
+  - Full scan of compliant fixture returns exit code 0, all 68 checks pass
   - Full scan of non-compliant fixture returns exit code 1, expected violations
   - JSON output deserializes to `ScanReport` (FR-401)
   - `--checks` filter produces correct subset (FR-301)
@@ -335,7 +335,7 @@ Rust implementations for complex checks, registered by handler name:
 | 12: Schema Validation | FR-710, FR-711, FR-712, FR-713, FR-714, FR-715, FR-716 | |
 | 13: Cross-Referencing | FR-720, FR-721, FR-722, FR-723, FR-724, FR-725, FR-726, FR-727 | |
 | 14: Markdown Generation | FR-730, FR-731, FR-732, FR-733, FR-734, FR-735 | |
-| 15: Scan Pipeline Checks 51-65 | FR-740, FR-741, FR-742 | |
+| 15: Scan Pipeline Checks 54-68 | FR-740, FR-741, FR-742 | |
 | 16: CLI `spec` Subcommand | FR-750, FR-751, FR-752, FR-753, FR-754, FR-755 | |
 | 17: SAF Exports + Library API | FR-600, FR-601, FR-602 (extended) | |
 | 18: Documentation + Self-Compliance | — | |

@@ -27,7 +27,7 @@ Second-pass cross-document consistency and design review of:
 
 ### DR-02: Spec discovery triggers second walkdir traversal (Must)
 
-**Problem**: NFR-201 requires "exactly one `walkdir` traversal per scan invocation." `DocSpecEngine` "reuses `FileSystemScanner` for file discovery," which would call `scan_files()` again — a second traversal. Spec builtin handlers (checks 51-65) run during a normal scan and delegate to `DocSpecEngine`.
+**Problem**: NFR-201 requires "exactly one `walkdir` traversal per scan invocation." `DocSpecEngine` "reuses `FileSystemScanner` for file discovery," which would call `scan_files()` again — a second traversal. Spec builtin handlers (checks 54-68) run during a normal scan and delegate to `DocSpecEngine`.
 
 **Decision**: Spec handlers must filter `ScanContext.files` (already walked) by extension rather than re-walking. The `DocSpecEngine` reuses the existing file list when invoked from scan pipeline checks. It only performs its own `walkdir` traversal when invoked standalone via `spec validate` / `spec cross-ref` subcommands.
 
@@ -39,11 +39,11 @@ Second-pass cross-document consistency and design review of:
 
 **Resolution**: Handler added to architecture.md builtin handlers table and structure.rs module description.
 
-### DR-04: FR-100 and OS-1 reference "50 checks" instead of 65 (Must)
+### DR-04: FR-100 and OS-1 reference "50 checks" instead of 68 (Must)
 
-**Problem**: FR-100 acceptance criterion says "50 check results" and OS-1 says "runs all 50 checks." The default `rules.toml` contains 65 entries per FR-300 and FR-740.
+**Problem**: FR-100 acceptance criterion says "50 check results" and OS-1 says "runs all 50 checks." The default `rules.toml` contains 68 entries per FR-300 and FR-740 (53 base + 15 spec).
 
-**Resolution**: Both updated to reference 65 checks.
+**Resolution**: Both updated to reference 68 checks.
 
 ### DR-05: scan() returns ScanReport not Result — error path undefined (Must)
 
@@ -55,9 +55,9 @@ Second-pass cross-document consistency and design review of:
 
 ### DR-06: spec_schema_valid parameterization undocumented (Should)
 
-**Problem**: Handler `spec_schema_valid` maps to checks 53-56, each validating a different extension pair. Four `rules.toml` entries share the same handler name but have different IDs. The dispatch mechanism was undocumented.
+**Problem**: Handler `spec_schema_valid` maps to checks 56-59, each validating a different extension pair. Four `rules.toml` entries share the same handler name but have different IDs. The dispatch mechanism was undocumented.
 
-**Decision**: The handler dispatches by `CheckId`. When constructed from a `RuleDef`, it receives the check ID. A match table maps: 53 -> `.spec`/`.spec.yaml`, 54 -> `.arch`/`.arch.yaml`, 55 -> `.test`/`.test.yaml`, 56 -> `.deploy`/`.deploy.yaml`.
+**Decision**: The handler dispatches by `CheckId`. When constructed from a `RuleDef`, it receives the check ID. A match table maps: 56 -> `.spec`/`.spec.yaml`, 57 -> `.arch`/`.arch.yaml`, 58 -> `.test`/`.test.yaml`, 59 -> `.deploy`/`.deploy.yaml`.
 
 **Resolution**: Dispatch mechanism documented in architecture spec handler section.
 
@@ -92,7 +92,7 @@ Second-pass cross-document consistency and design review of:
 | DR-01 | Must | ScanReport has no category/description | Add `CheckEntry` struct to report |
 | DR-02 | Must | Spec discovery violates NFR-201 single pass | Filter ScanContext.files; own walk only for standalone |
 | DR-03 | Must | Architecture missing checklist_completeness | Add to handler table |
-| DR-04 | Must | "50 checks" should be "65" | Update counts |
+| DR-04 | Must | "50 checks" should be "68" | Update counts |
 | DR-05 | Must | scan() can't signal errors | Return `Result<ScanReport, ScanError>` |
 | DR-06 | Should | spec_schema_valid dispatch undocumented | Dispatch by CheckId, document match table |
 | DR-07 | Should | RuleSet type undefined | Define as `struct RuleSet { rules: Vec<RuleDef> }` |

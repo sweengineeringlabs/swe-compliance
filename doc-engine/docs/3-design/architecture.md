@@ -8,7 +8,7 @@ doc-engine uses a Single-Crate Modular SEA architecture with a CLI binary and re
 
 ## Overview
 
-doc-engine is a Rust CLI tool and library that programmatically audits any project against the 65 compliance checks defined by the template-engine documentation framework. It follows the Single-Crate Modular SEA (Stratified Encapsulation Architecture) pattern.
+doc-engine is a Rust CLI tool and library that programmatically audits any project against the 68 compliance checks (53 base + 15 spec) defined by the template-engine documentation framework. It follows the Single-Crate Modular SEA (Stratified Encapsulation Architecture) pattern.
 
 Rules are **config-driven**: simple checks are defined declaratively in a TOML file (`rules.toml`), complex checks are implemented as builtin Rust handlers referenced by name from the same TOML file. A default rules file is embedded in the binary; users can override with `--rules <path>`.
 
@@ -16,7 +16,7 @@ Beyond markdown compliance, doc-engine supports **spec file validation** in two 
 - **YAML specs** (`.spec.yaml`, `.arch.yaml`, `.test.yaml`, `.deploy.yaml`) — structured data with typed schemas, parsed via `serde_yaml`
 - **Markdown specs** (`.spec`, `.arch`, `.test`, `.deploy`) — template-engine domain extensions with structured metadata headers, parsed via regex
 
-Both formats are discovered, validated, and cross-referenced. YAML specs additionally support markdown generation. Spec checks (51-65) are opt-in — they produce `Skip` if no spec files of either format exist.
+Both formats are discovered, validated, and cross-referenced. YAML specs additionally support markdown generation. Spec checks (54-68) are opt-in — they produce `Skip` if no spec files of either format exist.
 
 ## Project Scaffold
 
@@ -57,6 +57,7 @@ Both formats are discovered, validated, and cross-referenced. YAML specs additio
 │       │   │   ├── navigation.rs    # w3h_hub, hub_links_phases, no_deep_links
 │       │   │   ├── cross_ref.rs     # link_resolution
 │       │   │   ├── adr.rs           # adr_naming, adr_index_completeness
+│       │   │   ├── traceability.rs  # phase_artifact_presence, design_traces_requirements, plan_traces_design
 │       │   │   └── spec.rs          # 12 spec check handlers (thin wrappers to core/spec/)
 │       │   └── spec/
 │       │       ├── mod.rs           # DocSpecEngine impl
@@ -281,6 +282,9 @@ handler = "glossary_alphabetized"
 | `adr_index_completeness` | 50 | Cross-reference ADR index against ADR files |
 | `open_source_community_files` | 31 | Check CODE_OF_CONDUCT.md, SUPPORT.md (open-source only) |
 | `open_source_github_templates` | 32 | Check .github/ISSUE_TEMPLATE/, PULL_REQUEST_TEMPLATE.md |
+| `phase_artifact_presence` | 51 | Verify SDLC phase dirs contain expected artifacts |
+| `design_traces_requirements` | 52 | Design docs reference requirements |
+| `plan_traces_design` | 53 | Planning docs reference architecture |
 
 ## SPI Layer (L1)
 
@@ -310,7 +314,7 @@ pub trait Reporter {
 ### types.rs
 
 ```rust
-pub struct CheckId(pub u8);                    // 1-65
+pub struct CheckId(pub u8);                    // 1-68
 pub enum Severity { Error, Warning, Info }
 pub struct Violation { check: CheckId, path: Option<PathBuf>, message: String, severity: Severity }
 pub enum CheckResult { Pass, Fail(Vec<Violation>), Skip(String) }
@@ -625,33 +629,33 @@ pub struct CrossRefReport {
 
 ### builtins/spec.rs — Spec Check Handlers (FR-740, FR-741, FR-727)
 
-Twelve builtin handlers for checks 51-65. Each is a thin wrapper that delegates to `core/spec/` modules:
+Twelve builtin handlers for checks 54-68. Each is a thin wrapper that delegates to `core/spec/` modules:
 
 | Handler | Checks | Delegates to |
 |---------|--------|-------------|
-| `spec_brd_exists` | 51 | `spec::discovery` |
-| `spec_domain_coverage` | 52 | `spec::discovery` |
-| `spec_schema_valid` | 53-56 | `spec::parser` + `spec::validate` |
-| `spec_id_format` | 57 | `spec::validate` |
-| `spec_no_duplicate_ids` | 58 | `spec::validate` |
-| `spec_test_coverage` | 59 | `spec::cross_ref` |
-| `spec_deps_resolve` | 60 | `spec::cross_ref` |
-| `spec_inventory_accuracy` | 61 | `spec::cross_ref` |
-| `spec_links_resolve` | 62 | `spec::cross_ref` |
-| `spec_test_traces` | 63 | `spec::cross_ref` |
-| `spec_naming_convention` | 64 | `spec::discovery` (filename validation) |
-| `spec_stem_consistency` | 65 | `spec::cross_ref` |
+| `spec_brd_exists` | 54 | `spec::discovery` |
+| `spec_domain_coverage` | 55 | `spec::discovery` |
+| `spec_schema_valid` | 56-59 | `spec::parser` + `spec::validate` |
+| `spec_id_format` | 60 | `spec::validate` |
+| `spec_no_duplicate_ids` | 61 | `spec::validate` |
+| `spec_test_coverage` | 62 | `spec::cross_ref` |
+| `spec_deps_resolve` | 63 | `spec::cross_ref` |
+| `spec_inventory_accuracy` | 64 | `spec::cross_ref` |
+| `spec_links_resolve` | 65 | `spec::cross_ref` |
+| `spec_test_traces` | 66 | `spec::cross_ref` |
+| `spec_naming_convention` | 67 | `spec::discovery` (filename validation) |
+| `spec_stem_consistency` | 68 | `spec::cross_ref` |
 
 #### spec_schema_valid dispatch by CheckId
 
-The `spec_schema_valid` handler appears as four separate `[[rules]]` entries in `rules.toml` (checks 53-56), all with `handler = "spec_schema_valid"`. The handler dispatches by its own `CheckId` to determine which extension pair to validate:
+The `spec_schema_valid` handler appears as four separate `[[rules]]` entries in `rules.toml` (checks 56-59), all with `handler = "spec_schema_valid"`. The handler dispatches by its own `CheckId` to determine which extension pair to validate:
 
 | CheckId | Extensions validated |
 |---------|---------------------|
-| 53 | `.spec`, `.spec.yaml` |
-| 54 | `.arch`, `.arch.yaml` |
-| 55 | `.test`, `.test.yaml` |
-| 56 | `.deploy`, `.deploy.yaml` |
+| 56 | `.spec`, `.spec.yaml` |
+| 57 | `.arch`, `.arch.yaml` |
+| 58 | `.test`, `.test.yaml` |
+| 59 | `.deploy`, `.deploy.yaml` |
 
 All spec handlers implement opt-in behavior (FR-727): if no spec files of either format are discovered, they return `CheckResult::Skip("No spec files found")`.
 
@@ -662,7 +666,7 @@ All spec handlers implement opt-in behavior (FR-727): if no spec files of either
 - Implements `SpecEngine` trait
 - Orchestration: discover -> parse (format-aware) -> validate -> cross-ref / generate
 - **Dual-mode file sourcing** (NFR-201 compliance):
-  - **Scan pipeline mode** (checks 51-65): receives `ScanContext.files` from the already-completed walkdir traversal and filters by spec extensions — no second traversal
+  - **Scan pipeline mode** (checks 54-68): receives `ScanContext.files` from the already-completed walkdir traversal and filters by spec extensions — no second traversal
   - **Standalone mode** (`spec validate`, `spec cross-ref`, `spec generate`): performs its own `FileSystemScanner::scan_files()` traversal since no prior scan context exists
 
 #### spec/parser.rs — Dual-Format Parser (FR-700, FR-701, FR-703, FR-704, FR-705)
@@ -798,7 +802,15 @@ Cross-referencing works across both formats, using format-appropriate strategies
 | 49 | ADR NNN-title.md naming | `builtin: adr_naming` | Warning |
 | 50 | ADR index completeness | `builtin: adr_index_completeness` | Info |
 
-### Checks 51-65: Spec (opt-in)
+### Checks 51-53: Traceability
+
+| Check | Description | Rule Type | Severity |
+|-------|-------------|-----------|----------|
+| 51 | Populated SDLC phase dirs contain expected artifact | `builtin: phase_artifact_presence` | Warning |
+| 52 | Design documents reference requirements | `builtin: design_traces_requirements` | Warning |
+| 53 | Planning documents reference architecture | `builtin: plan_traces_design` | Warning |
+
+### Checks 54-68: Spec (opt-in)
 
 > Implements: FR-740, FR-741, FR-742, FR-727
 
@@ -806,21 +818,21 @@ All spec checks produce `Skip` if no spec files of either format exist in the pr
 
 | Check | Description | Rule Type | Severity |
 |-------|-------------|-----------|----------|
-| 51 | BRD spec file exists (`brd.spec.yaml` or `brd.spec`) | `builtin: spec_brd_exists` | Warning |
-| 52 | Domain directories have spec files (`.spec.yaml` or `.spec`) | `builtin: spec_domain_coverage` | Warning |
-| 53 | All `.spec.yaml` and `.spec` files parse correctly | `builtin: spec_schema_valid` | Error |
-| 54 | All `.arch.yaml` and `.arch` files parse correctly | `builtin: spec_schema_valid` | Error |
-| 55 | All `.test.yaml` and `.test` files parse correctly | `builtin: spec_schema_valid` | Error |
-| 56 | All `.deploy.yaml` and `.deploy` files parse correctly | `builtin: spec_schema_valid` | Error |
-| 57 | Spec IDs match `[A-Z]+-\d{3}` pattern (both formats) | `builtin: spec_id_format` | Error |
-| 58 | No duplicate spec IDs across spec files (both formats) | `builtin: spec_no_duplicate_ids` | Error |
-| 59 | Every spec has a matching test plan (both formats) | `builtin: spec_test_coverage` | Warning |
-| 60 | Dependency/related refs resolve | `builtin: spec_deps_resolve` | Error |
-| 61 | BRD inventory counts match actual files | `builtin: spec_inventory_accuracy` | Warning |
-| 62 | Spec cross-links resolve (`relatedDocuments` / `**Spec:**`) | `builtin: spec_links_resolve` | Warning |
-| 63 | Test verifies fields trace to valid requirement IDs | `builtin: spec_test_traces` | Error |
-| 64 | Spec files follow `snake_lower_case` naming (both formats) | `builtin: spec_naming_convention` | Warning |
-| 65 | Spec file stems match across SDLC phases | `builtin: spec_stem_consistency` | Warning |
+| 54 | BRD spec file exists (`brd.spec.yaml` or `brd.spec`) | `builtin: spec_brd_exists` | Warning |
+| 55 | Domain directories have spec files (`.spec.yaml` or `.spec`) | `builtin: spec_domain_coverage` | Warning |
+| 56 | All `.spec.yaml` and `.spec` files parse correctly | `builtin: spec_schema_valid` | Error |
+| 57 | All `.arch.yaml` and `.arch` files parse correctly | `builtin: spec_schema_valid` | Error |
+| 58 | All `.test.yaml` and `.test` files parse correctly | `builtin: spec_schema_valid` | Error |
+| 59 | All `.deploy.yaml` and `.deploy` files parse correctly | `builtin: spec_schema_valid` | Error |
+| 60 | Spec IDs match `[A-Z]+-\d{3}` pattern (both formats) | `builtin: spec_id_format` | Error |
+| 61 | No duplicate spec IDs across spec files (both formats) | `builtin: spec_no_duplicate_ids` | Error |
+| 62 | Every spec has a matching test plan (both formats) | `builtin: spec_test_coverage` | Warning |
+| 63 | Dependency/related refs resolve | `builtin: spec_deps_resolve` | Error |
+| 64 | BRD inventory counts match actual files | `builtin: spec_inventory_accuracy` | Warning |
+| 65 | Spec cross-links resolve (`relatedDocuments` / `**Spec:**`) | `builtin: spec_links_resolve` | Warning |
+| 66 | Test verifies fields trace to valid requirement IDs | `builtin: spec_test_traces` | Error |
+| 67 | Spec files follow `snake_lower_case` naming (both formats) | `builtin: spec_naming_convention` | Warning |
+| 68 | Spec file stems match across SDLC phases | `builtin: spec_stem_consistency` | Warning |
 
 ## CLI Design
 
