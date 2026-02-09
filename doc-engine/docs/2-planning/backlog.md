@@ -4,9 +4,9 @@
 
 ## TLDR
 
-Gap analysis identified 11 missing check categories against the template-engine framework. Current 53 checks cover Phases 0-2 (git files, foundation, design) but have zero coverage of Phase 3 (development docs), Phase 4 (module docs), and Phase 5 (backlog). Estimated 16-24 new checks needed, prioritized as 6 high (developer hub, module W3H, examples/tests, toolchain, deployment, internal governance), 4 medium (backlog files, templates, W3H enforcement, README length), and 1 low (FR naming).
+All 15 compliance check backlog items (BL-01 through BL-15) are complete — 76 checks implemented covering all SDLC phases plus ISO/IEC/IEEE standards validation. A production readiness audit identified 10 additional items (PB-01 through PB-10): 1 critical (CI/CD pipeline), 3 high (deprecated dep, clippy, dependency auditing), 4 medium (API docs, regex init, Cargo metadata, README), and 2 low (release automation, missing_docs lint).
 
-## Status: Complete
+## Status: Compliance checks complete — Production blockers open
 
 ## Overview
 
@@ -313,6 +313,155 @@ Gap analysis of compliance checks missing from doc-engine relative to the [templ
 |---------|--------|-------|--------|
 | Module discovery logic needed for BL-03 through BL-06 | High — four backlog items depend on reliably detecting modules/crates | — | Resolved (2026-02-09) |
 | `project_type` conditional check support needed for BL-07 | Medium — internal project governance check blocked | — | Resolved (already supported) |
+
+---
+
+## Production Blockers
+
+Production readiness audit (2026-02-09) identified 10 areas; 1 critical blocker, 7 warnings, 2 passing. Items below are prioritized by blast radius and reversibility.
+
+### Critical
+
+- [ ] **PB-01** — CI/CD pipeline: GitHub Actions workflow for `cargo test`, `cargo clippy`, `cargo audit`, and self-compliance scan
+
+### High Priority
+
+- [ ] **PB-02** — Migrate `serde_yaml` 0.9 (deprecated) to `serde_yml` or alternative maintained YAML crate
+- [ ] **PB-03** — Clippy clean: fix 7 warnings (`collapsible_if`, `unnecessary_map_or`, `manual_strip`)
+- [ ] **PB-04** — Dependency auditing: add `cargo-audit` or `cargo-deny` to CI and project config
+
+### Medium Priority
+
+- [ ] **PB-05** — Public API documentation: add `//!` crate-level doc, doc comments on SAF functions (`scan()`, `scan_with_config()`), and trait definitions
+- [ ] **PB-06** — Regex initialization: replace `Regex::new().unwrap()` in production handlers with `LazyLock` or `OnceLock` (compile-once, no runtime panic risk)
+- [ ] **PB-07** — Cargo.toml metadata: add `repository`, `authors`, `keywords`, `categories` for crates.io publishing
+- [ ] **PB-08** — README enhancement: add CI badge, usage examples for all flags (`--json`, `--checks`, `--type`, `--rules`), contributing link
+
+### Low Priority
+
+- [ ] **PB-09** — Release automation: configure `cargo-release` or `release-plz` with tag-based workflow
+- [ ] **PB-10** — Enable `#![warn(missing_docs)]` lint and resolve missing doc comments across public API
+
+---
+
+## Production Blocker Details
+
+### PB-01: CI/CD Pipeline
+
+**What**: No `.github/workflows/` directory exists. Zero automated testing, linting, or compliance verification on push/PR.
+
+**Proposed pipeline** (GitHub Actions):
+- `cargo test` — all 251 tests
+- `cargo clippy -- -D warnings` — zero-warning policy
+- `cargo audit` — dependency vulnerability scan
+- `cargo run -- scan .` — self-compliance (exit 1 on failures)
+- Matrix: stable + MSRV (if declared)
+
+**Priority**: Critical — without CI, regressions can ship silently. Every other production improvement depends on CI to enforce it.
+
+---
+
+### PB-02: Migrate Deprecated serde_yaml
+
+**What**: `serde_yaml = "0.9"` is marked `+deprecated` upstream. The spec module (`core/spec/parser.rs`) uses it for YAML spec parsing. The recommended replacement is `serde_yml` (maintained fork) or `serde_json` + a different YAML library.
+
+**Impact**: Medium — functional today, but deprecated crates stop receiving security patches. Supply-chain risk grows over time.
+
+**Approach**: Replace `serde_yaml` with `serde_yml` in `Cargo.toml` and update import paths. API is largely compatible.
+
+---
+
+### PB-03: Clippy Clean
+
+**What**: 7 clippy warnings across 4 files — all auto-fixable style/modernization issues:
+- `collapsible_if` in `scanner.rs`
+- `unnecessary_map_or` in `structure.rs`, `navigation.rs`, `module.rs` (5 occurrences)
+- `manual_strip` in `traceability.rs`
+
+**Approach**: `cargo clippy --fix` resolves all 7 automatically. No logic changes.
+
+---
+
+### PB-04: Dependency Auditing
+
+**What**: No `cargo-audit` or `cargo-deny` configuration. Vulnerable dependencies would go undetected.
+
+**Approach**: Add `cargo audit` step to CI (PB-01). Optionally add `deny.toml` for `cargo-deny` with license and advisory policies.
+
+---
+
+### PB-05: Public API Documentation
+
+**What**: Struct and enum types have doc comments. Key public entry points do not:
+- `lib.rs` — no `//!` crate-level doc
+- `saf/mod.rs` — `scan()`, `scan_with_config()`, `format_report_text()`, `format_report_json()` undocumented
+- `api/traits.rs` — `ComplianceEngine`, `SpecEngine` traits undocumented
+- `spi/traits.rs` — `FileScanner`, `CheckRunner`, `Reporter` traits undocumented
+
+**Impact**: Library consumers cannot understand the API from `cargo doc` output alone.
+
+---
+
+### PB-06: Regex Initialization
+
+**What**: ~30 `Regex::new(...).unwrap()` calls in production handler `run()` methods. All use compile-time literal patterns that will never fail, but:
+- Each call recompiles the regex on every check execution (performance)
+- `unwrap()` in production is a code-quality signal
+
+**Approach**: Use `std::sync::LazyLock` (stable since Rust 1.80) to compile each regex once. Eliminates both the `unwrap()` and the per-call compilation cost.
+
+---
+
+### PB-07: Cargo.toml Metadata
+
+**What**: Missing fields for crates.io publishing:
+- `repository` — link to GitHub repo
+- `authors` — maintainer list
+- `keywords` — discovery tags (e.g., `documentation`, `compliance`, `audit`, `cli`)
+- `categories` — crates.io categories (e.g., `command-line-utilities`, `development-tools`)
+
+---
+
+### PB-08: README Enhancement
+
+**What**: Root `README.md` has basic overview and single install command. Missing:
+- CI status badge
+- Usage examples for `--json`, `--checks 1-13`, `--type internal`, `--rules custom.toml`
+- Spec subcommand examples
+- Link to CONTRIBUTING.md
+
+---
+
+### PB-09: Release Automation
+
+**What**: Version is `0.1.0` with no release process. CHANGELOG has one entry. No git tags, no release tooling.
+
+**Approach**: Configure `cargo-release` or `release-plz` for semver bumps, CHANGELOG generation, and tag-based GitHub releases.
+
+---
+
+### PB-10: Missing Docs Lint
+
+**What**: `#![warn(missing_docs)]` is not enabled. Public API items can be added without documentation and no compiler warning fires.
+
+**Approach**: Enable after PB-05 is complete (otherwise it produces dozens of warnings immediately). Gates future public API additions.
+
+---
+
+## Production Blocker Summary
+
+| ID | Area | Priority | Blocks | Est. Effort |
+|----|------|----------|--------|-------------|
+| PB-01 | CI/CD pipeline | Critical | PB-03, PB-04 | 1-2 hours |
+| PB-02 | Migrate serde_yaml | High | — | 1 hour |
+| PB-03 | Clippy clean | High | — | 15 min |
+| PB-04 | Dependency auditing | High | PB-01 | 30 min |
+| PB-05 | Public API docs | Medium | PB-10 | 2-3 hours |
+| PB-06 | Regex LazyLock | Medium | — | 1-2 hours |
+| PB-07 | Cargo.toml metadata | Medium | — | 15 min |
+| PB-08 | README enhancement | Medium | PB-01 (badge) | 1 hour |
+| PB-09 | Release automation | Low | PB-01 | 1-2 hours |
+| PB-10 | missing_docs lint | Low | PB-05 | 30 min |
 
 ## Notes
 
