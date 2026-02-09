@@ -1039,6 +1039,58 @@ The `--json` flag on spec subcommands shall produce JSON output matching the rep
 | **Traces to** | STK-05, STK-08 -> `core/reporter.rs` |
 | **Acceptance** | Default (no `--json`) output is human-readable text with file paths, diagnostic messages, and a summary line |
 
+### 4.13 Planned Check Behavioral Requirements
+
+These requirements specify the behavioral constraints for checks identified in the [backlog](../2-planning/backlog.md). They apply to checks 69+ (after the reserved spec range 54-68).
+
+#### FR-800: Module discovery strategy
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Must |
+| **State** | Proposed |
+| **Verification** | Test |
+| **Traces to** | BL-03, BL-04, BL-05, BL-06 -> `core/builtins/` |
+| **Acceptance** | Module discovery detects Rust (`Cargo.toml`), JavaScript/TypeScript (`package.json`), Python (`setup.py`, `pyproject.toml`), and Java (`pom.xml`, `build.gradle`) project manifests. Projects without recognized manifests produce Skip for all module-level checks. |
+
+Module-level checks (BL-03 through BL-06) depend on reliably discovering modules/crates. The engine shall identify modules by scanning for language-specific manifest files under the project root. A shared `ModuleDiscovery` component shall support multiple languages and be reusable across all module-level handlers.
+
+#### FR-801: W3H detection scope
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Must |
+| **State** | Proposed |
+| **Verification** | Test |
+| **Traces to** | BL-03, BL-09 -> `core/builtins/` |
+| **Acceptance** | W3H validation uses flexible regex `(?i)^##\s*(what|why|how)` or equivalent prose markers. W3H enforcement is limited to hub documents (`docs/README.md`, `docs/3-design/architecture.md`, `docs/4-development/developer_guide.md`) and module READMEs (`**/docs/README.md`). General docs are excluded. |
+
+Hub documents and module READMEs have predictable structure suitable for pattern matching. General docs across `docs/3-design/*.md` and `docs/4-development/guide/*.md` use too many heading conventions for reliable automated W3H detection. Limiting scope avoids false positives.
+
+#### FR-802: Module deployment check skip behavior
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Must |
+| **State** | Proposed |
+| **Verification** | Test |
+| **Traces to** | BL-06 -> `core/builtins/` |
+| **Acceptance** | Module deployment checks produce Skip (not Fail) for modules that have no `docs/6-deployment/` directory. Only modules with an existing `docs/6-deployment/` directory are validated for required files (`README.md`, `prerequisites.md`, `installation.md`). |
+
+Library crates consumed as dependencies are not independently deployable and should not be required to have deployment documentation. The check triggers only when a module has opted in by creating the deployment directory.
+
+#### FR-803: Feature-prefixed artifact check opt-in
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Must |
+| **State** | Proposed |
+| **Verification** | Test |
+| **Traces to** | BL-11 -> `core/builtins/` |
+| **Acceptance** | Feature naming checks produce Skip if no files or directories matching `FR_\d{3}` exist anywhere in the project. When FR-prefixed artifacts do exist, folders must match `FR_\d{3}/` and files must match `FR_\d{3}_.+`. Hyphens (`FR-###`) in file paths produce a warning. |
+
+Not all projects use formal feature request tracking. The check is opt-in: it activates only when the project already contains FR-prefixed artifacts, then validates they follow the underscore convention.
+
 ---
 
 ## 5. Non-Functional Requirements
