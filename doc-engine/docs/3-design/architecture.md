@@ -6,9 +6,17 @@
 
 doc-engine uses a Single-Crate Modular SEA architecture with a CLI binary and reusable library. Rules are defined in TOML (simple checks declaratively, complex checks via builtin Rust handlers). The engine walks the project directory, evaluates each rule, and reports pass/fail/skip results. It also supports YAML and markdown spec file validation.
 
-## Overview
+## What
 
-doc-engine is a Rust CLI tool and library that programmatically audits any project against the 68 compliance checks (53 base + 15 spec) defined by the template-engine documentation framework. It follows the Single-Crate Modular SEA (Stratified Encapsulation Architecture) pattern.
+doc-engine is a Rust CLI tool and library that programmatically audits any project against the 66 compliance checks (53 base + 13 backlog) plus 15 opt-in spec checks defined by the template-engine documentation framework. It follows the Single-Crate Modular SEA (Stratified Encapsulation Architecture) pattern.
+
+## Why
+
+Manual documentation audits are slow, inconsistent, and error-prone. doc-engine automates compliance verification so teams can enforce documentation standards in CI.
+
+## How
+
+Rules are **config-driven**: simple checks are defined declaratively in a TOML file (`rules.toml`), complex checks are implemented as builtin Rust handlers referenced by name from the same TOML file. A default rules file is embedded in the binary; users can override with `--rules <path>`.
 
 Rules are **config-driven**: simple checks are defined declaratively in a TOML file (`rules.toml`), complex checks are implemented as builtin Rust handlers referenced by name from the same TOML file. A default rules file is embedded in the binary; users can override with `--rules <path>`.
 

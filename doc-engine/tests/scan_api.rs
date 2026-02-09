@@ -20,14 +20,14 @@ fn test_scan_empty_dir() {
     let report = scan(tmp.path()).unwrap();
     // Should have many failures but no panics
     assert!(report.summary.failed > 0);
-    assert_eq!(report.summary.total, 53);
+    assert_eq!(report.summary.total, 67);
 }
 
 #[test]
-fn test_scan_returns_53_checks() {
+fn test_scan_returns_67_checks() {
     let tmp = tempfile::TempDir::new().unwrap();
     let report = scan(tmp.path()).unwrap();
-    assert_eq!(report.results.len(), 53);
+    assert_eq!(report.results.len(), 67);
 }
 
 #[test]
@@ -73,6 +73,58 @@ fn test_traceability_checks_skip_empty() {
             "Check {} should skip on empty dir but got {:?}", entry.id.0, entry.result
         );
     }
+}
+
+#[test]
+fn test_backlog_checks_pass_minimal() {
+    let tmp = common::create_minimal_project();
+    let config = ScanConfig {
+        project_type: doc_engine::ProjectType::OpenSource,
+        checks: Some(vec![69, 71, 72]),
+        rules_path: None,
+    };
+    let report = scan_with_config(tmp.path(), &config).unwrap();
+    assert_eq!(report.results.len(), 3);
+    for entry in &report.results {
+        assert!(
+            matches!(entry.result, doc_engine::CheckResult::Pass),
+            "Check {} should pass but got {:?}", entry.id.0, entry.result
+        );
+    }
+}
+
+#[test]
+fn test_module_checks_pass_no_modules() {
+    let tmp = common::create_minimal_project();
+    let config = ScanConfig {
+        project_type: doc_engine::ProjectType::OpenSource,
+        checks: Some(vec![77, 78, 79, 80, 81]),
+        rules_path: None,
+    };
+    let report = scan_with_config(tmp.path(), &config).unwrap();
+    assert_eq!(report.results.len(), 5);
+    for entry in &report.results {
+        assert!(
+            matches!(entry.result, doc_engine::CheckResult::Pass),
+            "Check {} should pass (no modules) but got {:?}", entry.id.0, entry.result
+        );
+    }
+}
+
+#[test]
+fn test_internal_usage_skip_open_source() {
+    let tmp = common::create_minimal_project();
+    let config = ScanConfig {
+        project_type: doc_engine::ProjectType::OpenSource,
+        checks: Some(vec![70]),
+        rules_path: None,
+    };
+    let report = scan_with_config(tmp.path(), &config).unwrap();
+    assert_eq!(report.results.len(), 1);
+    assert!(
+        matches!(report.results[0].result, doc_engine::CheckResult::Skip { .. }),
+        "Check 70 should be skipped for OpenSource but got {:?}", report.results[0].result
+    );
 }
 
 #[test]

@@ -80,3 +80,26 @@ This checklist tracks doc-engine's compliance against its own documentation fram
 - [ ] Check 51: Populated SDLC phase directories contain their expected artifact
 - [ ] Check 52: Design documents reference requirements
 - [ ] Check 53: Planning documents reference architecture
+- [ ] Check 82: Backlog references requirements/SRS
+
+## Structure & Backlog (Checks 69-72)
+
+- [ ] Check 69: docs/4-development/developer_guide.md exists
+- [ ] Check 70: INTERNAL_USAGE.md exists (internal projects)
+- [ ] Check 71: docs/2-planning/backlog.md exists
+- [ ] Check 72: docs/templates/ directory exists
+
+## Builtin Checks (Checks 73-76)
+
+- [ ] Check 73: docs/templates/ contains template files
+- [ ] Check 74: Hub documents use W3H structure
+- [ ] Check 75: Root README.md under 100 lines
+- [ ] Check 76: FR artifacts follow FR_NNN naming
+
+## Module Checks (Checks 77-81)
+
+- [ ] Check 77: Module READMEs follow W3H structure
+- [ ] Check 78: Modules have examples directory
+- [ ] Check 79: Modules have integration tests
+- [ ] Check 80: Modules have toolchain documentation
+- [ ] Check 81: Module deployment docs complete

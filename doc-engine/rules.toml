@@ -1,4 +1,4 @@
-# doc-engine rules — 53 base documentation compliance checks
+# doc-engine rules — 67 documentation compliance checks
 # Embedded in binary via include_str!("../../rules.toml")
 
 # =============================================================================
@@ -468,3 +468,132 @@ description = "Planning documents reference architecture"
 severity = "warning"
 type = "builtin"
 handler = "plan_traces_design"
+
+# =============================================================================
+# Checks 69-72: Structure, Backlog, Root Files (BL-01, BL-02, BL-07, BL-08)
+# =============================================================================
+
+[[rules]]
+id = 69
+category = "structure"
+description = "docs/4-development/developer_guide.md exists"
+severity = "warning"
+type = "file_exists"
+path = "docs/4-development/developer_guide.md"
+
+[[rules]]
+id = 70
+category = "root_files"
+description = "INTERNAL_USAGE.md exists (internal projects)"
+severity = "warning"
+type = "file_exists"
+path = "INTERNAL_USAGE.md"
+project_type = "internal"
+
+[[rules]]
+id = 71
+category = "backlog"
+description = "docs/2-planning/backlog.md exists"
+severity = "warning"
+type = "file_exists"
+path = "docs/2-planning/backlog.md"
+
+[[rules]]
+id = 72
+category = "structure"
+description = "docs/templates/ directory exists"
+severity = "info"
+type = "dir_exists"
+path = "docs/templates"
+
+# =============================================================================
+# Checks 73-76: Builtin checks (BL-08, BL-09, BL-10, BL-11)
+# =============================================================================
+
+[[rules]]
+id = 73
+category = "structure"
+description = "docs/templates/ contains template files"
+severity = "info"
+type = "builtin"
+handler = "templates_populated"
+
+[[rules]]
+id = 74
+category = "navigation"
+description = "Hub documents use W3H structure"
+severity = "info"
+type = "builtin"
+handler = "w3h_extended"
+
+[[rules]]
+id = 75
+category = "content"
+description = "Root README.md under 100 lines"
+severity = "info"
+type = "builtin"
+handler = "readme_line_count"
+
+[[rules]]
+id = 76
+category = "naming"
+description = "FR artifacts follow FR_NNN naming"
+severity = "info"
+type = "builtin"
+handler = "fr_naming"
+
+# =============================================================================
+# Checks 77-81: Module checks (BL-03 through BL-06)
+# =============================================================================
+
+[[rules]]
+id = 77
+category = "module"
+description = "Module READMEs follow W3H structure"
+severity = "warning"
+type = "builtin"
+handler = "module_readme_w3h"
+
+[[rules]]
+id = 78
+category = "module"
+description = "Modules have examples directory"
+severity = "warning"
+type = "builtin"
+handler = "module_examples_tests"
+
+[[rules]]
+id = 79
+category = "module"
+description = "Modules have integration tests"
+severity = "warning"
+type = "builtin"
+handler = "module_examples_tests"
+
+[[rules]]
+id = 80
+category = "module"
+description = "Modules have toolchain documentation"
+severity = "warning"
+type = "builtin"
+handler = "module_toolchain_docs"
+
+[[rules]]
+id = 81
+category = "module"
+description = "Module deployment docs complete"
+severity = "warning"
+type = "builtin"
+handler = "module_deployment_docs"
+
+# =============================================================================
+# Check 82: Traceability (backlog → requirements)
+# =============================================================================
+
+[[rules]]
+id = 82
+category = "traceability"
+description = "Backlog references requirements/SRS"
+severity = "warning"
+type = "builtin"
+handler = "backlog_traces_requirements"

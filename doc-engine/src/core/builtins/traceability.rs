@@ -227,6 +227,49 @@ impl CheckRunner for PlanTracesDesign {
     }
 }
 
+/// Check 82: backlog_traces_requirements
+/// Backlog documents reference requirements/SRS.
+pub struct BacklogTracesRequirements {
+    pub def: RuleDef,
+}
+
+impl CheckRunner for BacklogTracesRequirements {
+    fn id(&self) -> CheckId { CheckId(self.def.id) }
+    fn category(&self) -> &str { &self.def.category }
+    fn description(&self) -> &str { &self.def.description }
+
+    fn run(&self, ctx: &ScanContext) -> CheckResult {
+        let backlog_path = ctx.root.join("docs/2-planning/backlog.md");
+        if !backlog_path.exists() {
+            return CheckResult::Skip { reason: "docs/2-planning/backlog.md does not exist".to_string() };
+        }
+
+        let content = match fs::read_to_string(&backlog_path) {
+            Ok(c) => c,
+            Err(e) => {
+                return CheckResult::Skip {
+                    reason: format!("Cannot read backlog.md: {}", e),
+                };
+            }
+        };
+
+        let req_re = Regex::new(r"(?i)requirements\.md|requirements\b|FR-\d|STK-\d|SRS|1-requirements|BL-\d").unwrap();
+
+        if req_re.is_match(&content) {
+            CheckResult::Pass
+        } else {
+            CheckResult::Fail {
+                violations: vec![Violation {
+                    check_id: CheckId(self.def.id),
+                    path: Some("docs/2-planning/backlog.md".into()),
+                    message: "Backlog does not reference requirements (expected: requirements.md, FR-N, STK-N, SRS, 1-requirements, or BL-N)".to_string(),
+                    severity: self.def.severity.clone(),
+                }],
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -455,6 +498,52 @@ mod tests {
         let ctx = make_ctx(tmp.path(), vec![
             PathBuf::from("docs/2-planning/README.md"),
         ]);
+        assert!(matches!(handler.run(&ctx), CheckResult::Skip { .. }));
+    }
+
+    // =========================================================================
+    // Check 82 — BacklogTracesRequirements
+    // =========================================================================
+
+    #[test]
+    fn test_backlog_traces_req_pass() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/2-planning/backlog.md",
+            "# Backlog\n\nDerived from requirements.md and SRS analysis.\n");
+
+        let handler = BacklogTracesRequirements { def: make_def(82, "traceability", "backlog_traces_requirements") };
+        let ctx = make_ctx(tmp.path(), vec![]);
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_backlog_traces_req_pass_fr_ref() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/2-planning/backlog.md",
+            "# Backlog\n\nBL-01 maps to FR-800.\n");
+
+        let handler = BacklogTracesRequirements { def: make_def(82, "traceability", "backlog_traces_requirements") };
+        let ctx = make_ctx(tmp.path(), vec![]);
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_backlog_traces_req_fail() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/2-planning/backlog.md",
+            "# Backlog\n\nSome tasks to do.\n");
+
+        let handler = BacklogTracesRequirements { def: make_def(82, "traceability", "backlog_traces_requirements") };
+        let ctx = make_ctx(tmp.path(), vec![]);
+        assert!(matches!(handler.run(&ctx), CheckResult::Fail { .. }));
+    }
+
+    #[test]
+    fn test_backlog_traces_req_skip_no_file() {
+        let tmp = TempDir::new().unwrap();
+
+        let handler = BacklogTracesRequirements { def: make_def(82, "traceability", "backlog_traces_requirements") };
+        let ctx = make_ctx(tmp.path(), vec![]);
         assert!(matches!(handler.run(&ctx), CheckResult::Skip { .. }));
     }
 }

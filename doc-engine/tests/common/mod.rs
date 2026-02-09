@@ -52,8 +52,21 @@ pub fn create_minimal_project() -> TempDir {
         &format!("# Compliance Checklist\n\n**Audience**: All\n\n{}\n\nSee [architecture](../architecture.md)\n", checklist_content));
 
     // architecture.md for the checklist reference (also references requirements for check 52)
+    // W3H sections for check 74
     write_file(root, "docs/3-design/architecture.md",
-        "# Architecture\n\n**Audience**: Developers\n\nSee requirements.md for FR-001.\n");
+        "# Architecture\n\n**Audience**: Developers\n\n## What\nSystem architecture.\n\n## Why\nDesign rationale.\n\n## How\nComponent design.\n\nSee requirements.md for FR-001.\n");
+
+    // developer_guide.md for check 69 + W3H for check 74
+    write_file(root, "docs/4-development/developer_guide.md",
+        "# Developer Guide\n\n**Audience**: Developers\n\n## What\nDevelopment guide.\n\n## Why\nOnboarding.\n\n## How\nBuild and test.\n");
+
+    // backlog.md for check 71 (in 2-planning/); references architecture for check 53
+    write_file(root, "docs/2-planning/backlog.md",
+        "# Backlog\n\n**Audience**: Developers\n\nSee architecture.md for design context.\n");
+
+    // templates directory for checks 72-73
+    write_file(root, "docs/templates/check_template.md",
+        "# Check Template\n\n**Audience**: Developers\n");
 
     // ADR directory
     write_file(root, "docs/3-design/adr/README.md",

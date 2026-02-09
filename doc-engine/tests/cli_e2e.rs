@@ -169,7 +169,7 @@ fn test_cli_traceability_json() {
 }
 
 #[test]
-fn test_cli_53_total_checks() {
+fn test_cli_67_total_checks() {
     let tmp = tempfile::TempDir::new().unwrap();
     let output = cmd()
         .arg("scan")
@@ -179,7 +179,42 @@ fn test_cli_53_total_checks() {
         .unwrap();
     let stdout = String::from_utf8(output.stdout).unwrap();
     let val: serde_json::Value = serde_json::from_str(&stdout).unwrap();
-    assert_eq!(val["summary"]["total"].as_u64().unwrap(), 53);
+    assert_eq!(val["summary"]["total"].as_u64().unwrap(), 67);
+}
+
+#[test]
+fn test_cli_backlog_checks() {
+    let tmp = common::create_minimal_project();
+    cmd()
+        .arg("scan")
+        .arg(tmp.path())
+        .arg("--checks")
+        .arg("69,71")
+        .assert()
+        .success();
+}
+
+#[test]
+fn test_cli_module_checks_json() {
+    let tmp = common::create_minimal_project();
+    let output = cmd()
+        .arg("scan")
+        .arg(tmp.path())
+        .arg("--json")
+        .arg("--checks")
+        .arg("77-81")
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    let val: serde_json::Value = serde_json::from_str(&stdout).unwrap();
+    let results = val["results"].as_array().unwrap();
+    assert_eq!(results.len(), 5);
+    for r in results {
+        assert_eq!(
+            r["result"]["status"].as_str().unwrap(), "pass",
+            "Module check {} failed: {:?}", r["id"], r["result"]
+        );
+    }
 }
 
 #[test]

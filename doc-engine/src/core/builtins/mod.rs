@@ -5,6 +5,7 @@ pub mod navigation;
 pub mod cross_ref;
 pub mod adr;
 pub mod traceability;
+pub mod module;
 
 use crate::api::types::RuleDef;
 use crate::spi::traits::CheckRunner;
@@ -45,6 +46,25 @@ pub fn get_handler(name: &str, def: &RuleDef) -> Option<Box<dyn CheckRunner>> {
         "phase_artifact_presence" => Some(Box::new(traceability::PhaseArtifactPresence { def: def.clone() })),
         "design_traces_requirements" => Some(Box::new(traceability::DesignTracesRequirements { def: def.clone() })),
         "plan_traces_design" => Some(Box::new(traceability::PlanTracesDesign { def: def.clone() })),
+        "backlog_traces_requirements" => Some(Box::new(traceability::BacklogTracesRequirements { def: def.clone() })),
+
+        // Structure handlers (new)
+        "templates_populated" => Some(Box::new(structure::TemplatesPopulated { def: def.clone() })),
+
+        // Navigation handlers (new)
+        "w3h_extended" => Some(Box::new(navigation::W3hExtended { def: def.clone() })),
+
+        // Content handlers (new)
+        "readme_line_count" => Some(Box::new(content::ReadmeLineCount { def: def.clone() })),
+
+        // Naming handlers (new)
+        "fr_naming" => Some(Box::new(naming::FrNaming { def: def.clone() })),
+
+        // Module handlers
+        "module_readme_w3h" => Some(Box::new(module::ModuleReadmeW3h { def: def.clone() })),
+        "module_examples_tests" => Some(Box::new(module::ModuleExamplesTests { def: def.clone() })),
+        "module_toolchain_docs" => Some(Box::new(module::ModuleToolchainDocs { def: def.clone() })),
+        "module_deployment_docs" => Some(Box::new(module::ModuleDeploymentDocs { def: def.clone() })),
 
         _ => None,
     }

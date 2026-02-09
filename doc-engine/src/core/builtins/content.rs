@@ -261,6 +261,51 @@ impl CheckRunner for GlossaryAcronyms {
     }
 }
 
+/// Check 75: readme_line_count
+/// Root README.md should be under 100 lines.
+pub struct ReadmeLineCount {
+    pub def: RuleDef,
+}
+
+impl CheckRunner for ReadmeLineCount {
+    fn id(&self) -> CheckId { CheckId(self.def.id) }
+    fn category(&self) -> &str { &self.def.category }
+    fn description(&self) -> &str { &self.def.description }
+
+    fn run(&self, ctx: &ScanContext) -> CheckResult {
+        let readme = ctx.root.join("README.md");
+        if !readme.exists() {
+            return CheckResult::Skip { reason: "README.md not found".to_string() };
+        }
+
+        let content = match fs::read_to_string(&readme) {
+            Ok(c) => c,
+            Err(e) => {
+                return CheckResult::Skip {
+                    reason: format!("Cannot read README.md: {}", e),
+                };
+            }
+        };
+
+        let line_count = content.lines().count();
+        if line_count <= 100 {
+            CheckResult::Pass
+        } else {
+            CheckResult::Fail {
+                violations: vec![Violation {
+                    check_id: CheckId(self.def.id),
+                    path: Some("README.md".into()),
+                    message: format!(
+                        "README.md has {} lines; should be under 100 lines",
+                        line_count
+                    ),
+                    severity: self.def.severity.clone(),
+                }],
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -420,5 +465,34 @@ mod tests {
         let handler = GlossaryAcronyms { def: make_def(39) };
         let ctx = make_ctx(tmp.path(), vec![]);
         assert!(matches!(handler.run(&ctx), CheckResult::Fail { .. }));
+    }
+
+    // --- ReadmeLineCount (check 75) ---
+
+    #[test]
+    fn test_readme_line_count_pass() {
+        let tmp = TempDir::new().unwrap();
+        fs::write(tmp.path().join("README.md"), "# Project\nShort readme.\n").unwrap();
+        let handler = ReadmeLineCount { def: make_def(75) };
+        let ctx = make_ctx(tmp.path(), vec![]);
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_readme_line_count_fail() {
+        let tmp = TempDir::new().unwrap();
+        let content: String = (0..105).map(|i| format!("Line {}\n", i)).collect();
+        fs::write(tmp.path().join("README.md"), &content).unwrap();
+        let handler = ReadmeLineCount { def: make_def(75) };
+        let ctx = make_ctx(tmp.path(), vec![]);
+        assert!(matches!(handler.run(&ctx), CheckResult::Fail { .. }));
+    }
+
+    #[test]
+    fn test_readme_line_count_skip() {
+        let tmp = TempDir::new().unwrap();
+        let handler = ReadmeLineCount { def: make_def(75) };
+        let ctx = make_ctx(tmp.path(), vec![]);
+        assert!(matches!(handler.run(&ctx), CheckResult::Skip { .. }));
     }
 }

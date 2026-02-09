@@ -6,41 +6,33 @@
 
 Gap analysis identified 11 missing check categories against the template-engine framework. Current 53 checks cover Phases 0-2 (git files, foundation, design) but have zero coverage of Phase 3 (development docs), Phase 4 (module docs), and Phase 5 (backlog). Estimated 16-24 new checks needed, prioritized as 6 high (developer hub, module W3H, examples/tests, toolchain, deployment, internal governance), 4 medium (backlog files, templates, W3H enforcement, README length), and 1 low (FR naming).
 
-## Status: In Progress
+## Status: Complete
 
 ## Overview
 
 Gap analysis of compliance checks missing from doc-engine relative to the [template-engine documentation framework](https://github.com/sweengineeringlabs/template-engine/blob/main/templates/framework.md). The current 53 checks cover Phases 0-2 well (git files, foundation, design structure) but have minimal coverage of Phase 3 (development docs), zero coverage of Phase 4 (module docs), and zero coverage of Phase 5 (backlog/planning).
 
-## Current Sprint
-
-| Task | Priority | Status | Assignee |
-|------|----------|--------|----------|
-| BL-04: Module examples & tests checks | P0 | Todo | — |
-| BL-02: Developer guide hub check | P1 | Todo | — |
-| BL-07: INTERNAL_USAGE.md check | P1 | Todo | — |
-
 ## Backlog Items
 
 ### High Priority
 
-- [ ] **BL-02** — Developer guide hub existence check (Phase 3 gap)
-- [ ] **BL-03** — Module README W3H structure checks (Phase 4 gap)
-- [ ] **BL-04** — Module examples & tests checks (Phase 4 gap — framework marks "Critical!")
-- [ ] **BL-05** — Module toolchain documentation checks (Phase 4 gap)
-- [ ] **BL-06** — Module deployment documentation checks (Phase 4 gap)
-- [ ] **BL-07** — INTERNAL_USAGE.md for internal projects (Phase 0 governance gap)
+- [x] **BL-02** — Developer guide hub existence check (Phase 3 gap) — 2026-02-09
+- [x] **BL-03** — Module README W3H structure checks (Phase 4 gap) — 2026-02-09
+- [x] **BL-04** — Module examples & tests checks (Phase 4 gap — framework marks "Critical!") — 2026-02-09
+- [x] **BL-05** — Module toolchain documentation checks (Phase 4 gap) — 2026-02-09
+- [x] **BL-06** — Module deployment documentation checks (Phase 4 gap) — 2026-02-09
+- [x] **BL-07** — INTERNAL_USAGE.md for internal projects (Phase 0 governance gap) — 2026-02-09
 
 ### Medium Priority
 
-- [ ] **BL-01** — Backlog file existence checks (Phase 5 gap)
-- [ ] **BL-08** — Templates directory checks (Phase 1 gap)
-- [ ] **BL-09** — W3H structure enforcement across all docs (framework principle gap)
-- [ ] **BL-10** — Root README line count check (best practice gap)
+- [x] **BL-01** — Backlog file existence checks (Phase 5 gap) — 2026-02-09
+- [x] **BL-08** — Templates directory checks (Phase 1 gap) — 2026-02-09
+- [x] **BL-09** — W3H structure enforcement across all docs (framework principle gap) — 2026-02-09
+- [x] **BL-10** — Root README line count check (best practice gap) — 2026-02-09
 
 ### Low Priority
 
-- [ ] **BL-11** — Feature-prefixed artifact naming checks (conditional — only for FR-tracking projects)
+- [x] **BL-11** — Feature-prefixed artifact naming checks (conditional — only for FR-tracking projects) — 2026-02-09
 
 ---
 
@@ -250,13 +242,14 @@ Gap analysis of compliance checks missing from doc-engine relative to the [templ
 
 - [x] Checks 1-50: Structural compliance (Milestone 1) — 2026-02-08
 - [x] Checks 51-53: Traceability (phase artifacts, design→requirements, plan→architecture) — 2026-02-09
+- [x] Checks 69-81: Backlog checks BL-01 through BL-11 (13 new checks) — 2026-02-09
 
 ## Blockers
 
 | Blocker | Impact | Owner | Status |
 |---------|--------|-------|--------|
-| Module discovery logic needed for BL-03 through BL-06 | High — four backlog items depend on reliably detecting modules/crates | — | Open |
-| `project_type` conditional check support needed for BL-07 | Medium — internal project governance check blocked | — | Open |
+| Module discovery logic needed for BL-03 through BL-06 | High — four backlog items depend on reliably detecting modules/crates | — | Resolved (2026-02-09) |
+| `project_type` conditional check support needed for BL-07 | Medium — internal project governance check blocked | — | Resolved (already supported) |
 
 ## Notes
 

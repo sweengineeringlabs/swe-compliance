@@ -182,6 +182,67 @@ impl CheckRunner for NoDeepLinks {
     }
 }
 
+/// Check 74: w3h_extended
+/// Check hub documents (architecture.md, developer_guide.md) for W3H sections.
+/// Only checks What/Why/How (not Who, since Audience check 33 handles that).
+pub struct W3hExtended {
+    pub def: RuleDef,
+}
+
+impl CheckRunner for W3hExtended {
+    fn id(&self) -> CheckId { CheckId(self.def.id) }
+    fn category(&self) -> &str { &self.def.category }
+    fn description(&self) -> &str { &self.def.description }
+
+    fn run(&self, ctx: &ScanContext) -> CheckResult {
+        let hub_files = [
+            "docs/3-design/architecture.md",
+            "docs/4-development/developer_guide.md",
+        ];
+        let w3h_keywords = ["what", "why", "how"];
+        let mut violations = Vec::new();
+
+        for file_path in &hub_files {
+            let full = ctx.root.join(file_path);
+            if !full.exists() {
+                continue; // skip files that don't exist
+            }
+
+            let content = match fs::read_to_string(&full) {
+                Ok(c) => c,
+                Err(_) => continue,
+            };
+
+            let mut missing = Vec::new();
+            for keyword in &w3h_keywords {
+                let pattern = format!(r"(?i)#{{1,3}}\s+.*{}", keyword);
+                let re = Regex::new(&pattern).unwrap();
+                if !re.is_match(&content) {
+                    missing.push(*keyword);
+                }
+            }
+
+            if !missing.is_empty() {
+                violations.push(Violation {
+                    check_id: CheckId(self.def.id),
+                    path: Some((*file_path).into()),
+                    message: format!(
+                        "Hub document '{}' missing W3H sections: {}",
+                        file_path, missing.join(", ")
+                    ),
+                    severity: self.def.severity.clone(),
+                });
+            }
+        }
+
+        if violations.is_empty() {
+            CheckResult::Pass
+        } else {
+            CheckResult::Fail { violations }
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -293,5 +354,40 @@ mod tests {
         let handler = NoDeepLinks { def: make_def(43) };
         let ctx = make_ctx(tmp.path(), vec![]);
         assert!(matches!(handler.run(&ctx), CheckResult::Fail { .. }));
+    }
+
+    // --- W3hExtended (check 74) ---
+
+    #[test]
+    fn test_w3h_extended_pass() {
+        let tmp = TempDir::new().unwrap();
+        fs::create_dir_all(tmp.path().join("docs/3-design")).unwrap();
+        fs::write(tmp.path().join("docs/3-design/architecture.md"),
+            "# Architecture\n## What\nSystem\n## Why\nReason\n## How\nProcess\n"
+        ).unwrap();
+        let handler = W3hExtended { def: make_def(74) };
+        let ctx = make_ctx(tmp.path(), vec![]);
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_w3h_extended_fail() {
+        let tmp = TempDir::new().unwrap();
+        fs::create_dir_all(tmp.path().join("docs/3-design")).unwrap();
+        fs::write(tmp.path().join("docs/3-design/architecture.md"),
+            "# Architecture\nJust text\n"
+        ).unwrap();
+        let handler = W3hExtended { def: make_def(74) };
+        let ctx = make_ctx(tmp.path(), vec![]);
+        assert!(matches!(handler.run(&ctx), CheckResult::Fail { .. }));
+    }
+
+    #[test]
+    fn test_w3h_extended_skip_no_files() {
+        let tmp = TempDir::new().unwrap();
+        let handler = W3hExtended { def: make_def(74) };
+        let ctx = make_ctx(tmp.path(), vec![]);
+        // No hub files exist — pass (nothing to check)
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
     }
 }

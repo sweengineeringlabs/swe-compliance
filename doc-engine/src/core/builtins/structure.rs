@@ -282,6 +282,43 @@ impl CheckRunner for OpenSourceGithubTemplates {
     }
 }
 
+/// Check 73: templates_populated
+/// If docs/templates/ exists, verify it contains >=1 file.
+pub struct TemplatesPopulated {
+    pub def: RuleDef,
+}
+
+impl CheckRunner for TemplatesPopulated {
+    fn id(&self) -> CheckId { CheckId(self.def.id) }
+    fn category(&self) -> &str { &self.def.category }
+    fn description(&self) -> &str { &self.def.description }
+
+    fn run(&self, ctx: &ScanContext) -> CheckResult {
+        let templates_dir = ctx.root.join("docs/templates");
+        if !templates_dir.is_dir() {
+            return CheckResult::Skip { reason: "docs/templates/ does not exist".to_string() };
+        }
+
+        let has_files = ctx.files.iter().any(|f| {
+            let s = f.to_string_lossy();
+            s.starts_with("docs/templates/") && s.ends_with(".md")
+        });
+
+        if has_files {
+            CheckResult::Pass
+        } else {
+            CheckResult::Fail {
+                violations: vec![Violation {
+                    check_id: CheckId(self.def.id),
+                    path: Some("docs/templates".into()),
+                    message: "docs/templates/ exists but contains no template files".to_string(),
+                    severity: self.def.severity.clone(),
+                }],
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -458,5 +495,26 @@ mod tests {
         let handler = OpenSourceGithubTemplates { def: make_def(32, "open_source_github_templates") };
         let ctx = make_ctx(tmp.path(), vec![]);
         assert!(matches!(handler.run(&ctx), CheckResult::Fail { .. }));
+    }
+
+    // --- TemplatesPopulated (check 73) ---
+
+    #[test]
+    fn test_templates_populated_pass() {
+        let tmp = TempDir::new().unwrap();
+        fs::create_dir_all(tmp.path().join("docs/templates")).unwrap();
+        fs::write(tmp.path().join("docs/templates/check_template.md"), "# Template").unwrap();
+        let handler = TemplatesPopulated { def: make_def(73, "templates_populated") };
+        let files = vec![PathBuf::from("docs/templates/check_template.md")];
+        let ctx = make_ctx(tmp.path(), files);
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_templates_populated_skip_no_dir() {
+        let tmp = TempDir::new().unwrap();
+        let handler = TemplatesPopulated { def: make_def(73, "templates_populated") };
+        let ctx = make_ctx(tmp.path(), vec![]);
+        assert!(matches!(handler.run(&ctx), CheckResult::Skip { .. }));
     }
 }

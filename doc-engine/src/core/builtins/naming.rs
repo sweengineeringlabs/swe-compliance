@@ -203,6 +203,66 @@ impl CheckRunner for TestingFilePlacement {
     }
 }
 
+/// Check 76: fr_naming
+/// FR artifacts follow FR_NNN naming convention (FR-803).
+/// Scan ctx.files for paths matching (?i)\bFR[-_]\d. If none, Pass.
+/// If found, validate they match FR_\d{3} (underscore, 3 digits). Flag FR- (hyphen).
+pub struct FrNaming {
+    pub def: RuleDef,
+}
+
+impl CheckRunner for FrNaming {
+    fn id(&self) -> CheckId { CheckId(self.def.id) }
+    fn category(&self) -> &str { &self.def.category }
+    fn description(&self) -> &str { &self.def.description }
+
+    fn run(&self, ctx: &ScanContext) -> CheckResult {
+        let fr_detect = Regex::new(r"(?i)\bFR[-_]\d").unwrap();
+        let fr_valid = Regex::new(r"\bFR_\d{3}\b").unwrap();
+        let fr_hyphen = Regex::new(r"(?i)\bFR-\d").unwrap();
+
+        let fr_files: Vec<_> = ctx.files.iter()
+            .filter(|f| fr_detect.is_match(&f.to_string_lossy()))
+            .collect();
+
+        if fr_files.is_empty() {
+            return CheckResult::Pass; // no FR artifacts, opt-in
+        }
+
+        let mut violations = Vec::new();
+        for file in &fr_files {
+            let path_str = file.to_string_lossy();
+            if fr_hyphen.is_match(&path_str) {
+                violations.push(Violation {
+                    check_id: CheckId(self.def.id),
+                    path: Some(file.to_path_buf()),
+                    message: format!(
+                        "Path '{}' uses FR-NNN (hyphen); should use FR_NNN (underscore)",
+                        path_str
+                    ),
+                    severity: self.def.severity.clone(),
+                });
+            } else if !fr_valid.is_match(&path_str) {
+                violations.push(Violation {
+                    check_id: CheckId(self.def.id),
+                    path: Some(file.to_path_buf()),
+                    message: format!(
+                        "Path '{}' has non-standard FR naming; expected FR_NNN (3 digits)",
+                        path_str
+                    ),
+                    severity: self.def.severity.clone(),
+                });
+            }
+        }
+
+        if violations.is_empty() {
+            CheckResult::Pass
+        } else {
+            CheckResult::Fail { violations }
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -327,6 +387,44 @@ mod tests {
         let tmp = TempDir::new().unwrap();
         let handler = TestingFilePlacement { def: make_def(25) };
         let files = vec![PathBuf::from("docs/3-design/unit_testing_plan.md")];
+        let ctx = make_ctx(tmp.path(), files);
+        assert!(matches!(handler.run(&ctx), CheckResult::Fail { .. }));
+    }
+
+    // --- FrNaming (check 76) ---
+
+    #[test]
+    fn test_fr_naming_pass_no_fr() {
+        let tmp = TempDir::new().unwrap();
+        let handler = FrNaming { def: make_def(76) };
+        let files = vec![PathBuf::from("docs/requirements.md")];
+        let ctx = make_ctx(tmp.path(), files);
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_fr_naming_pass_valid() {
+        let tmp = TempDir::new().unwrap();
+        let handler = FrNaming { def: make_def(76) };
+        let files = vec![PathBuf::from("docs/FR_001/design.md")];
+        let ctx = make_ctx(tmp.path(), files);
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_fr_naming_fail_hyphen() {
+        let tmp = TempDir::new().unwrap();
+        let handler = FrNaming { def: make_def(76) };
+        let files = vec![PathBuf::from("docs/FR-001/design.md")];
+        let ctx = make_ctx(tmp.path(), files);
+        assert!(matches!(handler.run(&ctx), CheckResult::Fail { .. }));
+    }
+
+    #[test]
+    fn test_fr_naming_fail_wrong_digits() {
+        let tmp = TempDir::new().unwrap();
+        let handler = FrNaming { def: make_def(76) };
+        let files = vec![PathBuf::from("docs/FR_01/design.md")];
         let ctx = make_ctx(tmp.path(), files);
         assert!(matches!(handler.run(&ctx), CheckResult::Fail { .. }));
     }
