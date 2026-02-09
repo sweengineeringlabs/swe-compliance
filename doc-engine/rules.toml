@@ -1,4 +1,4 @@
-# doc-engine rules — 73 documentation compliance checks
+# doc-engine rules — 74 documentation compliance checks
 # Embedded in binary via include_str!("../../rules.toml")
 
 # =============================================================================
@@ -652,3 +652,15 @@ description = "docs/2-planning/quality_plan.md exists"
 severity = "info"
 type = "file_exists"
 path = "docs/2-planning/quality_plan.md"
+
+# =============================================================================
+# Check 89: Requirements (ISO/IEC/IEEE 29148:2018, FR-805)
+# =============================================================================
+
+[[rules]]
+id = 89
+category = "requirements"
+description = "SRS requirements have ISO/IEC/IEEE 29148:2018 attribute tables"
+severity = "warning"
+type = "builtin"
+handler = "srs_29148_attributes"

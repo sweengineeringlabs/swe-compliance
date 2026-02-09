@@ -38,6 +38,7 @@ Gap analysis of compliance checks missing from doc-engine relative to the [templ
 
 - [x] **BL-12** — Backlog→requirements traceability (check 82) — 2026-02-09
 - [x] **BL-13** — Planning phase artifacts: risk register, estimation, schedule, resource plan, communication plan, quality plan (checks 83-88, FR-804) — 2026-02-09
+- [x] **BL-14** — SRS 29148 attribute validation (check 89, FR-805) — 2026-02-09
 
 ---
 
@@ -259,6 +260,19 @@ Gap analysis of compliance checks missing from doc-engine relative to the [templ
 
 **Estimated checks**: 6
 
+### BL-14: SRS 29148 Attribute Validation (FR-805)
+
+**Framework reference**: ISO/IEC/IEEE 29148:2018, SRS attribute tables
+
+**What**: The template-engine framework references the ISO/IEC/IEEE 29148:2018 standard for SRS structure. doc-engine's own SRS follows 29148 format — each FR/NFR requirement has an attribute table with Priority, State, Verification, Traces to, and Acceptance. No check validated this structure.
+
+**Proposed checks**:
+- SRS requirement blocks (FR-xxx, NFR-xxx) have all 5 mandatory 29148 attributes — severity: warning
+
+**Priority**: Medium — enforces standards compliance on requirements documents.
+
+**Estimated checks**: 1
+
 ---
 
 ## Summary
@@ -278,7 +292,8 @@ Gap analysis of compliance checks missing from doc-engine relative to the [templ
 | BL-11 | FR_{###} naming | Naming | Low | 1-2 | info |
 | BL-12 | Backlog→requirements traceability | Traceability | High | 1 | warning |
 | BL-13 | Planning phase artifacts (FR-804) | Planning | Medium | 6 | info |
-| | | **Total** | | **~23-31** | |
+| BL-14 | SRS 29148 attribute validation (FR-805) | Requirements | Medium | 1 | warning |
+| | | **Total** | | **~24-32** | |
 
 ## Completed
 
@@ -287,6 +302,7 @@ Gap analysis of compliance checks missing from doc-engine relative to the [templ
 - [x] Checks 69-81: Backlog checks BL-01 through BL-11 (13 new checks) — 2026-02-09
 - [x] Check 82: Backlog→requirements traceability (FR-804 precursor) — 2026-02-09
 - [x] Checks 83-88: Planning phase artifacts per FR-804 (risk register, estimation, schedule, resource plan, communication plan, quality plan) — 2026-02-09
+- [x] Check 89: SRS 29148 attribute validation per FR-805 — 2026-02-09
 
 ## Blockers
 

@@ -6,6 +6,7 @@ pub mod cross_ref;
 pub mod adr;
 pub mod traceability;
 pub mod module;
+pub mod requirements;
 
 use crate::api::types::RuleDef;
 use crate::spi::traits::CheckRunner;
@@ -65,6 +66,9 @@ pub fn get_handler(name: &str, def: &RuleDef) -> Option<Box<dyn CheckRunner>> {
         "module_examples_tests" => Some(Box::new(module::ModuleExamplesTests { def: def.clone() })),
         "module_toolchain_docs" => Some(Box::new(module::ModuleToolchainDocs { def: def.clone() })),
         "module_deployment_docs" => Some(Box::new(module::ModuleDeploymentDocs { def: def.clone() })),
+
+        // Requirements handlers
+        "srs_29148_attributes" => Some(Box::new(requirements::Srs29148Attributes { def: def.clone() })),
 
         _ => None,
     }

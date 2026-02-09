@@ -4,7 +4,7 @@
 
 ## What
 
-doc-engine is a Rust CLI tool and library that audits project documentation against the 73 compliance checks defined by the template-engine documentation framework.
+doc-engine is a Rust CLI tool and library that audits project documentation against the 74 compliance checks defined by the template-engine documentation framework.
 
 ## Who
 

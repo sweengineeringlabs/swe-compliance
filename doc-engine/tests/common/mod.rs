@@ -37,9 +37,18 @@ pub fn create_minimal_project() -> TempDir {
             &format!("# {}\n\n**Audience**: Developers\n", phase));
     }
 
-    // Traceability artifacts (checks 51-53)
+    // Traceability artifacts (checks 51-53) + 29148 attributes (check 89)
     write_file(root, "docs/1-requirements/requirements.md",
-        "# Requirements\n\n**Audience**: Developers\n\nSTK-01: The system shall comply.\n");
+        "# Requirements\n\n**Audience**: Developers\n\n\
+         #### FR-001: Sample requirement\n\n\
+         | Attribute | Value |\n\
+         |-----------|-------|\n\
+         | **Priority** | Must |\n\
+         | **State** | Approved |\n\
+         | **Verification** | Test |\n\
+         | **Traces to** | STK-01 |\n\
+         | **Acceptance** | System meets criteria |\n\n\
+         The system shall do the thing.\n");
     write_file(root, "docs/2-planning/implementation_plan.md",
         "# Implementation Plan\n\n**Audience**: Developers\n\nSee architecture.md for the design.\n");
 

@@ -169,7 +169,7 @@ fn test_cli_traceability_json() {
 }
 
 #[test]
-fn test_cli_73_total_checks() {
+fn test_cli_74_total_checks() {
     let tmp = tempfile::TempDir::new().unwrap();
     let output = cmd()
         .arg("scan")
@@ -179,7 +179,7 @@ fn test_cli_73_total_checks() {
         .unwrap();
     let stdout = String::from_utf8(output.stdout).unwrap();
     let val: serde_json::Value = serde_json::from_str(&stdout).unwrap();
-    assert_eq!(val["summary"]["total"].as_u64().unwrap(), 73);
+    assert_eq!(val["summary"]["total"].as_u64().unwrap(), 74);
 }
 
 #[test]
@@ -225,6 +225,18 @@ fn test_cli_planning_checks() {
         .arg(tmp.path())
         .arg("--checks")
         .arg("83-88")
+        .assert()
+        .success();
+}
+
+#[test]
+fn test_cli_srs_check() {
+    let tmp = common::create_minimal_project();
+    cmd()
+        .arg("scan")
+        .arg(tmp.path())
+        .arg("--checks")
+        .arg("89")
         .assert()
         .success();
 }

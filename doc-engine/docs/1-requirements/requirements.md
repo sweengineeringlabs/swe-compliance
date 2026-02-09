@@ -1103,6 +1103,18 @@ Not all projects use formal feature request tracking. The check is opt-in: it ac
 
 Traditional software engineering planning phases produce artifacts beyond the implementation plan and backlog. Risk registers, estimation records, and quality plans are universally valuable regardless of project size. Schedule, resource plan, and communication plan are primarily relevant to larger open-source projects with multiple contributors and stakeholders; internal/small projects may skip these without penalty.
 
+#### FR-805: SRS 29148 attribute validation
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Should |
+| **State** | Approved |
+| **Verification** | Test |
+| **Traces to** | Check 89 -> `core/builtins/requirements.rs` |
+| **Acceptance** | Check 89 validates that every FR-xxx and NFR-xxx block in `docs/1-requirements/requirements.md` contains the five mandatory ISO/IEC/IEEE 29148:2018 attributes: Priority, State, Verification, Traces to (or Traceability), and Acceptance. Missing attributes produce per-requirement violations. Projects without an SRS file or without FR/NFR blocks produce Skip. STK-xxx blocks are excluded (they use a consolidated table format). |
+
+The engine shall validate SRS documents for ISO/IEC/IEEE 29148:2018 compliance by checking that each requirement block has the five mandatory attribute table entries.
+
 ---
 
 ## 5. Non-Functional Requirements

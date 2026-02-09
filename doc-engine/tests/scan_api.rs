@@ -20,14 +20,14 @@ fn test_scan_empty_dir() {
     let report = scan(tmp.path()).unwrap();
     // Should have many failures but no panics
     assert!(report.summary.failed > 0);
-    assert_eq!(report.summary.total, 73);
+    assert_eq!(report.summary.total, 74);
 }
 
 #[test]
 fn test_scan_returns_67_checks() {
     let tmp = tempfile::TempDir::new().unwrap();
     let report = scan(tmp.path()).unwrap();
-    assert_eq!(report.results.len(), 73);
+    assert_eq!(report.results.len(), 74);
 }
 
 #[test]
@@ -143,6 +143,38 @@ fn test_planning_checks_pass_minimal() {
             "Check {} should pass but got {:?}", entry.id.0, entry.result
         );
     }
+}
+
+#[test]
+fn test_srs_29148_pass_minimal() {
+    let tmp = common::create_minimal_project();
+    let config = ScanConfig {
+        project_type: doc_engine::ProjectType::OpenSource,
+        checks: Some(vec![89]),
+        rules_path: None,
+    };
+    let report = scan_with_config(tmp.path(), &config).unwrap();
+    assert_eq!(report.results.len(), 1);
+    assert!(
+        matches!(report.results[0].result, doc_engine::CheckResult::Pass),
+        "Check 89 should pass but got {:?}", report.results[0].result
+    );
+}
+
+#[test]
+fn test_srs_29148_skip_empty() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let config = ScanConfig {
+        project_type: doc_engine::ProjectType::OpenSource,
+        checks: Some(vec![89]),
+        rules_path: None,
+    };
+    let report = scan_with_config(tmp.path(), &config).unwrap();
+    assert_eq!(report.results.len(), 1);
+    assert!(
+        matches!(report.results[0].result, doc_engine::CheckResult::Skip { .. }),
+        "Check 89 should skip on empty dir but got {:?}", report.results[0].result
+    );
 }
 
 #[test]

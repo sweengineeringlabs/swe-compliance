@@ -105,6 +105,10 @@ This checklist tracks doc-engine's compliance against its own documentation fram
 - [ ] Check 87: Communication plan exists (open-source)
 - [ ] Check 88: Quality plan exists
 
+## Requirements (Check 89)
+
+- [ ] Check 89: SRS requirements have ISO/IEC/IEEE 29148:2018 attribute tables
+
 ## Module Checks (Checks 77-81)
 
 - [ ] Check 77: Module READMEs follow W3H structure
