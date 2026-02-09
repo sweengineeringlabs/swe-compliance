@@ -105,13 +105,18 @@ This checklist tracks doc-engine's compliance against its own documentation fram
 - [ ] Check 87: Communication plan exists (open-source)
 - [ ] Check 88: Quality plan exists
 
-## Requirements (Checks 89-93)
+## Requirements (Checks 89-98)
 
 - [ ] Check 89: SRS requirements have ISO/IEC/IEEE 29148:2018 attribute tables
 - [ ] Check 90: Architecture documents have ISO/IEC/IEEE 42010:2022 sections
 - [ ] Check 91: Testing strategies have ISO/IEC/IEEE 29119-3:2021 sections
 - [ ] Check 92: Production readiness document exists
 - [ ] Check 93: Production readiness has ISO/IEC 25010:2023 quality sections
+- [ ] Check 94: Developer guide has ISO/IEC/IEEE 26514:2022 sections
+- [ ] Check 95: Backlog has required sections (items, completed, blockers)
+- [ ] Check 96: Production readiness has ISO/IEC/IEEE 12207:2017 lifecycle sections
+- [ ] Check 97: Production readiness has supplementary ISO/IEC 25010:2023 quality sections
+- [ ] Check 98: Production readiness has ISO/IEC 25040:2024 evaluation sections
 
 ## Module Checks (Checks 77-81)
 

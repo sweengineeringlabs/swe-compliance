@@ -4,7 +4,7 @@
 
 ## TLDR
 
-This SRS defines requirements for doc-engine, a Rust CLI tool that audits project documentation against 53 compliance checks (50 structural + 3 traceability) from the template-engine framework. It covers stakeholder needs, functional requirements for rule evaluation and reporting, non-functional requirements for performance and extensibility, and traceability from stakeholder goals to implementation modules.
+This SRS defines requirements for doc-engine, a Rust CLI tool that audits project documentation against 98 compliance checks (83 base + 15 spec) across 13 categories, mapped to 8 ISO/IEC standards. It covers stakeholder needs, functional requirements for rule evaluation and reporting, non-functional requirements for performance and extensibility, and traceability from stakeholder goals to implementation modules.
 
 **Version**: 1.0
 **Date**: 2026-02-07
@@ -16,7 +16,7 @@ This SRS defines requirements for doc-engine, a Rust CLI tool that audits projec
 
 ### 1.1 Purpose
 
-This SRS defines the stakeholder, system, and software requirements for **doc-engine**, a Rust CLI tool and library that audits project documentation against the compliance standard defined by the template-engine documentation framework. The engine supports the original 50 structural checks, 3 traceability checks (51-53), and an extended set of YAML spec validation checks (54-68).
+This SRS defines the stakeholder, system, and software requirements for **doc-engine**, a Rust CLI tool and library that audits project documentation against the compliance standard defined by the template-engine documentation framework. The engine supports 98 checks across 13 categories: structure (1-13, 69, 72-73), naming (14-25, 76), root_files (26-32, 70), content (33-39, 75), navigation (40-43, 74), cross_ref (44-47), adr (48-50), traceability (51-53, 82), spec (54-68), backlog (71), module (77-81), planning (83-88), and requirements (89-98). Checks 89-98 validate against ISO/IEC/IEEE 29148, 42010, 29119-3, 26514, 12207, 25010, and 25040 standards.
 
 ### 1.2 Scope
 
@@ -61,6 +61,13 @@ doc-engine does **not**:
 | Document | Location |
 |----------|----------|
 | ISO/IEC/IEEE 29148:2018 | Requirements engineering standard (this document conforms to) |
+| ISO/IEC/IEEE 12207:2017 | Software life cycle processes (checks 9-10, 51-53, 82-88, 92, 96) |
+| ISO/IEC/IEEE 15289:2019 | Content of life-cycle information items (checks 1-8, 14-20, 26-39, 48-50, 69-76) |
+| ISO/IEC/IEEE 26514:2022 | Design and development of information for users (check 94) |
+| ISO/IEC/IEEE 29119-3:2021 | Software testing -- Part 3: Test documentation (check 91) |
+| ISO/IEC/IEEE 42010:2022 | Architecture description (checks 48-50, 90) |
+| ISO/IEC 25010:2023 | Product quality model, SQuaRE (checks 93, 97) |
+| ISO/IEC 25040:2024 | Evaluation process, SQuaRE (check 98) |
 | Documentation Framework | `/mnt/c/phd-systems/swe-labs/template-engine/templates/framework.md` |
 | Compliance Checklist | `/mnt/c/phd-systems/swe-labs/template-engine/templates/compliance-checklist.md` |
 | SEA Architecture Reference | `/mnt/c/phd-systems/swe-labs/langboot/rustratify/docs/3-design/architecture.md` |
@@ -76,7 +83,7 @@ doc-engine does **not**:
 | Stakeholder | Role | Needs |
 |-------------|------|-------|
 | Developer | Runs scans during local development | Fast feedback on doc compliance, clear violation messages |
-| Architect | Audits projects, defines standards | Customizable rules, comprehensive coverage of 68 checks (53 base + 15 spec) |
+| Architect | Audits projects, defines standards | Customizable rules, comprehensive coverage of 98 checks (83 base + 15 spec) |
 | Documentation maintainer | Tweaks rules without coding | Declarative TOML rules, no recompilation for simple changes |
 | CI system | Automated gate in pipeline | JSON output, deterministic exit codes, non-interactive |
 | Library consumer | Integrates scanning programmatically | Clean public API, well-typed report structures |
@@ -85,7 +92,7 @@ doc-engine does **not**:
 
 #### OS-1: Developer local scan
 
-A developer runs `doc-engine scan .` from their project root. The tool discovers all files, runs all 68 checks (53 base + 15 spec), and prints a text report showing which checks passed and which failed with file paths and messages. The developer fixes violations and re-runs until clean.
+A developer runs `doc-engine scan .` from their project root. The tool discovers all files, runs all 98 checks (83 base + 15 spec), and prints a text report showing which checks passed and which failed with file paths and messages. The developer fixes violations and re-runs until clean.
 
 #### OS-2: CI pipeline gate
 
@@ -119,7 +126,7 @@ A developer runs `doc-engine spec generate docs/1-requirements/auth/login.spec.y
 
 | ID | Requirement | Source | Priority | Rationale |
 |----|-------------|--------|----------|-----------|
-| STK-01 | The tool shall audit any project directory against 53 documentation compliance checks | Compliance Checklist | Must | Replaces manual bash-based auditing |
+| STK-01 | The tool shall audit any project directory against 98 documentation compliance checks | Compliance Checklist | Must | Replaces manual bash-based auditing |
 | STK-02 | Simple rules shall be modifiable without recompiling | Architect feedback | Must | Non-developers need to customize rules |
 | STK-03 | The tool shall produce machine-readable output for CI integration | CI pipeline needs | Must | Enables automated compliance gating |
 | STK-04 | The tool shall be usable as a Rust library | Library consumer needs | Should | Enables programmatic integration |
@@ -137,7 +144,7 @@ A developer runs `doc-engine spec generate docs/1-requirements/auth/login.spec.y
 ```
 template-engine/templates/
 ├── framework.md              ← defines the standard
-└── compliance-checklist.md   ← defines the 53 checks
+└── compliance-checklist.md   ← defines the original base checks (now extended to 98 total)
          │
          ▼
 doc-engine/rules.toml         ← encodes checks as TOML rules
@@ -200,7 +207,7 @@ Each requirement includes:
 | **State** | Approved |
 | **Verification** | Test |
 | **Traces to** | STK-01, STK-02 -> `core/rules.rs` |
-| **Acceptance** | When no `--rules` flag is provided, the engine loads rules from the embedded default and produces a valid `ScanReport` with 68 check results |
+| **Acceptance** | When no `--rules` flag is provided, the engine loads rules from the embedded default and produces a valid `ScanReport` with 98 check results |
 
 The binary shall embed a default `rules.toml` via `include_str!`. When no `--rules` flag is provided, the embedded rules are used.
 
@@ -230,7 +237,7 @@ Each rule entry shall contain:
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `id` | u8 | Yes | Unique check number (1-68) |
+| `id` | u8 | Yes | Unique check number (1-98) |
 | `category` | string | Yes | Grouping category |
 | `description` | string | Yes | Human-readable description |
 | `severity` | string | Yes | `"error"`, `"warning"`, or `"info"` |
@@ -303,6 +310,25 @@ When `type = "builtin"`, the engine shall look up a Rust handler by `handler` na
 | `phase_artifact_presence` | Verify SDLC phase dirs contain expected artifacts |
 | `design_traces_requirements` | Design docs reference requirements |
 | `plan_traces_design` | Planning docs reference architecture |
+| `backlog_traces_requirements` | Backlog references requirements/SRS |
+| `templates_populated` | Verify docs/templates/ contains template files |
+| `w3h_extended` | W3H structure enforcement in hub documents |
+| `readme_line_count` | Root README.md under 100 lines |
+| `fr_naming` | FR artifacts follow FR_NNN naming |
+| `module_readme_w3h` | Module READMEs follow W3H structure |
+| `module_examples_tests` | Modules have examples directory and integration tests |
+| `module_toolchain_docs` | Modules have toolchain documentation |
+| `module_deployment_docs` | Module deployment docs complete |
+| `srs_29148_attributes` | SRS requirements have ISO 29148 attribute tables |
+| `arch_42010_sections` | Architecture documents have ISO 42010 sections |
+| `test_29119_sections` | Testing strategies have ISO 29119-3 sections |
+| `prod_readiness_exists` | Production readiness document exists |
+| `prod_readiness_25010_sections` | Production readiness has ISO 25010 quality sections |
+| `dev_guide_26514_sections` | Developer guide has ISO 26514 sections |
+| `backlog_sections` | Backlog has required sections (items, completed, blockers) |
+| `prod_readiness_12207_sections` | Production readiness has ISO 12207 lifecycle sections |
+| `prod_readiness_25010_supp_sections` | Production readiness has supplementary ISO 25010 quality sections |
+| `prod_readiness_25040_sections` | Production readiness has ISO 25040 evaluation sections |
 | `spec_brd_exists` | Check BRD spec file exists in 1-requirements/ |
 | `spec_domain_coverage` | Check domain directories have .spec.yaml files |
 | `spec_schema_valid` | Validate all .spec/.arch/.test/.deploy.yaml files parse and conform to schema |
@@ -368,30 +394,34 @@ All discovered file paths shall be relative to the project root.
 
 ### 4.3 Check Execution
 
-#### FR-300: All checks (53 base + 15 spec)
+#### FR-300: All checks (83 base + 15 spec)
 
 | Attribute | Value |
 |-----------|-------|
 | **Priority** | Must |
 | **State** | Approved |
 | **Verification** | Test |
-| **Traces to** | STK-01, STK-08 -> `core/engine.rs`, `core/builtins/spec.rs`, `core/builtins/traceability.rs`, `rules.toml` |
-| **Acceptance** | Default `rules.toml` contains 68 rules; a full scan produces 53 base results + up to 15 spec results (spec checks produce Skip if no `.spec.yaml` files exist) |
+| **Traces to** | STK-01, STK-08 -> `core/engine.rs`, `core/builtins/spec.rs`, `core/builtins/traceability.rs`, `core/builtins/requirements.rs`, `rules.toml` |
+| **Acceptance** | Default `rules.toml` contains 98 rules; a full scan produces 83 base results + up to 15 spec results (spec checks produce Skip if no `.spec.yaml` files exist) |
 
-The engine shall support 68 checks:
+The engine shall support 98 checks:
 
 | Category | Check IDs | Count |
 |----------|-----------|-------|
-| structure | 1-13 | 13 |
-| naming | 14-25 | 12 |
-| root_files | 26-32 | 7 |
-| content | 33-39 | 7 |
-| navigation | 40-43 | 4 |
+| structure | 1-13, 69, 72-73 | 15 |
+| naming | 14-25, 76 | 13 |
+| root_files | 26-32, 70 | 8 |
+| content | 33-39, 75 | 8 |
+| navigation | 40-43, 74 | 5 |
 | cross_ref | 44-47 | 4 |
 | adr | 48-50 | 3 |
-| traceability | 51-53 | 3 |
+| traceability | 51-53, 82 | 4 |
 | spec | 54-68 | 15 |
-| **Total** | | **68** |
+| backlog | 71 | 1 |
+| module | 77-81 | 5 |
+| planning | 83-88 | 6 |
+| requirements | 89-98 | 10 |
+| **Total** | | **98** |
 
 #### FR-301: Check filtering
 
@@ -1139,6 +1169,90 @@ The engine shall validate architecture documents at project and module level for
 
 The engine shall validate testing strategy documents at project and module level for ISO/IEC/IEEE 29119-3:2021 compliance by checking for test design, test case, and test procedure sections.
 
+#### FR-808: Production readiness document existence
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Should |
+| **State** | Approved |
+| **Verification** | Test |
+| **Traces to** | Check 92 -> `core/builtins/requirements.rs` |
+| **Acceptance** | Check 92 validates that `docs/6-deployment/production_readiness.md` exists. Projects without this file produce Skip. |
+
+The engine shall verify that a production readiness review document exists at the project level, per ISO/IEC 25010:2023 quality assessment practices.
+
+#### FR-809: Production readiness ISO/IEC 25010:2023 quality sections
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Should |
+| **State** | Approved |
+| **Verification** | Test |
+| **Traces to** | Check 93 -> `core/builtins/requirements.rs` |
+| **Acceptance** | Check 93 validates that `docs/6-deployment/production_readiness.md` contains sections for Security, Test Coverage, Observability, Backwards Compatibility, Runtime Safety, and Verdict. Missing sections produce per-section violations. Projects without the file produce Skip. |
+
+The engine shall validate production readiness documents for core ISO/IEC 25010:2023 quality characteristics: security, reliability (runtime safety), maintainability (test coverage), portability (backwards compatibility), and usability (observability).
+
+#### FR-810: Developer guide ISO/IEC/IEEE 26514:2022 sections
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Should |
+| **State** | Approved |
+| **Verification** | Test |
+| **Traces to** | Check 94 -> `core/builtins/requirements.rs` |
+| **Acceptance** | Check 94 validates that `docs/4-development/developer_guide.md` contains sections for Build & Test, Project Structure, and Adding New Features. Missing sections produce per-section violations. Projects without the file produce Skip. |
+
+The engine shall validate developer guide documents for ISO/IEC/IEEE 26514:2022 compliance by checking for task analysis (build & test), information structure (project layout), and writing guidelines (extensibility) sections.
+
+#### FR-811: Backlog content sections
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Should |
+| **State** | Approved |
+| **Verification** | Test |
+| **Traces to** | Check 95 -> `core/builtins/requirements.rs` |
+| **Acceptance** | Check 95 validates that `docs/2-planning/backlog.md` contains sections for Backlog Items (or High Priority), Completed, and Blockers. Missing sections produce per-section violations. Projects without the file produce Skip. |
+
+The engine shall validate backlog documents for required content sections: active items, completed items with dates, and blockers with impact/owner/status tracking.
+
+#### FR-812: Production readiness ISO/IEC/IEEE 12207:2017 lifecycle sections
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Should |
+| **State** | Approved |
+| **Verification** | Test |
+| **Traces to** | Check 96 -> `core/builtins/requirements.rs` |
+| **Acceptance** | Check 96 validates that `docs/6-deployment/production_readiness.md` contains sections for CI/CD Pipeline, Dependency Health, Dependency Auditing, Package Metadata, and Release Automation. Missing sections produce per-section violations. Projects without the file produce Skip. |
+
+The engine shall validate production readiness documents for ISO/IEC/IEEE 12207:2017 lifecycle process areas: infrastructure management (CI/CD, dependencies), configuration management (package metadata), and transition (release automation).
+
+#### FR-813: Production readiness supplementary ISO/IEC 25010:2023 quality sections
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Should |
+| **State** | Approved |
+| **Verification** | Test |
+| **Traces to** | Check 97 -> `core/builtins/requirements.rs` |
+| **Acceptance** | Check 97 validates that `docs/6-deployment/production_readiness.md` contains sections for Static Analysis, API Documentation, README & Onboarding, and Documentation Lint. Missing sections produce per-section violations. Projects without the file produce Skip. |
+
+The engine shall validate production readiness documents for supplementary ISO/IEC 25010:2023 quality characteristics: security integrity (static analysis), maintainability analysability (API documentation), usability learnability (README & onboarding), and maintainability modularity (documentation lint).
+
+#### FR-814: Production readiness ISO/IEC 25040:2024 evaluation sections
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Should |
+| **State** | Approved |
+| **Verification** | Test |
+| **Traces to** | Check 98 -> `core/builtins/requirements.rs` |
+| **Acceptance** | Check 98 validates that `docs/6-deployment/production_readiness.md` contains Scoring and Sign-Off sections. The Scoring section defines evaluation criteria (PASS/WARN/FAIL). The Sign-Off section captures role, name, date, and verdict. Missing sections produce per-section violations. Projects without the file produce Skip. |
+
+The engine shall validate production readiness documents for ISO/IEC 25040:2024 evaluation process compliance: evaluation specification (scoring criteria) and evaluation conclusion (sign-off with roles and verdicts).
+
 ---
 
 ## 5. Non-Functional Requirements
@@ -1351,6 +1465,323 @@ IO errors and missing files shall produce `Skip` results or clear error messages
 | FR-730-735 | `core/spec/generate.rs` |
 | FR-740-742 | `core/builtins/spec.rs`, `rules.toml` |
 | FR-750-755 | `main.rs`, `core/reporter.rs` |
+| FR-808-814 | `core/builtins/requirements.rs`, `rules.toml` |
 | NFR-100-101 | Module structure (spi/, api/, core/, saf/) |
 | NFR-400-401 | `rules.toml`, `core/declarative.rs`, `core/builtins/` |
 | NFR-500-501 | `core/engine.rs`, `core/rules.rs` |
+
+---
+
+## Appendix B: ISO Standards Mapping
+
+This appendix maps doc-engine's 98 compliance checks to their corresponding ISO/IEC standard clauses. It serves as the traceability matrix between the engine's automated checks and the international standards they implement or support.
+
+### B.1 Standards Referenced
+
+| Standard | Edition | Title | Checks |
+|----------|---------|-------|--------|
+| ISO/IEC/IEEE 12207 | 2017 | Software life cycle processes | 9-10, 51-53, 82-88, 92, 96 |
+| ISO/IEC/IEEE 15289 | 2019 | Content of life-cycle information items | 1-8, 14-20, 26-39, 48-50, 69-76 |
+| ISO/IEC/IEEE 26514 | 2022 | Design and development of information for users | 94 |
+| ISO/IEC/IEEE 29119-3 | 2021 | Software testing -- Part 3: Test documentation | 91 |
+| ISO/IEC/IEEE 29148 | 2018 | Life cycle processes -- Requirements engineering | 89 |
+| ISO/IEC/IEEE 42010 | 2022 | Architecture description | 90 |
+| ISO/IEC 25010 | 2023 | Product quality model (SQuaRE) | 93, 97 |
+| ISO/IEC 25040 | 2024 | Evaluation process (SQuaRE) | 98 |
+
+### B.2 Detailed Mapping
+
+#### ISO/IEC/IEEE 12207:2017 -- Software Life Cycle Processes
+
+The foundational lifecycle standard. doc-engine enforces its process areas through structural, planning, and traceability checks.
+
+| ISO Clause | Clause Title | Check(s) | Check Description |
+|------------|-------------|----------|-------------------|
+| 6.1 | Agreement processes | -- | Not in scope (contract/supply) |
+| 6.2 | Organizational project-enabling processes | 83, 84, 88 | Risk register, estimation, quality plan |
+| 6.3.1 | Project planning process | 85, 86, 87 | Schedule, resource plan, communication plan |
+| 6.3.2 | Project assessment and control | 92, 96 | Production readiness document, CI/CD + dependency + release lifecycle sections |
+| 6.4.1 | Stakeholder needs and requirements definition | 89 | SRS with 29148 attribute tables |
+| 6.4.2 | System/software requirements analysis | 82 | Backlog traces to requirements |
+| 6.4.3 | Architecture definition | 90 | Architecture docs have 42010 sections |
+| 6.4.5 | Design definition | 52 | Design documents reference requirements |
+| 6.4.6 | Implementation | 69 | Developer guide exists |
+| 6.4.7 | Integration | 53 | Planning documents reference architecture |
+| 6.4.8 | Verification | 91 | Testing strategy has 29119-3 sections |
+| 6.4.9 | Transition | 96 | Release automation, package metadata sections |
+| 6.4.10 | Validation | 98 | Scoring and sign-off evaluation sections |
+| 6.4.11 | Operation | -- | Not in scope (operational procedures) |
+| 6.4.12 | Maintenance | -- | Not in scope (maintenance planning) |
+| 6.4.13 | Disposal | -- | Not in scope (end-of-life) |
+| 7.2.1 | Life cycle model management | 9, 10 | SDLC phase numbering and ordering |
+| 7.2.2 | Infrastructure management | 96 | CI/CD pipeline, dependency health sections |
+| 7.2.5 | Quality management | 88, 93 | Quality plan + production readiness quality sections |
+| 7.2.6 | Configuration management | 51 | Phase dirs contain expected artifacts |
+| 7.2.8 | Information management | 1-3, 48 | Docs structure, glossary, ADR index |
+
+#### ISO/IEC/IEEE 15289:2019 -- Content of Life-Cycle Information Items
+
+Defines the content requirements for documentation artifacts produced throughout the software lifecycle.
+
+| ISO Clause | Information Item | Check(s) | Check Description |
+|------------|-----------------|----------|-------------------|
+| 5.1 | General content requirements | 33, 34 | Audience declaration in all docs |
+| 5.2 | Identification and status | 14-20 | Standard file naming (README, LICENSE, etc.) |
+| 5.3 | Introduction purpose | 35, 36 | TLDR sections for long/short documents |
+| 6.2 | Concept of operations | 41, 74 | W3H structure (Who, What, Why, How) |
+| 6.3 | System/software requirements specification | 89 | SRS with ISO 29148 attributes |
+| 6.5 | Architecture description | 11, 90 | ADR directory + 42010 sections |
+| 6.7 | Design description | 6, 7 | Compliance checklist + architecture reference |
+| 6.10 | Test documentation | 25, 91 | Test file placement + 29119-3 sections |
+| 6.11 | User documentation | 94 | Developer guide with 26514 sections |
+| 6.12 | Configuration management plan | 19 | .gitignore exists |
+| 6.13 | Project management plan | 83-88 | Planning phase artifacts |
+| 6.14 | Quality assurance plan | 88 | Quality plan exists |
+| 7.1 | Glossary | 3, 37-39 | Glossary exists, format, alphabetized, acronyms |
+| 7.2 | Index / table of contents | 2, 40, 42 | Hub document, root linkage, phase links |
+| 7.3 | Change history | 16, 28 | CHANGELOG.md exists |
+| 7.4 | Security considerations | 17, 29 | SECURITY.md exists |
+| 7.5 | License information | 18, 30 | LICENSE file exists |
+| Annex A | Information item outline examples | 72, 73 | Templates directory with template files |
+
+#### ISO/IEC/IEEE 29148:2018 -- Requirements Engineering
+
+Defines the processes and products related to engineering requirements.
+
+| ISO Clause | Clause Title | Check(s) | Check Description |
+|------------|-------------|----------|-------------------|
+| 5.2.5 | Stakeholder requirements specification | 89 | SRS requirements have attribute tables |
+| 5.2.6 | Requirement attributes | 89 | Priority, State, Verification, Traces-to, Acceptance |
+| 5.2.8 | Requirements traceability | 52, 82 | Design traces requirements, backlog traces requirements |
+| 6.1 | SRS overview | 89 | SRS document with structured requirements |
+| 6.6 | Specific requirements format | 89 | FR-NNN pattern with attribute tables |
+
+**Validated attributes per requirement (check 89):**
+
+| Attribute | ISO 29148 Reference | Required |
+|-----------|-------------------|----------|
+| Priority | Table 2 (5.2.6) | Yes |
+| State | Table 2 (5.2.6) | Yes |
+| Verification | 5.2.7 | Yes |
+| Traces to | 5.2.8 | Yes |
+| Acceptance | 6.6.3 | Yes |
+
+#### ISO/IEC/IEEE 42010:2022 -- Architecture Description
+
+Defines the practices for creating, interpreting, analyzing, and using architecture descriptions.
+
+| ISO Clause | Clause Title | Check(s) | Check Description |
+|------------|-------------|----------|-------------------|
+| 5.2 | Architecture description identification | 11 | ADR directory exists |
+| 5.3 | Stakeholders and concerns | 90 | Who section (stakeholders identification) |
+| 5.4 | Architecture viewpoints | 90 | What + How sections (viewpoint specification) |
+| 5.5 | Architecture rationale | 90 | Why section (design rationale and concerns) |
+| 5.6 | Correspondence rules | 52 | Design documents reference requirements |
+| 5.7 | Architecture decisions | 48-50 | ADR index, naming, completeness |
+
+**Validated sections per architecture document (check 90):**
+
+| Section | Maps to 42010 Clause |
+|---------|---------------------|
+| Who (stakeholders) | 5.3 Stakeholders and concerns |
+| What (system description) | 5.4 Architecture viewpoints |
+| Why (rationale) | 5.5 Architecture rationale |
+| How (component design) | 5.4 Architecture viewpoints |
+
+#### ISO/IEC/IEEE 29119-3:2021 -- Test Documentation
+
+Defines test documentation throughout the testing process.
+
+| ISO Clause | Clause Title | Check(s) | Check Description |
+|------------|-------------|----------|-------------------|
+| 8.1 | Test strategy | 91 | Test Strategy section exists |
+| 8.2 | Test plan | 91 | Test Categories section exists |
+| 9.1 | Test specification | 91 | Coverage Targets section exists |
+| 10.1 | Test completion | -- | Not yet implemented |
+
+**Validated sections per testing strategy (check 91):**
+
+| Section | Maps to 29119-3 Clause |
+|---------|----------------------|
+| Test Strategy | 8.1 Organizational test strategy |
+| Test Categories | 8.2 Test plan (test approach) |
+| Coverage Targets | 9.1 Test design specification |
+
+#### ISO/IEC/IEEE 26514:2022 -- Information for Users
+
+Defines the design and development of information for software users.
+
+| ISO Clause | Clause Title | Check(s) | Check Description |
+|------------|-------------|----------|-------------------|
+| 6.2 | Task analysis | 94 | Build & Test section (task-oriented instructions) |
+| 7.1 | Information structure | 94 | Project Structure section (navigational overview) |
+| 8.1 | Writing guidelines | 94 | Adding New Features section (extensibility guide) |
+| 9.2 | Quick start | 94 | Build & Test section (getting started) |
+
+**Validated sections per developer guide (check 94):**
+
+| Section | Maps to 26514 Clause |
+|---------|---------------------|
+| Build & Test | 6.2 Task analysis, 9.2 Quick start |
+| Project Structure | 7.1 Information structure |
+| Adding New Features | 8.1 Writing guidelines |
+
+#### ISO/IEC 25010:2023 -- Product Quality Model (SQuaRE)
+
+Defines the product quality model with quality characteristics and sub-characteristics.
+
+| Quality Characteristic | Sub-characteristic | Check(s) | Check Description |
+|-----------------------|-------------------|----------|-------------------|
+| Functional suitability | Functional completeness | 8 | Every enforceable rule has a checkbox |
+| Reliability | Maturity | 93 | Runtime Safety section |
+| Reliability | Fault tolerance | 93 | Runtime Safety section |
+| Security | Confidentiality | 93 | Security section |
+| Security | Integrity | 97 | Static Analysis section |
+| Maintainability | Modularity | 97 | Documentation Lint section |
+| Maintainability | Analysability | 97 | API Documentation section |
+| Maintainability | Testability | 93 | Test Coverage section |
+| Portability | Adaptability | 93 | Backwards Compatibility section |
+| Usability | Learnability | 97 | README & Onboarding section |
+| Usability | Operability | 93 | Observability section |
+
+**Check 93 sections (core quality):**
+
+| Section | 25010 Quality Characteristic |
+|---------|----------------------------|
+| Security | Security |
+| Test Coverage | Maintainability > Testability |
+| Observability | Usability > Operability |
+| Backwards Compatibility | Portability > Adaptability |
+| Runtime Safety | Reliability > Maturity |
+| Verdict | (Aggregate quality assessment) |
+
+**Check 97 sections (supplementary quality):**
+
+| Section | 25010 Quality Characteristic |
+|---------|----------------------------|
+| Static Analysis | Security > Integrity |
+| API Documentation | Maintainability > Analysability |
+| README & Onboarding | Usability > Learnability |
+| Documentation Lint | Maintainability > Modularity |
+
+#### ISO/IEC 25040:2024 -- Evaluation Process (SQuaRE)
+
+Defines the process for evaluating software product quality.
+
+| ISO Clause | Clause Title | Check(s) | Check Description |
+|------------|-------------|----------|-------------------|
+| 7.1 | Establish evaluation requirements | 98 | Scoring section (criteria definition) |
+| 7.2 | Specify the evaluation | 98 | Scoring table (PASS/WARN/FAIL meanings) |
+| 7.3 | Design the evaluation | 92 | Production readiness document structure |
+| 7.4 | Execute the evaluation | 93, 96, 97 | Quality section assessments |
+| 7.5 | Conclude the evaluation | 98 | Sign-Off section (role, name, date, verdict) |
+
+**Check 98 sections:**
+
+| Section | Maps to 25040 Clause |
+|---------|---------------------|
+| Scoring | 7.1-7.2 Evaluation criteria and specification |
+| Sign-Off | 7.5 Evaluation conclusion |
+
+### B.3 Coverage Summary
+
+#### Standards with Direct Check Implementation
+
+| Standard | Checks Directly Implementing | Coverage |
+|----------|------------------------------|----------|
+| ISO/IEC/IEEE 12207:2017 | 9-10, 51-53, 82-88, 92, 96 | Lifecycle structure, planning, traceability |
+| ISO/IEC/IEEE 15289:2019 | 1-8, 14-20, 26-39, 48-50, 69-76 | Information item content and format |
+| ISO/IEC/IEEE 29148:2018 | 89 | Requirements attribute validation |
+| ISO/IEC/IEEE 42010:2022 | 48-50, 90 | Architecture description sections |
+| ISO/IEC/IEEE 29119-3:2021 | 91 | Test documentation sections |
+| ISO/IEC/IEEE 26514:2022 | 94 | User information structure |
+| ISO/IEC 25010:2023 | 93, 97 | Product quality assessment |
+| ISO/IEC 25040:2024 | 98 | Evaluation process |
+
+#### Checks by ISO Standard
+
+```
+12207 (Lifecycle)     ████████████████████ 18 checks
+15289 (Info Items)    ██████████████████████████████████████████ 40 checks
+29148 (Requirements)  ██ 1 check
+42010 (Architecture)  ████ 4 checks
+29119-3 (Testing)     ██ 1 check
+26514 (User Info)     ██ 1 check
+25010 (Quality)       ███ 2 checks
+25040 (Evaluation)    ██ 1 check
+```
+
+#### Checks Not Mapped to ISO (Internal Policy)
+
+The following checks enforce project-level conventions not directly traceable to an ISO clause:
+
+| Check(s) | Category | Description |
+|----------|----------|-------------|
+| 12-13 | Structure | Directory naming conventions (guide/ not guides/, uxui/ not uiux/) |
+| 21-24 | Naming | snake_lower_case enforcement, guide naming convention |
+| 40, 43 | Navigation | Root README deep-link prevention |
+| 44-47 | Cross-ref | Internal link resolution and plural consistency |
+| 54-68 | Spec | Spec file validation (framework-specific, not ISO-mandated) |
+| 70 | Root files | INTERNAL_USAGE.md (internal project policy) |
+| 77-81 | Module | Module-level documentation conventions |
+| 95 | Backlog | Backlog section structure (items, completed, blockers) |
+
+These checks reflect engineering best practices and organizational conventions that complement but are not derived from ISO standards.
+
+#### Standards Not Yet Covered
+
+| Standard | Edition | Title | Gap Analysis |
+|----------|---------|-------|-------------|
+| ISO/IEC/IEEE 15288 | 2023 | System life cycle processes | Partially covered via 12207 (software-specific counterpart) |
+| ISO/IEC 25023 | 2016 | Measurement of system and software product quality | No quantitative quality metrics (coverage %, defect rates) |
+| ISO/IEC 25041 | 2024 | Evaluation guide for developers, acquirers and independent evaluators | Partial via check 98 (sign-off), no acquirer/evaluator roles |
+| ISO/IEC/IEEE 24765 | 2017 | Systems and software engineering vocabulary | Glossary checks (37-39) align but don't validate against 24765 terms |
+| ISO/IEC 33001-33099 | 2015-2020 | Process assessment (SPICE) | No process capability/maturity assessment |
+| ISO/IEC 27001 | 2022 | Information security management | SECURITY.md exists (17, 29) but no ISMS controls mapping |
+| ISO 9001 | 2015 | Quality management systems | Quality plan (88) partially aligns but no QMS process checks |
+
+### B.4 Cross-Reference: Check ID to ISO Clause
+
+| Check | ISO Standard | Clause(s) |
+|-------|-------------|-----------|
+| 1 | 15289, 12207 | 15289:7.2, 12207:7.2.8 |
+| 2 | 15289 | 15289:7.2 |
+| 3 | 15289 | 15289:7.1 |
+| 4-5 | 15289 | 15289:5.2 |
+| 6-7 | 15289 | 15289:6.7 |
+| 8 | 25010 | 25010:Functional completeness |
+| 9-10 | 12207 | 12207:7.2.1 |
+| 11 | 42010 | 42010:5.2 |
+| 14-20 | 15289 | 15289:5.2 |
+| 25 | 15289 | 15289:6.10 |
+| 26-30 | 15289 | 15289:7.3-7.5 |
+| 31-32 | 15289 | 15289:5.1 (community engagement) |
+| 33-34 | 15289 | 15289:5.1 |
+| 35-36 | 15289 | 15289:5.3 |
+| 37-39 | 15289 | 15289:7.1 |
+| 40 | 15289 | 15289:7.2 |
+| 41 | 15289 | 15289:6.2 |
+| 42 | 15289 | 15289:7.2 |
+| 48-50 | 42010 | 42010:5.7 |
+| 51 | 12207 | 12207:7.2.6 |
+| 52 | 12207, 29148 | 12207:6.4.5, 29148:5.2.8 |
+| 53 | 12207 | 12207:6.4.7 |
+| 69 | 12207 | 12207:6.4.6 |
+| 71 | 12207 | 12207:6.4.2 |
+| 72-73 | 15289 | 15289:Annex A |
+| 74 | 15289 | 15289:6.2 |
+| 75-76 | 15289 | 15289:5.2 |
+| 82 | 12207, 29148 | 12207:6.4.2, 29148:5.2.8 |
+| 83-84 | 12207 | 12207:6.2 |
+| 85-87 | 12207 | 12207:6.3.1 |
+| 88 | 12207 | 12207:7.2.5 |
+| 89 | 29148 | 29148:5.2.5, 5.2.6, 6.1, 6.6 |
+| 90 | 42010 | 42010:5.3, 5.4, 5.5 |
+| 91 | 29119-3 | 29119-3:8.1, 8.2, 9.1 |
+| 92 | 12207 | 12207:6.3.2 |
+| 93 | 25010 | 25010:Security, Reliability, Maintainability, Portability, Usability |
+| 94 | 26514 | 26514:6.2, 7.1, 8.1, 9.2 |
+| 95 | -- | Internal policy (backlog structure) |
+| 96 | 12207 | 12207:6.3.2, 6.4.9, 7.2.2 |
+| 97 | 25010 | 25010:Security, Maintainability, Usability |
+| 98 | 25040 | 25040:7.1, 7.2, 7.5 |
