@@ -2,6 +2,10 @@
 
 **Audience**: Developers, architects
 
+## TLDR
+
+doc-engine uses a Single-Crate Modular SEA architecture with a CLI binary and reusable library. Rules are defined in TOML (simple checks declaratively, complex checks via builtin Rust handlers). The engine walks the project directory, evaluates each rule, and reports pass/fail/skip results. It also supports YAML and markdown spec file validation.
+
 ## Overview
 
 doc-engine is a Rust CLI tool and library that programmatically audits any project against the 65 compliance checks defined by the template-engine documentation framework. It follows the Single-Crate Modular SEA (Stratified Encapsulation Architecture) pattern.
@@ -452,8 +456,8 @@ pub struct MarkdownSpec {
     pub version: Option<String>,                  // **Version:** value
     pub status: Option<String>,                   // **Status:** value
     pub related: Option<String>,                  // **Related:** value
-    pub spec_link: Option<(String, String)>,      // **Spec:** [name](path)
-    pub arch_link: Option<(String, String)>,      // **Arch:** [name](path)
+    pub spec_link: Option<(String, String)>,      // **Spec:** linked name + path
+    pub arch_link: Option<(String, String)>,      // **Arch:** linked name + path
     pub requirements_range: Option<String>,        // **Requirements:** value
     pub test_cases: Vec<MarkdownTestCase>,         // extracted from test tables
 }

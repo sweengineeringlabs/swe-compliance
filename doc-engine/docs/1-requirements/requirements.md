@@ -2,6 +2,10 @@
 
 **Audience**: Developers, architects, project stakeholders
 
+## TLDR
+
+This SRS defines requirements for doc-engine, a Rust CLI tool that audits project documentation against 50 compliance checks from the template-engine framework. It covers stakeholder needs, functional requirements for rule evaluation and reporting, non-functional requirements for performance and extensibility, and traceability from stakeholder goals to implementation modules.
+
 **Version**: 1.0
 **Date**: 2026-02-07
 **Standard**: ISO/IEC/IEEE 29148:2018
@@ -59,7 +63,7 @@ doc-engine does **not**:
 | ISO/IEC/IEEE 29148:2018 | Requirements engineering standard (this document conforms to) |
 | Documentation Framework | `/mnt/c/phd-systems/swe-labs/template-engine/templates/framework.md` |
 | Compliance Checklist | `/mnt/c/phd-systems/swe-labs/template-engine/templates/compliance-checklist.md` |
-| SEA Architecture Reference | `/mnt/c/phd-systems/swe-labs/langboot/rustratify/doc/3-design/architecture.md` |
+| SEA Architecture Reference | `/mnt/c/phd-systems/swe-labs/langboot/rustratify/docs/3-design/architecture.md` |
 | doc-engine Architecture | `../3-design/architecture.md` |
 | doc-engine Implementation Plan | `../2-planning/implementation_plan.md` |
 
@@ -633,7 +637,7 @@ Parse errors shall be reported as `SpecDiagnostic` records with file path, locat
 | **State** | Approved |
 | **Verification** | Test |
 | **Traces to** | STK-08 -> `core/spec/parser.rs` |
-| **Acceptance** | A markdown `.spec` file with `**Version:** 0.1.0`, `**Status:** Draft`, and `**Related:** RS-001` headers has all three values extracted. A `.test` file with `**Spec:** [name](path)` has the spec link extracted. |
+| **Acceptance** | A markdown `.spec` file with `**Version:** 0.1.0`, `**Status:** Draft`, and `**Related:** RS-001` headers has all three values extracted. A `.test` file with a `**Spec:**` header containing a linked name and path has the spec link extracted. |
 
 The parser shall extract structured metadata from markdown spec files using regex patterns:
 - `**Version:**` — spec version
@@ -813,7 +817,7 @@ Each test case's verifies reference shall match a valid requirement ID. For YAML
 | **State** | Approved |
 | **Verification** | Test |
 | **Traces to** | STK-08 -> `core/spec/cross_ref.rs` |
-| **Acceptance** | An `.arch.yaml` with `spec: "FR-001"` passes if a matching `.spec.yaml` exists. A markdown `.arch` with `**Spec:** [name](path)` passes if the linked `.spec` file exists. |
+| **Acceptance** | An `.arch.yaml` with `spec: "FR-001"` passes if a matching `.spec.yaml` exists. A markdown `.arch` with a `**Spec:**` header containing a linked spec name passes if the linked `.spec` file exists. |
 
 Each architecture file shall trace to a spec file. For YAML: the `spec` field references a spec ID. For markdown: the `**Spec:**` header contains a link to the parent `.spec` file.
 

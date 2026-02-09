@@ -2,6 +2,10 @@
 
 **Audience**: Developers, architects
 
+## TLDR
+
+This plan describes the implementation strategy for doc-engine using a Single-Crate Modular SEA architecture. It covers three milestones: a working CLI with 50 base checks, a comprehensive test suite, and self-compliance. Rules are config-driven via TOML with builtin Rust handlers for complex checks.
+
 ## Architecture Decision
 
 > Implements: NFR-100, NFR-101
