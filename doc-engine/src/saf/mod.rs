@@ -15,6 +15,9 @@ pub use crate::api::types::{
     ScanConfig, ScanReport, ScanSummary, CheckEntry, RuleSet, RuleDef, RuleType,
 };
 
+// Re-export detect_project_type for library consumers
+pub use crate::core::engine::detect_project_type;
+
 /// Scan a project directory using default configuration.
 ///
 /// Equivalent to calling [`scan_with_config`] with [`ScanConfig::default()`].

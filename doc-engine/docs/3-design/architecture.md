@@ -417,9 +417,9 @@ pub trait SpecEngine {
 ```rust
 pub enum ProjectType { OpenSource, Internal }
 pub struct ScanConfig {
-    project_type: ProjectType,
+    project_type: Option<ProjectType>,  // None = auto-detect from LICENSE
     checks: Option<Vec<u8>>,
-    rules_path: Option<PathBuf>,    // external rules file override
+    rules_path: Option<PathBuf>,        // external rules file override
 }
 pub struct ScanSummary { total: u8, passed: u8, failed: u8, skipped: u8 }
 pub struct CheckEntry {

@@ -6,7 +6,7 @@ use doc_engine::{scan_with_config, ScanConfig, ProjectType, CheckResult};
 fn test_check_filter_single() {
     let tmp = common::create_minimal_project();
     let config = ScanConfig {
-        project_type: ProjectType::OpenSource,
+        project_type: Some(ProjectType::OpenSource),
         checks: Some(vec![1]),
         rules_path: None,
     };
@@ -19,7 +19,7 @@ fn test_check_filter_single() {
 fn test_check_filter_range() {
     let tmp = common::create_minimal_project();
     let config = ScanConfig {
-        project_type: ProjectType::OpenSource,
+        project_type: Some(ProjectType::OpenSource),
         checks: Some(vec![1, 2, 3]),
         rules_path: None,
     };
@@ -31,7 +31,7 @@ fn test_check_filter_range() {
 fn test_check_filter_none() {
     let tmp = common::create_minimal_project();
     let config = ScanConfig {
-        project_type: ProjectType::OpenSource,
+        project_type: Some(ProjectType::OpenSource),
         checks: None,
         rules_path: None,
     };
@@ -43,7 +43,7 @@ fn test_check_filter_none() {
 fn test_project_type_internal_skips() {
     let tmp = common::create_minimal_project();
     let config = ScanConfig {
-        project_type: ProjectType::Internal,
+        project_type: Some(ProjectType::Internal),
         checks: Some(vec![31, 32]),
         rules_path: None,
     };
@@ -69,7 +69,7 @@ path = "README.md"
 "#).unwrap();
 
     let config = ScanConfig {
-        project_type: ProjectType::OpenSource,
+        project_type: Some(ProjectType::OpenSource),
         checks: None,
         rules_path: Some(rules_path),
     };

@@ -98,6 +98,7 @@ mod tests {
     fn test_parse_invalid_number() {
         assert!(parse_checks("abc").is_err());
     }
+
 }
 
 fn main() {
@@ -105,10 +106,20 @@ fn main() {
 
     match cli.command {
         Commands::Scan { path, json, checks, project_type, rules } => {
-            // Parse project type
+            // Canonicalize path early so auto-detection can read LICENSE
+            let root = match path.canonicalize() {
+                Ok(p) => p,
+                Err(e) => {
+                    eprintln!("Error: cannot resolve path '{}': {}", path.display(), e);
+                    process::exit(2);
+                }
+            };
+
+            // Parse project type: explicit --type overrides, None = auto-detect from LICENSE
             let pt = match project_type.as_deref() {
-                Some("internal") => ProjectType::Internal,
-                Some("open-source") | Some("open_source") | None => ProjectType::OpenSource,
+                Some("internal") => Some(ProjectType::Internal),
+                Some("open-source") | Some("open_source") => Some(ProjectType::OpenSource),
+                None => None, // auto-detect from LICENSE in engine
                 Some(other) => {
                     eprintln!("Error: unknown project type '{}' (use 'open-source' or 'internal')", other);
                     process::exit(2);
@@ -131,15 +142,6 @@ fn main() {
                 project_type: pt,
                 checks: check_ids,
                 rules_path: rules,
-            };
-
-            // Canonicalize path
-            let root = match path.canonicalize() {
-                Ok(p) => p,
-                Err(e) => {
-                    eprintln!("Error: cannot resolve path '{}': {}", path.display(), e);
-                    process::exit(2);
-                }
             };
 
             match scan_with_config(&root, &config) {

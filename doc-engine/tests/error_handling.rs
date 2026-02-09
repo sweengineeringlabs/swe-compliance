@@ -15,7 +15,7 @@ fn test_nonexistent_path() {
 fn test_bad_rules_path() {
     let tmp = tempfile::TempDir::new().unwrap();
     let config = ScanConfig {
-        project_type: ProjectType::OpenSource,
+        project_type: Some(ProjectType::OpenSource),
         checks: None,
         rules_path: Some("/nonexistent/rules.toml".into()),
     };
@@ -34,7 +34,7 @@ fn test_malformed_rules() {
     std::fs::write(&rules_path, "not valid toml {{{{").unwrap();
 
     let config = ScanConfig {
-        project_type: ProjectType::OpenSource,
+        project_type: Some(ProjectType::OpenSource),
         checks: None,
         rules_path: Some(rules_path),
     };

@@ -4,10 +4,59 @@ use std::path::Path;
 use crate::api::traits::ComplianceEngine;
 use crate::api::types::{ScanConfig, ScanReport, ScanSummary, CheckEntry};
 use crate::spi::traits::FileScanner;
-use crate::spi::types::{CheckResult, ScanContext, ScanError};
+use crate::spi::types::{CheckResult, ProjectType, ScanContext, ScanError};
 use super::rules::{self, DEFAULT_RULES};
 use super::scanner::FileSystemScanner;
 
+/// Detect project type from LICENSE file content.
+///
+/// Reads `LICENSE`, `LICENSE.md`, or `LICENSE.txt` at the project root and
+/// looks for common open-source license identifiers (MIT, Apache, GPL, BSD,
+/// etc.). Returns [`ProjectType::OpenSource`] if found, otherwise
+/// [`ProjectType::Internal`].
+pub fn detect_project_type(root: &Path) -> ProjectType {
+    let license_path = root.join("LICENSE");
+    let content = if license_path.exists() {
+        std::fs::read_to_string(&license_path).unwrap_or_default()
+    } else {
+        let alt_paths = [root.join("LICENSE.md"), root.join("LICENSE.txt")];
+        alt_paths.iter()
+            .find(|p| p.exists())
+            .and_then(|p| std::fs::read_to_string(p).ok())
+            .unwrap_or_default()
+    };
+
+    if content.is_empty() {
+        return ProjectType::Internal;
+    }
+
+    let upper = content.to_uppercase();
+    let oss_indicators = [
+        "MIT LICENSE",
+        "APACHE LICENSE",
+        "GNU GENERAL PUBLIC LICENSE",
+        "GNU LESSER GENERAL PUBLIC",
+        "BSD ",
+        "MOZILLA PUBLIC LICENSE",
+        "ISC LICENSE",
+        "BOOST SOFTWARE LICENSE",
+        "THE UNLICENSE",
+        "CREATIVE COMMONS",
+        "EUROPEAN UNION PUBLIC",
+        "OPEN SOFTWARE LICENSE",
+        "ARTISTIC LICENSE",
+        "ZLIB LICENSE",
+        "DO WHAT THE FUCK YOU WANT",
+    ];
+
+    if oss_indicators.iter().any(|ind| upper.contains(ind)) {
+        ProjectType::OpenSource
+    } else {
+        ProjectType::Internal
+    }
+}
+
+/// Doc-engine compliance engine.
 pub struct DocComplianceEngine;
 
 impl ComplianceEngine for DocComplianceEngine {
@@ -20,6 +69,12 @@ impl ComplianceEngine for DocComplianceEngine {
         if !root.exists() {
             return Err(ScanError::Path(format!("Path '{}' does not exist", root.display())));
         }
+
+        // 0. Resolve project type: explicit config overrides auto-detection from LICENSE
+        let resolved_pt = match &config.project_type {
+            Some(pt) => pt.clone(),
+            None => detect_project_type(root),
+        };
 
         // 1. Load rules (embedded default or external path)
         let rules_toml = match &config.rules_path {
@@ -44,7 +99,7 @@ impl ComplianceEngine for DocComplianceEngine {
             root: root.to_path_buf(),
             files,
             file_contents: HashMap::new(),
-            project_type: config.project_type.clone(),
+            project_type: resolved_pt.clone(),
         };
 
         // 5. Filter and run checks
@@ -63,15 +118,15 @@ impl ComplianceEngine for DocComplianceEngine {
             let rule_def = ruleset.rules.iter().find(|r| r.id == check_id);
             if let Some(rule) = rule_def {
                 if let Some(ref rule_pt) = rule.project_type {
-                    if *rule_pt != config.project_type {
+                    if *rule_pt != resolved_pt {
                         results.push(CheckEntry {
                             id: runner.id(),
                             category: runner.category().to_string(),
                             description: runner.description().to_string(),
                             result: CheckResult::Skip {
                                 reason: format!(
-                                    "Skipped: requires {:?} project type",
-                                    rule_pt
+                                    "Skipped: requires {:?} project (detected {:?})",
+                                    rule_pt, resolved_pt
                                 ),
                             },
                         });
@@ -100,7 +155,7 @@ impl ComplianceEngine for DocComplianceEngine {
         Ok(ScanReport {
             results,
             summary: ScanSummary { total, passed, failed, skipped },
-            project_type: config.project_type.clone(),
+            project_type: resolved_pt,
         })
     }
 }
@@ -134,7 +189,7 @@ mod tests {
         let tmp = TempDir::new().unwrap();
         let engine = DocComplianceEngine;
         let config = ScanConfig {
-            project_type: ProjectType::OpenSource,
+            project_type: Some(ProjectType::OpenSource),
             checks: Some(vec![1, 2, 3]),
             rules_path: None,
         };
@@ -150,7 +205,7 @@ mod tests {
         let engine = DocComplianceEngine;
         // Checks 31 and 32 are open_source only; with Internal, they should be skipped
         let config = ScanConfig {
-            project_type: ProjectType::Internal,
+            project_type: Some(ProjectType::Internal),
             checks: Some(vec![31, 32]),
             rules_path: None,
         };
@@ -170,5 +225,72 @@ mod tests {
             report.summary.total,
             report.summary.passed + report.summary.failed + report.summary.skipped
         );
+    }
+
+    #[test]
+    fn test_detect_mit_license() {
+        let tmp = TempDir::new().unwrap();
+        std::fs::write(tmp.path().join("LICENSE"), "MIT License\n\nCopyright (c) 2026\n").unwrap();
+        assert!(matches!(detect_project_type(tmp.path()), ProjectType::OpenSource));
+    }
+
+    #[test]
+    fn test_detect_apache_license() {
+        let tmp = TempDir::new().unwrap();
+        std::fs::write(tmp.path().join("LICENSE"), "Apache License\nVersion 2.0\n").unwrap();
+        assert!(matches!(detect_project_type(tmp.path()), ProjectType::OpenSource));
+    }
+
+    #[test]
+    fn test_detect_gpl_license() {
+        let tmp = TempDir::new().unwrap();
+        std::fs::write(tmp.path().join("LICENSE"), "GNU General Public License\nVersion 3\n").unwrap();
+        assert!(matches!(detect_project_type(tmp.path()), ProjectType::OpenSource));
+    }
+
+    #[test]
+    fn test_detect_bsd_license() {
+        let tmp = TempDir::new().unwrap();
+        std::fs::write(tmp.path().join("LICENSE"), "BSD 3-Clause License\n\nCopyright\n").unwrap();
+        assert!(matches!(detect_project_type(tmp.path()), ProjectType::OpenSource));
+    }
+
+    #[test]
+    fn test_detect_no_license_is_internal() {
+        let tmp = TempDir::new().unwrap();
+        assert!(matches!(detect_project_type(tmp.path()), ProjectType::Internal));
+    }
+
+    #[test]
+    fn test_detect_proprietary_is_internal() {
+        let tmp = TempDir::new().unwrap();
+        std::fs::write(tmp.path().join("LICENSE"), "Copyright 2026 Acme Corp. All rights reserved.\n").unwrap();
+        assert!(matches!(detect_project_type(tmp.path()), ProjectType::Internal));
+    }
+
+    #[test]
+    fn test_detect_license_md() {
+        let tmp = TempDir::new().unwrap();
+        std::fs::write(tmp.path().join("LICENSE.md"), "# MIT License\n").unwrap();
+        assert!(matches!(detect_project_type(tmp.path()), ProjectType::OpenSource));
+    }
+
+    #[test]
+    fn test_auto_detect_in_scan() {
+        let tmp = TempDir::new().unwrap();
+        std::fs::write(tmp.path().join("LICENSE"), "MIT License\n").unwrap();
+        let engine = DocComplianceEngine;
+        // None = auto-detect; MIT LICENSE → OpenSource
+        let report = engine.scan(tmp.path()).unwrap();
+        assert_eq!(report.project_type, ProjectType::OpenSource);
+    }
+
+    #[test]
+    fn test_auto_detect_internal_no_license() {
+        let tmp = TempDir::new().unwrap();
+        let engine = DocComplianceEngine;
+        // No LICENSE file → Internal
+        let report = engine.scan(tmp.path()).unwrap();
+        assert_eq!(report.project_type, ProjectType::Internal);
     }
 }

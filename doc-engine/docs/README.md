@@ -26,4 +26,5 @@ doc-engine reads rules from a TOML configuration file, walks the project directo
 | Planning | [2-planning](2-planning/) | Implementation plan and milestones |
 | Design | [3-design](3-design/) | Architecture, ADRs, and compliance checklist |
 | Development | [4-development](4-development/) | Developer guide and extension documentation |
+| Testing | [5-testing](5-testing/) | Testing strategy and coverage |
 | Deployment | [6-deployment](6-deployment/) | Production readiness review |

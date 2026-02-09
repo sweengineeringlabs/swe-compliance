@@ -5,24 +5,15 @@ use serde::{Deserialize, Serialize};
 use crate::spi::types::{CheckId, CheckResult, ProjectType, Severity};
 
 /// Configuration for a scan.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct ScanConfig {
     /// The project type used to filter applicable checks.
-    pub project_type: ProjectType,
+    /// `None` means auto-detect from the LICENSE file at the project root.
+    pub project_type: Option<ProjectType>,
     /// Optional subset of check IDs to run; `None` runs all checks.
     pub checks: Option<Vec<u8>>,
     /// Optional path to a custom rules TOML file; `None` uses the built-in rules.
     pub rules_path: Option<PathBuf>,
-}
-
-impl Default for ScanConfig {
-    fn default() -> Self {
-        Self {
-            project_type: ProjectType::OpenSource,
-            checks: None,
-            rules_path: None,
-        }
-    }
 }
 
 /// Enriched check entry with metadata per DR-01.

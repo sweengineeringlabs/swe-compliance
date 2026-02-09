@@ -5,8 +5,8 @@
 ## TLDR
 
 Production readiness checklist covering 14 areas. All 14 areas scored PASS after
-implementing PB-01 through PB-10. 260 tests pass, 0 clippy warnings, 75/78
-self-compliance (3 expected skips).
+implementing PB-01 through PB-10. 269 tests pass, 0 clippy warnings, 76/78
+self-compliance (2 expected skips).
 
 ## Verdict: READY
 
@@ -23,7 +23,7 @@ self-compliance (3 expected skips).
 | Release Automation | PASS | Tag-triggered workflow with binary attachment |
 | Documentation Lint | PASS | #![warn(missing_docs)] enabled, zero warnings |
 | Security | PASS | No secrets, CLI tool with file-only I/O |
-| Test Coverage | PASS | 260 tests (unit, integration, E2E, doc) |
+| Test Coverage | PASS | 269 tests (unit, integration, E2E, doc) |
 | Observability | PASS | Structured JSON output, text report, exit codes |
 | Backwards Compatibility | PASS | v0.1.0, no prior consumers |
 
@@ -33,7 +33,7 @@ self-compliance (3 expected skips).
 
 > **Standard**: ISO/IEC/IEEE 12207:2017 §6.3.1, ISO/IEC 25010:2023 Portability
 
-- [x] `cargo test` runs all 260 tests
+- [x] `cargo test` runs all 269 tests
 - [x] `cargo clippy -- -D warnings` enforces zero warnings
 - [x] `cargo run -- scan .` self-compliance scan
 - [x] `cargo-deny` advisory/license audit
@@ -175,7 +175,7 @@ self-compliance (3 expected skips).
 
 > **Standard**: ISO/IEC 25010:2023 Functional Suitability, Reliability
 
-- [x] 204 unit tests across all handler modules
+- [x] 213 unit tests across all handler and engine modules
 - [x] 17 integration tests (scan API)
 - [x] 19 CLI E2E tests
 - [x] 5 config filtering tests

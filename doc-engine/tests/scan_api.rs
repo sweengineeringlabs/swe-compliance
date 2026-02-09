@@ -43,7 +43,7 @@ fn test_scan_with_config_default() {
 fn test_traceability_checks_pass_minimal() {
     let tmp = common::create_minimal_project();
     let config = ScanConfig {
-        project_type: doc_engine::ProjectType::OpenSource,
+        project_type: Some(doc_engine::ProjectType::OpenSource),
         checks: Some(vec![51, 52, 53]),
         rules_path: None,
     };
@@ -61,7 +61,7 @@ fn test_traceability_checks_pass_minimal() {
 fn test_traceability_checks_skip_empty() {
     let tmp = tempfile::TempDir::new().unwrap();
     let config = ScanConfig {
-        project_type: doc_engine::ProjectType::OpenSource,
+        project_type: Some(doc_engine::ProjectType::OpenSource),
         checks: Some(vec![51, 52, 53]),
         rules_path: None,
     };
@@ -79,7 +79,7 @@ fn test_traceability_checks_skip_empty() {
 fn test_backlog_checks_pass_minimal() {
     let tmp = common::create_minimal_project();
     let config = ScanConfig {
-        project_type: doc_engine::ProjectType::OpenSource,
+        project_type: Some(doc_engine::ProjectType::OpenSource),
         checks: Some(vec![69, 71, 72]),
         rules_path: None,
     };
@@ -97,7 +97,7 @@ fn test_backlog_checks_pass_minimal() {
 fn test_module_checks_pass_no_modules() {
     let tmp = common::create_minimal_project();
     let config = ScanConfig {
-        project_type: doc_engine::ProjectType::OpenSource,
+        project_type: Some(doc_engine::ProjectType::OpenSource),
         checks: Some(vec![77, 78, 79, 80, 81]),
         rules_path: None,
     };
@@ -115,7 +115,7 @@ fn test_module_checks_pass_no_modules() {
 fn test_internal_usage_skip_open_source() {
     let tmp = common::create_minimal_project();
     let config = ScanConfig {
-        project_type: doc_engine::ProjectType::OpenSource,
+        project_type: Some(doc_engine::ProjectType::OpenSource),
         checks: Some(vec![70]),
         rules_path: None,
     };
@@ -131,7 +131,7 @@ fn test_internal_usage_skip_open_source() {
 fn test_planning_checks_pass_minimal() {
     let tmp = common::create_minimal_project();
     let config = ScanConfig {
-        project_type: doc_engine::ProjectType::OpenSource,
+        project_type: Some(doc_engine::ProjectType::OpenSource),
         checks: Some(vec![83, 84, 85, 86, 87, 88]),
         rules_path: None,
     };
@@ -149,7 +149,7 @@ fn test_planning_checks_pass_minimal() {
 fn test_srs_29148_pass_minimal() {
     let tmp = common::create_minimal_project();
     let config = ScanConfig {
-        project_type: doc_engine::ProjectType::OpenSource,
+        project_type: Some(doc_engine::ProjectType::OpenSource),
         checks: Some(vec![89]),
         rules_path: None,
     };
@@ -165,7 +165,7 @@ fn test_srs_29148_pass_minimal() {
 fn test_srs_29148_skip_empty() {
     let tmp = tempfile::TempDir::new().unwrap();
     let config = ScanConfig {
-        project_type: doc_engine::ProjectType::OpenSource,
+        project_type: Some(doc_engine::ProjectType::OpenSource),
         checks: Some(vec![89]),
         rules_path: None,
     };
@@ -181,7 +181,7 @@ fn test_srs_29148_skip_empty() {
 fn test_arch_42010_pass_minimal() {
     let tmp = common::create_minimal_project();
     let config = ScanConfig {
-        project_type: doc_engine::ProjectType::OpenSource,
+        project_type: Some(doc_engine::ProjectType::OpenSource),
         checks: Some(vec![90]),
         rules_path: None,
     };
@@ -197,7 +197,7 @@ fn test_arch_42010_pass_minimal() {
 fn test_arch_42010_skip_empty() {
     let tmp = tempfile::TempDir::new().unwrap();
     let config = ScanConfig {
-        project_type: doc_engine::ProjectType::OpenSource,
+        project_type: Some(doc_engine::ProjectType::OpenSource),
         checks: Some(vec![90]),
         rules_path: None,
     };
@@ -213,7 +213,7 @@ fn test_arch_42010_skip_empty() {
 fn test_test_29119_pass_minimal() {
     let tmp = common::create_minimal_project();
     let config = ScanConfig {
-        project_type: doc_engine::ProjectType::OpenSource,
+        project_type: Some(doc_engine::ProjectType::OpenSource),
         checks: Some(vec![91]),
         rules_path: None,
     };
@@ -229,7 +229,7 @@ fn test_test_29119_pass_minimal() {
 fn test_test_29119_skip_empty() {
     let tmp = tempfile::TempDir::new().unwrap();
     let config = ScanConfig {
-        project_type: doc_engine::ProjectType::OpenSource,
+        project_type: Some(doc_engine::ProjectType::OpenSource),
         checks: Some(vec![91]),
         rules_path: None,
     };
