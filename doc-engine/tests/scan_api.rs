@@ -274,6 +274,77 @@ fn test_dev_guide_26514_skip_empty() {
 }
 
 #[test]
+fn test_backlog_sections_pass_minimal() {
+    let tmp = common::create_minimal_project();
+    let config = ScanConfig {
+        project_type: Some(doc_engine::ProjectType::OpenSource),
+        checks: Some(vec![95]),
+        rules_path: None,
+    };
+    let report = scan_with_config(tmp.path(), &config).unwrap();
+    assert_eq!(report.results.len(), 1);
+    assert!(
+        matches!(report.results[0].result, doc_engine::CheckResult::Pass),
+        "Check 95 should pass but got {:?}", report.results[0].result
+    );
+}
+
+#[test]
+fn test_backlog_sections_skip_empty() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let config = ScanConfig {
+        project_type: Some(doc_engine::ProjectType::OpenSource),
+        checks: Some(vec![95]),
+        rules_path: None,
+    };
+    let report = scan_with_config(tmp.path(), &config).unwrap();
+    assert_eq!(report.results.len(), 1);
+    assert!(
+        matches!(report.results[0].result, doc_engine::CheckResult::Skip { .. }),
+        "Check 95 should skip on empty dir but got {:?}", report.results[0].result
+    );
+}
+
+#[test]
+fn test_backlog_sections_fail_missing_sections() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    common::write_file(tmp.path(), "docs/2-planning/backlog.md",
+        "# Backlog\n\n**Audience**: Developers\n\nGeneric content only.\n");
+    let config = ScanConfig {
+        project_type: Some(doc_engine::ProjectType::OpenSource),
+        checks: Some(vec![95]),
+        rules_path: None,
+    };
+    let report = scan_with_config(tmp.path(), &config).unwrap();
+    assert_eq!(report.results.len(), 1);
+    match &report.results[0].result {
+        doc_engine::CheckResult::Fail { violations } => {
+            assert_eq!(violations.len(), 1);
+            assert!(violations[0].message.contains("Backlog items"));
+        }
+        other => panic!("Check 95 should fail but got {:?}", other),
+    }
+}
+
+#[test]
+fn test_backlog_existence_and_sections_combined() {
+    let tmp = common::create_minimal_project();
+    let config = ScanConfig {
+        project_type: Some(doc_engine::ProjectType::OpenSource),
+        checks: Some(vec![71, 82, 95]),
+        rules_path: None,
+    };
+    let report = scan_with_config(tmp.path(), &config).unwrap();
+    assert_eq!(report.results.len(), 3);
+    for entry in &report.results {
+        assert!(
+            matches!(entry.result, doc_engine::CheckResult::Pass),
+            "Check {} should pass but got {:?}", entry.id.0, entry.result
+        );
+    }
+}
+
+#[test]
 fn test_scan_summary_math() {
     let tmp = common::create_minimal_project();
     let report = scan(tmp.path()).unwrap();

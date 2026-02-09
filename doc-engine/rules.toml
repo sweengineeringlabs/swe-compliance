@@ -1,4 +1,4 @@
-# doc-engine rules — 79 documentation compliance checks
+# doc-engine rules — 80 documentation compliance checks
 # Embedded in binary via include_str!("../../rules.toml")
 
 # =============================================================================
@@ -709,3 +709,12 @@ description = "Developer guide has ISO/IEC/IEEE 26514:2022 sections"
 severity = "info"
 type = "builtin"
 handler = "dev_guide_26514_sections"
+
+# Check 95: Backlog content sections (FR-811)
+[[rules]]
+id = 95
+category = "requirements"
+description = "Backlog has required sections (items, completed, blockers)"
+severity = "info"
+type = "builtin"
+handler = "backlog_sections"

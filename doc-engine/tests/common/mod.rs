@@ -82,9 +82,17 @@ pub fn create_minimal_project() -> TempDir {
          ### Project Structure\nSee src/ for code layout.\n\n\
          ### Adding New Features\nExtend the codebase.\n");
 
-    // backlog.md for check 71 (in 2-planning/); references architecture for check 53
+    // backlog.md for check 71 (in 2-planning/); references architecture for check 53;
+    // references requirements for check 82; backlog sections for check 95
     write_file(root, "docs/2-planning/backlog.md",
-        "# Backlog\n\n**Audience**: Developers\n\nSee architecture.md for design context.\n");
+        "# Backlog\n\n**Audience**: Developers\n\n\
+         See architecture.md for design context. Derived from requirements.md.\n\n\
+         ## Backlog Items\n\n\
+         ### High Priority\n\n- [ ] Initial implementation\n\n\
+         ## Completed\n\n- [x] Project setup — 2026-01-01\n\n\
+         ## Blockers\n\n| Blocker | Impact | Owner | Status |\n\
+         |---------|--------|-------|--------|\n\
+         | None | — | — | — |\n");
 
     // Planning phase artifacts (checks 83-88); each references architecture for check 53
     write_file(root, "docs/2-planning/risk_register.md",

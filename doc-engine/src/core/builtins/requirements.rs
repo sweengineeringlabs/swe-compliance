@@ -55,6 +55,17 @@ static GUIDE_EXTENSION_RE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"(?i)(adding|extend|contribut|modif|new.check|new.feature|how.to)").unwrap()
 });
 
+// Backlog section regexes (template-engine convention)
+static BACKLOG_ITEMS_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)(backlog.item|high.priority|medium.priority|low.priority|## todo\b)").unwrap()
+});
+static BACKLOG_COMPLETED_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)(## completed|## done\b|## finished\b|## resolved\b|\- \[x\])").unwrap()
+});
+static BACKLOG_BLOCKERS_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)(## blocker|## impediment|## blocked.by|## depend|## risk)").unwrap()
+});
+
 // ISO/IEC 25010:2023 production readiness section regexes
 static PR_SECURITY_RE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"(?i)(##\s+\d*\.?\s*security|security\s*\|)").unwrap()
@@ -548,6 +559,59 @@ impl CheckRunner for DevGuide26514Sections {
             CheckResult::Pass
         } else {
             CheckResult::Fail { violations }
+        }
+    }
+}
+
+fn backlog_sections_categories() -> Vec<(&'static str, &'static Regex)> {
+    vec![
+        ("Backlog items/priorities", &*BACKLOG_ITEMS_RE),
+        ("Completed", &*BACKLOG_COMPLETED_RE),
+        ("Blockers", &*BACKLOG_BLOCKERS_RE),
+    ]
+}
+
+/// Check 95: backlog_sections
+/// Validates that docs/2-planning/backlog.md has key sections per the
+/// template-engine backlog convention: backlog items with priorities,
+/// completed items, and blockers.
+pub struct BacklogSections {
+    pub def: RuleDef,
+}
+
+impl CheckRunner for BacklogSections {
+    fn id(&self) -> CheckId { CheckId(self.def.id) }
+    fn category(&self) -> &str { &self.def.category }
+    fn description(&self) -> &str { &self.def.description }
+
+    fn run(&self, ctx: &ScanContext) -> CheckResult {
+        let categories = backlog_sections_categories();
+
+        let project_path = ctx.root.join("docs/2-planning/backlog.md");
+        match check_file_sections(&project_path, &categories) {
+            FileCheckResult::Missing(missing) => {
+                if missing.is_empty() {
+                    CheckResult::Pass
+                } else {
+                    CheckResult::Fail {
+                        violations: vec![Violation {
+                            check_id: CheckId(self.def.id),
+                            path: Some("docs/2-planning/backlog.md".into()),
+                            message: format!(
+                                "Backlog missing section{}: {}",
+                                if missing.len() > 1 { "s" } else { "" },
+                                missing.join(", ")
+                            ),
+                            severity: self.def.severity.clone(),
+                        }],
+                    }
+                }
+            }
+            FileCheckResult::FileAbsent | FileCheckResult::FileEmpty | FileCheckResult::ReadError(_) => {
+                CheckResult::Skip {
+                    reason: "docs/2-planning/backlog.md not found".to_string(),
+                }
+            }
         }
     }
 }
@@ -1351,5 +1415,187 @@ mod tests {
             }
             other => panic!("Expected Fail, got {:?}", other),
         }
+    }
+
+    // =========================================================================
+    // Check 95: BacklogSections
+    // =========================================================================
+
+    fn make_backlog_def() -> RuleDef {
+        RuleDef {
+            id: 95,
+            category: "requirements".to_string(),
+            description: "Backlog has required sections".to_string(),
+            severity: Severity::Info,
+            rule_type: RuleType::Builtin { handler: "backlog_sections".to_string() },
+            project_type: None,
+        }
+    }
+
+    #[test]
+    fn test_backlog_sections_pass() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/2-planning/backlog.md",
+            "# Backlog\n\n## Backlog Items\n\n\
+             ### High Priority\n\n- [ ] Task one\n\n\
+             ### Medium Priority\n\n- [ ] Task two\n\n\
+             ## Completed\n\n- [x] Done task — 2026-01-01\n\n\
+             ## Blockers\n\n| Blocker | Impact |\n|---------|--------|\n| None | — |\n");
+
+        let handler = BacklogSections { def: make_backlog_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_backlog_sections_pass_checkbox_completed() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/2-planning/backlog.md",
+            "# Backlog\n\n## Backlog Items\n\n\
+             ### High Priority\n\n- [ ] Task one\n\n\
+             - [x] Finished task\n\n\
+             ## Blockers\n\nNo blockers.\n");
+
+        let handler = BacklogSections { def: make_backlog_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_backlog_sections_fail_missing_blockers() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/2-planning/backlog.md",
+            "# Backlog\n\n## Backlog Items\n\n\
+             ### High Priority\n\n- [ ] Task one\n\n\
+             ## Completed\n\n- [x] Done task\n");
+
+        let handler = BacklogSections { def: make_backlog_def() };
+        let ctx = make_ctx(tmp.path());
+        match handler.run(&ctx) {
+            CheckResult::Fail { violations } => {
+                assert_eq!(violations.len(), 1);
+                assert!(violations[0].message.contains("Blockers"));
+            }
+            other => panic!("Expected Fail, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_backlog_sections_fail_missing_all() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/2-planning/backlog.md",
+            "# Backlog\n\n**Audience**: Developers\n\nGeneric content only.\n");
+
+        let handler = BacklogSections { def: make_backlog_def() };
+        let ctx = make_ctx(tmp.path());
+        match handler.run(&ctx) {
+            CheckResult::Fail { violations } => {
+                assert_eq!(violations.len(), 1);
+                assert!(violations[0].message.contains("Backlog items"));
+                assert!(violations[0].message.contains("Completed"));
+                assert!(violations[0].message.contains("Blockers"));
+            }
+            other => panic!("Expected Fail, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_backlog_sections_fail_missing_completed() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/2-planning/backlog.md",
+            "# Backlog\n\n## Backlog Items\n\n\
+             ### High Priority\n\n- [ ] Task one\n\n\
+             ## Blockers\n\nNo blockers.\n");
+
+        let handler = BacklogSections { def: make_backlog_def() };
+        let ctx = make_ctx(tmp.path());
+        match handler.run(&ctx) {
+            CheckResult::Fail { violations } => {
+                assert_eq!(violations.len(), 1);
+                assert!(violations[0].message.contains("Completed"));
+                assert!(!violations[0].message.contains("Backlog items"));
+                assert!(!violations[0].message.contains("Blockers"));
+            }
+            other => panic!("Expected Fail, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_backlog_sections_fail_missing_items() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/2-planning/backlog.md",
+            "# Backlog\n\n## Completed\n\n- [x] Setup done\n\n\
+             ## Blockers\n\n| Blocker | Status |\n|---------|--------|\n");
+
+        let handler = BacklogSections { def: make_backlog_def() };
+        let ctx = make_ctx(tmp.path());
+        match handler.run(&ctx) {
+            CheckResult::Fail { violations } => {
+                assert_eq!(violations.len(), 1);
+                assert!(violations[0].message.contains("Backlog items"));
+                assert!(!violations[0].message.contains("Completed"));
+            }
+            other => panic!("Expected Fail, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_backlog_sections_pass_alternative_keywords() {
+        let tmp = TempDir::new().unwrap();
+        // Uses "## Todo", "## Done", "## Risk" instead of template-standard names
+        write_file(tmp.path(), "docs/2-planning/backlog.md",
+            "# Sprint Backlog\n\n## Todo\n\n\
+             ### Low Priority\n\n- [ ] Refactor module\n\n\
+             ## Done\n\n- [x] Initial release\n\n\
+             ## Risk\n\nNo open risks.\n");
+
+        let handler = BacklogSections { def: make_backlog_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_backlog_sections_pass_with_status_and_overview() {
+        let tmp = TempDir::new().unwrap();
+        // Full template structure including optional sections
+        write_file(tmp.path(), "docs/2-planning/backlog.md",
+            "# Project Backlog\n\n\
+             ## Status: In Progress\n\n\
+             ## Overview\n\nTracking all work items.\n\n\
+             ## Current Sprint\n\n\
+             | Task | Priority | Status |\n|------|----------|--------|\n\
+             | Auth | P0 | In Progress |\n\n\
+             ## Backlog Items\n\n\
+             ### High Priority\n\n- [ ] Auth module\n\n\
+             ### Medium Priority\n\n- [ ] Logging\n\n\
+             ## Completed\n\n- [x] Project setup — 2026-01-01\n\n\
+             ## Blockers\n\n\
+             | Blocker | Impact | Owner | Status |\n\
+             |---------|--------|-------|--------|\n\
+             | CI setup | High | Team | Open |\n\n\
+             ## Notes\n\n- Review weekly.\n");
+
+        let handler = BacklogSections { def: make_backlog_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_backlog_sections_skip_no_file() {
+        let tmp = TempDir::new().unwrap();
+
+        let handler = BacklogSections { def: make_backlog_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Skip { .. }));
+    }
+
+    #[test]
+    fn test_backlog_sections_skip_empty() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/2-planning/backlog.md", "  \n");
+
+        let handler = BacklogSections { def: make_backlog_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Skip { .. }));
     }
 }

@@ -267,6 +267,88 @@ fn test_cli_test_29119_check() {
 }
 
 #[test]
+fn test_cli_dev_guide_26514_check() {
+    let tmp = common::create_minimal_project();
+    cmd()
+        .arg("scan")
+        .arg(tmp.path())
+        .arg("--checks")
+        .arg("94")
+        .assert()
+        .success();
+}
+
+#[test]
+fn test_cli_backlog_sections_check() {
+    let tmp = common::create_minimal_project();
+    cmd()
+        .arg("scan")
+        .arg(tmp.path())
+        .arg("--checks")
+        .arg("95")
+        .assert()
+        .success();
+}
+
+#[test]
+fn test_cli_backlog_sections_json() {
+    let tmp = common::create_minimal_project();
+    let output = cmd()
+        .arg("scan")
+        .arg(tmp.path())
+        .arg("--json")
+        .arg("--checks")
+        .arg("95")
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    let val: serde_json::Value = serde_json::from_str(&stdout).unwrap();
+    let results = val["results"].as_array().unwrap();
+    assert_eq!(results.len(), 1);
+    assert_eq!(results[0]["result"]["status"].as_str().unwrap(), "pass");
+}
+
+#[test]
+fn test_cli_backlog_sections_skip_no_file() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let output = cmd()
+        .arg("scan")
+        .arg(tmp.path())
+        .arg("--json")
+        .arg("--checks")
+        .arg("95")
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    let val: serde_json::Value = serde_json::from_str(&stdout).unwrap();
+    let results = val["results"].as_array().unwrap();
+    assert_eq!(results[0]["result"]["status"].as_str().unwrap(), "skip");
+}
+
+#[test]
+fn test_cli_content_checks_combined() {
+    let tmp = common::create_minimal_project();
+    let output = cmd()
+        .arg("scan")
+        .arg(tmp.path())
+        .arg("--json")
+        .arg("--checks")
+        .arg("89-95")
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    let val: serde_json::Value = serde_json::from_str(&stdout).unwrap();
+    let results = val["results"].as_array().unwrap();
+    assert_eq!(results.len(), 7);
+    for r in results {
+        assert_eq!(
+            r["result"]["status"].as_str().unwrap(), "pass",
+            "Check {} failed: {:?}", r["id"], r["result"]
+        );
+    }
+}
+
+#[test]
 fn test_cli_text_format() {
     let tmp = common::create_minimal_project();
     let output = cmd()

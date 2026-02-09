@@ -473,6 +473,16 @@ Production readiness audit (2026-02-09) identified 10 areas; 1 critical blocker,
 | PB-09 | Release automation | Low | PB-01 | 1-2 hours |
 | PB-10 | missing_docs lint | Low | PB-05 | 30 min |
 
+## Review Items
+
+Items to evaluate for potential adoption into backlog content validation standards:
+
+- [ ] **RV-01** — PMBOK 7th Edition: mentions backlogs under adaptive planning but doesn't prescribe a format. Review whether PMBOK adaptive planning outputs map to additional backlog sections.
+- [ ] **RV-02** — ISO 21502:2020 (Project management): covers work planning and tracking generically. Evaluate whether its planning process outputs suggest additional backlog structure requirements.
+- [ ] **RV-03** — ISO/IEC/IEEE 12207:2017 (Software lifecycle processes): defines "planning process" outputs but doesn't mandate backlog structure. Review whether lifecycle process outputs (e.g., work breakdown, resource allocation) warrant dedicated backlog sections.
+- [ ] **RV-04** — Scrum Guide (2020): defines Product Backlog with ordering, transparency, and refinement concepts. Evaluate whether a "Sprint Goal" or "Definition of Done" section should be recommended.
+- [ ] **RV-05** — SAFe (Scaled Agile Framework): distinguishes team backlog, program backlog, and portfolio backlog with capacity allocation. Evaluate whether multi-level backlog structure applies to multi-module projects.
+
 ## Notes
 
 - Check IDs 54-68 are reserved for the spec module (planned). New checks from this backlog would start at 69+.
