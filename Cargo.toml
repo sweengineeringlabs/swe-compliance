@@ -1,3 +1,3 @@
 [workspace]
-members = ["doc-engine"]
+members = ["doc-engine", "struct-engine"]
 resolver = "2"

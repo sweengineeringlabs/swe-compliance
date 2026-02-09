@@ -1,0 +1,398 @@
+# struct-engine rules: Standard Rust project conventions
+# 44 checks across 7 categories
+
+# =============================================================================
+# Category 1: structure (Checks 1-8) — Directory Layout
+# =============================================================================
+
+[[rules]]
+id = 1
+category = "structure"
+description = "Cargo.toml exists at root"
+severity = "error"
+type = "file_exists"
+path = "Cargo.toml"
+
+[[rules]]
+id = 2
+category = "structure"
+description = "src/ directory exists"
+severity = "error"
+type = "dir_exists"
+path = "src"
+
+[[rules]]
+id = 3
+category = "structure"
+description = "src/lib.rs or src/main.rs exists"
+severity = "error"
+type = "builtin"
+handler = "crate_root_exists"
+
+[[rules]]
+id = 4
+category = "structure"
+description = "main/src/ directory exists (rustboot)"
+severity = "error"
+type = "dir_exists"
+path = "main/src"
+project_kind = "workspace"
+
+[[rules]]
+id = 5
+category = "structure"
+description = "main/src/lib.rs or main/src/main.rs exists (rustboot)"
+severity = "error"
+type = "builtin"
+handler = "rustboot_crate_root_exists"
+project_kind = "workspace"
+
+[[rules]]
+id = 6
+category = "structure"
+description = "tests/ directory exists"
+severity = "warning"
+type = "dir_exists"
+path = "tests"
+
+[[rules]]
+id = 7
+category = "structure"
+description = "No nested src/ dirs (src/src/)"
+severity = "error"
+type = "dir_not_exists"
+path = "src/src"
+message = "Nested src/src/ directory detected; this is likely a mistake"
+
+[[rules]]
+id = 8
+category = "structure"
+description = "benches/ directory exists (if benchmarks declared)"
+severity = "warning"
+type = "builtin"
+handler = "benches_dir_if_declared"
+
+# =============================================================================
+# Category 2: cargo_metadata (Checks 9-18) — Cargo.toml Content
+# =============================================================================
+
+[[rules]]
+id = 9
+category = "cargo_metadata"
+description = "package.name exists"
+severity = "error"
+type = "cargo_key_exists"
+key = "package.name"
+
+[[rules]]
+id = 10
+category = "cargo_metadata"
+description = "package.version exists"
+severity = "error"
+type = "cargo_key_exists"
+key = "package.version"
+
+[[rules]]
+id = 11
+category = "cargo_metadata"
+description = "package.edition exists"
+severity = "warning"
+type = "cargo_key_exists"
+key = "package.edition"
+
+[[rules]]
+id = 12
+category = "cargo_metadata"
+description = "package.description exists"
+severity = "warning"
+type = "cargo_key_exists"
+key = "package.description"
+
+[[rules]]
+id = 13
+category = "cargo_metadata"
+description = "package.license or package.license-file exists"
+severity = "warning"
+type = "builtin"
+handler = "license_field_exists"
+
+[[rules]]
+id = 14
+category = "cargo_metadata"
+description = "package.repository exists"
+severity = "info"
+type = "cargo_key_exists"
+key = "package.repository"
+
+[[rules]]
+id = 15
+category = "cargo_metadata"
+description = "package.authors exists"
+severity = "info"
+type = "cargo_key_exists"
+key = "package.authors"
+
+[[rules]]
+id = 16
+category = "cargo_metadata"
+description = "package.rust-version exists"
+severity = "info"
+type = "cargo_key_exists"
+key = "package.rust-version"
+
+[[rules]]
+id = 17
+category = "cargo_metadata"
+description = "package.keywords exists (libraries)"
+severity = "info"
+type = "cargo_key_exists"
+key = "package.keywords"
+project_kind = "library"
+
+[[rules]]
+id = 18
+category = "cargo_metadata"
+description = "package.categories exists (libraries)"
+severity = "info"
+type = "cargo_key_exists"
+key = "package.categories"
+project_kind = "library"
+
+# =============================================================================
+# Category 3: cargo_targets (Checks 19-26) — Target Declarations
+# =============================================================================
+
+[[rules]]
+id = 19
+category = "cargo_targets"
+description = "[lib] path matches existing file"
+severity = "error"
+type = "builtin"
+handler = "lib_path_correct"
+
+[[rules]]
+id = 20
+category = "cargo_targets"
+description = "[[bin]] path matches existing file"
+severity = "error"
+type = "builtin"
+handler = "bin_path_correct"
+
+[[rules]]
+id = 21
+category = "cargo_targets"
+description = "[[test]] targets declared for tests/ files"
+severity = "info"
+type = "builtin"
+handler = "test_targets_declared"
+
+[[rules]]
+id = 22
+category = "cargo_targets"
+description = "[[bench]] targets have harness = false"
+severity = "warning"
+type = "builtin"
+handler = "bench_harness_false"
+
+[[rules]]
+id = 23
+category = "cargo_targets"
+description = "No undeclared test files"
+severity = "info"
+type = "builtin"
+handler = "no_undeclared_tests"
+
+[[rules]]
+id = 24
+category = "cargo_targets"
+description = "No undeclared bench files"
+severity = "info"
+type = "builtin"
+handler = "no_undeclared_benches"
+
+[[rules]]
+id = 25
+category = "cargo_targets"
+description = "[[example]] targets exist if examples/ present"
+severity = "info"
+type = "builtin"
+handler = "example_targets_if_dir"
+
+[[rules]]
+id = 26
+category = "cargo_targets"
+description = "[[test]] paths resolve to existing files"
+severity = "error"
+type = "builtin"
+handler = "test_paths_resolve"
+
+# =============================================================================
+# Category 4: naming (Checks 27-32) — Naming Conventions
+# =============================================================================
+
+[[rules]]
+id = 27
+category = "naming"
+description = "Package name uses snake_case or kebab-case"
+severity = "warning"
+type = "cargo_key_matches"
+key = "package.name"
+pattern = "^[a-z][a-z0-9_-]*$"
+
+[[rules]]
+id = 28
+category = "naming"
+description = "Package name has rustboot_ prefix (rustboot)"
+severity = "error"
+type = "cargo_key_matches"
+key = "package.name"
+pattern = "^rustboot_"
+project_kind = "workspace"
+
+[[rules]]
+id = 29
+category = "naming"
+description = "Source files use snake_case naming"
+severity = "warning"
+type = "glob_naming_matches"
+glob = "**/*.rs"
+pattern = "^[a-z][a-z0-9_]*\\.rs$"
+
+[[rules]]
+id = 30
+category = "naming"
+description = "No uppercase in directory names under src/"
+severity = "warning"
+type = "glob_naming_not_matches"
+glob = "src/**/*.rs"
+pattern = "[A-Z]"
+
+[[rules]]
+id = 31
+category = "naming"
+description = "Module file names match mod declarations"
+severity = "error"
+type = "builtin"
+handler = "module_names_match"
+
+[[rules]]
+id = 32
+category = "naming"
+description = "Binary names use hyphens or underscores"
+severity = "warning"
+type = "builtin"
+handler = "bin_names_valid"
+
+# =============================================================================
+# Category 5: test_org (Checks 33-38) — Test Organization
+# =============================================================================
+
+[[rules]]
+id = 33
+category = "test_org"
+description = "Test files use correct suffixes (_test.rs, _int_test.rs, etc.)"
+severity = "warning"
+type = "builtin"
+handler = "test_file_suffixes"
+project_kind = "workspace"
+
+[[rules]]
+id = 34
+category = "test_org"
+description = "Test functions use category prefixes"
+severity = "info"
+type = "builtin"
+handler = "test_fn_prefixes"
+project_kind = "workspace"
+
+[[rules]]
+id = 35
+category = "test_org"
+description = "Test functions use scenario suffixes"
+severity = "info"
+type = "builtin"
+handler = "test_fn_suffixes"
+project_kind = "workspace"
+
+[[rules]]
+id = 36
+category = "test_org"
+description = "Integration tests in tests/src/ (rustboot)"
+severity = "warning"
+type = "builtin"
+handler = "int_tests_location"
+project_kind = "workspace"
+
+[[rules]]
+id = 37
+category = "test_org"
+description = "Unit tests colocated in source files"
+severity = "info"
+type = "builtin"
+handler = "unit_tests_colocated"
+
+[[rules]]
+id = 38
+category = "test_org"
+description = "No test code in src/ (non-#[cfg(test)])"
+severity = "warning"
+type = "builtin"
+handler = "no_test_in_src"
+
+# =============================================================================
+# Category 6: documentation (Checks 39-42) — Documentation
+# =============================================================================
+
+[[rules]]
+id = 39
+category = "documentation"
+description = "README.md exists"
+severity = "error"
+type = "file_exists"
+path = "README.md"
+
+[[rules]]
+id = 40
+category = "documentation"
+description = "doc/ or docs/ directory exists (if library)"
+severity = "info"
+type = "builtin"
+handler = "doc_dir_exists"
+
+[[rules]]
+id = 41
+category = "documentation"
+description = "examples/ directory exists (if library)"
+severity = "info"
+type = "builtin"
+handler = "examples_dir_lib"
+
+[[rules]]
+id = 42
+category = "documentation"
+description = "CHANGELOG.md exists"
+severity = "warning"
+type = "file_exists"
+path = "CHANGELOG.md"
+
+# =============================================================================
+# Category 7: hygiene (Checks 43-44) — Project Hygiene
+# =============================================================================
+
+[[rules]]
+id = 43
+category = "hygiene"
+description = ".gitignore exists with target/"
+severity = "warning"
+type = "file_content_matches"
+path = ".gitignore"
+pattern = "target/"
+
+[[rules]]
+id = 44
+category = "hygiene"
+description = "No generated files committed (target/)"
+severity = "error"
+type = "dir_not_exists"
+path = "target"
+message = "target/ directory should not be committed to version control"

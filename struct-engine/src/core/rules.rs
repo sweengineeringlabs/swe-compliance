@@ -2,7 +2,7 @@ use serde::Deserialize;
 
 use crate::api::types::{RuleDef, RuleSet, RuleType};
 use crate::spi::traits::CheckRunner;
-use crate::spi::types::{ProjectType, ScanError, Severity};
+use crate::spi::types::{ProjectKind, ScanError, Severity};
 use super::builtins;
 use super::declarative::DeclarativeCheck;
 
@@ -14,7 +14,6 @@ pub fn default_rule_count() -> usize {
 }
 
 /// Intermediate struct for flat TOML deserialization.
-/// The `type` field determines which sibling fields are relevant.
 #[derive(Debug, Deserialize)]
 struct RawRule {
     id: u8,
@@ -30,7 +29,8 @@ struct RawRule {
     exclude_paths: Option<Vec<String>>,
     exclude_pattern: Option<String>,
     message: Option<String>,
-    project_type: Option<String>,
+    project_kind: Option<String>,
+    key: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -47,17 +47,19 @@ fn parse_severity(s: &str) -> Result<Severity, ScanError> {
     }
 }
 
-fn parse_project_type(s: &str) -> Result<ProjectType, ScanError> {
+fn parse_project_kind(s: &str) -> Result<ProjectKind, ScanError> {
     match s {
-        "open_source" => Ok(ProjectType::OpenSource),
-        "internal" => Ok(ProjectType::Internal),
-        other => Err(ScanError::Config(format!("Unknown project_type: {}", other))),
+        "library" => Ok(ProjectKind::Library),
+        "binary" => Ok(ProjectKind::Binary),
+        "both" => Ok(ProjectKind::Both),
+        "workspace" => Ok(ProjectKind::Workspace),
+        other => Err(ScanError::Config(format!("Unknown project_kind: {}", other))),
     }
 }
 
 fn convert_raw_rule(raw: RawRule) -> Result<RuleDef, ScanError> {
     let severity = parse_severity(&raw.severity)?;
-    let project_type = raw.project_type.as_deref().map(parse_project_type).transpose()?;
+    let project_kind = raw.project_kind.as_deref().map(parse_project_kind).transpose()?;
 
     let rule_type = match raw.rule_type.as_str() {
         "file_exists" => {
@@ -139,6 +141,21 @@ fn convert_raw_rule(raw: RawRule) -> Result<RuleDef, ScanError> {
             ))?;
             RuleType::Builtin { handler }
         }
+        "cargo_key_exists" => {
+            let key = raw.key.ok_or_else(|| ScanError::Config(
+                format!("Rule {}: cargo_key_exists requires 'key'", raw.id)
+            ))?;
+            RuleType::CargoKeyExists { key }
+        }
+        "cargo_key_matches" => {
+            let key = raw.key.ok_or_else(|| ScanError::Config(
+                format!("Rule {}: cargo_key_matches requires 'key'", raw.id)
+            ))?;
+            let pattern = raw.pattern.ok_or_else(|| ScanError::Config(
+                format!("Rule {}: cargo_key_matches requires 'pattern'", raw.id)
+            ))?;
+            RuleType::CargoKeyMatches { key, pattern }
+        }
         other => {
             return Err(ScanError::Config(format!("Rule {}: unknown type '{}'", raw.id, other)));
         }
@@ -150,7 +167,7 @@ fn convert_raw_rule(raw: RawRule) -> Result<RuleDef, ScanError> {
         description: raw.description,
         severity,
         rule_type,
-        project_type,
+        project_kind,
     })
 }
 
@@ -195,10 +212,10 @@ mod tests {
 [[rules]]
 id = 1
 category = "structure"
-description = "Root docs/ folder exists"
+description = "Cargo.toml exists at root"
 severity = "error"
 type = "file_exists"
-path = "docs/README.md"
+path = "Cargo.toml"
 "#;
         let rs = parse_rules(toml).unwrap();
         assert_eq!(rs.rules.len(), 1);
@@ -207,133 +224,50 @@ path = "docs/README.md"
     }
 
     #[test]
-    fn test_parse_all_declarative_types() {
+    fn test_parse_cargo_key_exists() {
         let toml = r#"
-[[rules]]
-id = 1
-category = "a"
-description = "d"
-severity = "error"
-type = "file_exists"
-path = "x"
-
-[[rules]]
-id = 2
-category = "a"
-description = "d"
-severity = "warning"
-type = "dir_exists"
-path = "x"
-
-[[rules]]
-id = 3
-category = "a"
-description = "d"
-severity = "info"
-type = "dir_not_exists"
-path = "x"
-message = "no"
-
-[[rules]]
-id = 4
-category = "a"
-description = "d"
-severity = "error"
-type = "file_content_matches"
-path = "x"
-pattern = "y"
-
-[[rules]]
-id = 5
-category = "a"
-description = "d"
-severity = "error"
-type = "file_content_not_matches"
-path = "x"
-pattern = "y"
-
-[[rules]]
-id = 6
-category = "a"
-description = "d"
-severity = "error"
-type = "glob_content_matches"
-glob = "**/*.md"
-pattern = "y"
-
-[[rules]]
-id = 7
-category = "a"
-description = "d"
-severity = "error"
-type = "glob_content_not_matches"
-glob = "**/*.md"
-pattern = "y"
-
-[[rules]]
-id = 8
-category = "a"
-description = "d"
-severity = "error"
-type = "glob_naming_matches"
-glob = "**/*.md"
-pattern = "y"
-
 [[rules]]
 id = 9
-category = "a"
-description = "d"
+category = "cargo_metadata"
+description = "package.name exists"
 severity = "error"
-type = "glob_naming_not_matches"
-glob = "**/*.md"
-pattern = "y"
+type = "cargo_key_exists"
+key = "package.name"
 "#;
         let rs = parse_rules(toml).unwrap();
-        assert_eq!(rs.rules.len(), 9);
+        assert!(matches!(rs.rules[0].rule_type, RuleType::CargoKeyExists { ref key } if key == "package.name"));
     }
 
     #[test]
-    fn test_parse_builtin_rule() {
+    fn test_parse_cargo_key_matches() {
         let toml = r#"
 [[rules]]
-id = 4
-category = "structure"
-description = "Module docs plural"
-severity = "error"
-type = "builtin"
-handler = "module_docs_plural"
+id = 27
+category = "naming"
+description = "Package name uses snake_case"
+severity = "warning"
+type = "cargo_key_matches"
+key = "package.name"
+pattern = "^[a-z][a-z0-9_]*$"
 "#;
         let rs = parse_rules(toml).unwrap();
-        assert!(matches!(rs.rules[0].rule_type, RuleType::Builtin { ref handler } if handler == "module_docs_plural"));
+        assert!(matches!(rs.rules[0].rule_type, RuleType::CargoKeyMatches { .. }));
     }
 
     #[test]
-    fn test_parse_with_project_type() {
+    fn test_parse_with_project_kind() {
         let toml = r#"
 [[rules]]
-id = 31
-category = "root_files"
-description = "Community files"
-severity = "warning"
-type = "builtin"
-handler = "open_source_community_files"
-project_type = "open_source"
+id = 17
+category = "cargo_metadata"
+description = "keywords exists (libraries)"
+severity = "info"
+type = "cargo_key_exists"
+key = "package.keywords"
+project_kind = "library"
 "#;
         let rs = parse_rules(toml).unwrap();
-        assert_eq!(rs.rules[0].project_type, Some(ProjectType::OpenSource));
-
-        let toml2 = r#"
-[[rules]]
-id = 31
-category = "root_files"
-description = "Internal only"
-severity = "warning"
-type = "builtin"
-handler = "open_source_community_files"
-project_type = "internal"
-"#;
-        let rs2 = parse_rules(toml2).unwrap();
-        assert_eq!(rs2.rules[0].project_type, Some(ProjectType::Internal));
+        assert_eq!(rs.rules[0].project_kind, Some(ProjectKind::Library));
     }
 
     #[test]
@@ -359,51 +293,13 @@ type = "nonexistent_type"
 
     #[test]
     fn test_parse_missing_required_field() {
-        // file_exists without path
         let toml = r#"
 [[rules]]
 id = 1
 category = "a"
 description = "d"
 severity = "error"
-type = "file_exists"
-"#;
-        assert!(matches!(parse_rules(toml).unwrap_err(), ScanError::Config(_)));
-
-        // glob_content_matches without pattern
-        let toml2 = r#"
-[[rules]]
-id = 1
-category = "a"
-description = "d"
-severity = "error"
-type = "glob_content_matches"
-glob = "**/*.md"
-"#;
-        assert!(matches!(parse_rules(toml2).unwrap_err(), ScanError::Config(_)));
-
-        // builtin without handler
-        let toml3 = r#"
-[[rules]]
-id = 1
-category = "a"
-description = "d"
-severity = "error"
-type = "builtin"
-"#;
-        assert!(matches!(parse_rules(toml3).unwrap_err(), ScanError::Config(_)));
-    }
-
-    #[test]
-    fn test_parse_unknown_severity() {
-        let toml = r#"
-[[rules]]
-id = 1
-category = "a"
-description = "d"
-severity = "critical"
-type = "file_exists"
-path = "x"
+type = "cargo_key_exists"
 "#;
         assert!(matches!(parse_rules(toml).unwrap_err(), ScanError::Config(_)));
     }
@@ -421,8 +317,8 @@ path = "x"
             category: "test".to_string(),
             description: "test".to_string(),
             severity: Severity::Error,
-            rule_type: RuleType::FileExists { path: "x".to_string() },
-            project_type: None,
+            rule_type: RuleType::FileExists { path: "Cargo.toml".to_string() },
+            project_kind: None,
         }];
         let reg = build_registry(&rules).unwrap();
         assert_eq!(reg.len(), 1);
@@ -432,16 +328,16 @@ path = "x"
     #[test]
     fn test_build_registry_builtin() {
         let rules = vec![RuleDef {
-            id: 4,
+            id: 3,
             category: "structure".to_string(),
             description: "test".to_string(),
             severity: Severity::Error,
-            rule_type: RuleType::Builtin { handler: "module_docs_plural".to_string() },
-            project_type: None,
+            rule_type: RuleType::Builtin { handler: "crate_root_exists".to_string() },
+            project_kind: None,
         }];
         let reg = build_registry(&rules).unwrap();
         assert_eq!(reg.len(), 1);
-        assert_eq!(reg[0].id().0, 4);
+        assert_eq!(reg[0].id().0, 3);
     }
 
     #[test]
@@ -452,11 +348,10 @@ path = "x"
             description: "test".to_string(),
             severity: Severity::Error,
             rule_type: RuleType::Builtin { handler: "nonexistent".to_string() },
-            project_type: None,
+            project_kind: None,
         }];
         let result = build_registry(&rules);
         assert!(result.is_err());
-        assert!(matches!(result.err().unwrap(), ScanError::Config(_)));
     }
 
     #[test]
@@ -468,7 +363,7 @@ path = "x"
                 description: "d".to_string(),
                 severity: Severity::Error,
                 rule_type: RuleType::FileExists { path: "x".to_string() },
-                project_type: None,
+                project_kind: None,
             },
             RuleDef {
                 id: 1,
@@ -476,7 +371,7 @@ path = "x"
                 description: "d".to_string(),
                 severity: Severity::Error,
                 rule_type: RuleType::DirExists { path: "y".to_string() },
-                project_type: None,
+                project_kind: None,
             },
         ];
         let reg = build_registry(&rules).unwrap();

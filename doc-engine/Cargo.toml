@@ -11,11 +11,31 @@ categories = ["command-line-utilities", "development-tools"]
 
 [lib]
 name = "doc_engine"
-path = "src/lib.rs"
+path = "src/main/lib.rs"
 
 [[bin]]
 name = "doc-engine"
-path = "src/main.rs"
+path = "src/main/main.rs"
+
+[[test]]
+name = "scan_api"
+path = "src/test/scan_api.rs"
+
+[[test]]
+name = "cli_e2e"
+path = "src/test/cli_e2e.rs"
+
+[[test]]
+name = "config_filtering"
+path = "src/test/config_filtering.rs"
+
+[[test]]
+name = "error_handling"
+path = "src/test/error_handling.rs"
+
+[[test]]
+name = "report_format"
+path = "src/test/report_format.rs"
 
 [dependencies]
 clap = { version = "4", features = ["derive"] }
