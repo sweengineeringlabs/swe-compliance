@@ -406,7 +406,7 @@ path = "x"
     #[test]
     fn test_parse_default_rules_valid() {
         let rs = parse_rules(DEFAULT_RULES).unwrap();
-        assert_eq!(rs.rules.len(), 67);
+        assert_eq!(rs.rules.len(), 73);
     }
 
     #[test]
@@ -483,6 +483,6 @@ path = "x"
     fn test_build_registry_default_rules() {
         let rs = parse_rules(DEFAULT_RULES).unwrap();
         let reg = build_registry(&rs.rules).unwrap();
-        assert_eq!(reg.len(), 67);
+        assert_eq!(reg.len(), 73);
     }
 }

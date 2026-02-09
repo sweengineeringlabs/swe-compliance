@@ -34,6 +34,11 @@ Gap analysis of compliance checks missing from doc-engine relative to the [templ
 
 - [x] **BL-11** — Feature-prefixed artifact naming checks (conditional — only for FR-tracking projects) — 2026-02-09
 
+### Added During Implementation
+
+- [x] **BL-12** — Backlog→requirements traceability (check 82) — 2026-02-09
+- [x] **BL-13** — Planning phase artifacts: risk register, estimation, schedule, resource plan, communication plan, quality plan (checks 83-88, FR-804) — 2026-02-09
+
 ---
 
 ## Item Details
@@ -221,6 +226,41 @@ Gap analysis of compliance checks missing from doc-engine relative to the [templ
 
 ---
 
+### BL-12: Backlog→Requirements Traceability
+
+**Framework reference**: Traceability pattern (checks 52-53), SRS linkage
+
+**What**: The backlog document should reference the SRS/requirements to maintain the traceability chain: design→requirements (check 52), planning→architecture (check 53), backlog→requirements (check 82).
+
+**Proposed checks**:
+- `docs/2-planning/backlog.md` references requirements/SRS — severity: warning
+
+**Priority**: High — completes the traceability chain.
+
+**Estimated checks**: 1
+
+---
+
+### BL-13: Planning Phase Artifacts (FR-804)
+
+**Framework reference**: Traditional SDLC planning phase best practices
+
+**What**: Standard planning phases produce artifacts beyond the implementation plan and backlog: risk register, estimation records, schedule, resource plan, communication plan, and quality plan. Schedule, resource plan, and communication plan are scoped to `open_source` projects only — internal/small projects skip these.
+
+**Proposed checks**:
+- `docs/2-planning/risk_register.md` exists — severity: info (all projects)
+- `docs/2-planning/estimation.md` exists — severity: info (all projects)
+- `docs/2-planning/schedule.md` exists — severity: info (open-source only)
+- `docs/2-planning/resource_plan.md` exists — severity: info (open-source only)
+- `docs/2-planning/communication_plan.md` exists — severity: info (open-source only)
+- `docs/2-planning/quality_plan.md` exists — severity: info (all projects)
+
+**Priority**: Medium — universally valuable for risk/quality/estimation; schedule/resource/communication optional for small projects.
+
+**Estimated checks**: 6
+
+---
+
 ## Summary
 
 | ID | Gap | Framework Phase | Priority | Est. Checks | Severity |
@@ -236,13 +276,17 @@ Gap analysis of compliance checks missing from doc-engine relative to the [templ
 | BL-09 | W3H in all docs | Principle | Medium | 1-2 | info |
 | BL-10 | README line count | Best practice | Medium | 1 | info |
 | BL-11 | FR_{###} naming | Naming | Low | 1-2 | info |
-| | | **Total** | | **~16-24** | |
+| BL-12 | Backlog→requirements traceability | Traceability | High | 1 | warning |
+| BL-13 | Planning phase artifacts (FR-804) | Planning | Medium | 6 | info |
+| | | **Total** | | **~23-31** | |
 
 ## Completed
 
 - [x] Checks 1-50: Structural compliance (Milestone 1) — 2026-02-08
 - [x] Checks 51-53: Traceability (phase artifacts, design→requirements, plan→architecture) — 2026-02-09
 - [x] Checks 69-81: Backlog checks BL-01 through BL-11 (13 new checks) — 2026-02-09
+- [x] Check 82: Backlog→requirements traceability (FR-804 precursor) — 2026-02-09
+- [x] Checks 83-88: Planning phase artifacts per FR-804 (risk register, estimation, schedule, resource plan, communication plan, quality plan) — 2026-02-09
 
 ## Blockers
 

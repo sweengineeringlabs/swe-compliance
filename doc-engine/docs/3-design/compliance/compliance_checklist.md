@@ -96,6 +96,15 @@ This checklist tracks doc-engine's compliance against its own documentation fram
 - [ ] Check 75: Root README.md under 100 lines
 - [ ] Check 76: FR artifacts follow FR_NNN naming
 
+## Planning (Checks 83-88)
+
+- [ ] Check 83: Risk register exists
+- [ ] Check 84: Estimation records exist
+- [ ] Check 85: Schedule exists (open-source)
+- [ ] Check 86: Resource plan exists (open-source)
+- [ ] Check 87: Communication plan exists (open-source)
+- [ ] Check 88: Quality plan exists
+
 ## Module Checks (Checks 77-81)
 
 - [ ] Check 77: Module READMEs follow W3H structure

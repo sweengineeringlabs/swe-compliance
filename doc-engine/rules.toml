@@ -1,4 +1,4 @@
-# doc-engine rules — 67 documentation compliance checks
+# doc-engine rules — 73 documentation compliance checks
 # Embedded in binary via include_str!("../../rules.toml")
 
 # =============================================================================
@@ -597,3 +597,58 @@ description = "Backlog references requirements/SRS"
 severity = "warning"
 type = "builtin"
 handler = "backlog_traces_requirements"
+
+# =============================================================================
+# Checks 83-88: Planning Phase Artifacts (FR-804)
+# =============================================================================
+
+[[rules]]
+id = 83
+category = "planning"
+description = "docs/2-planning/risk_register.md exists"
+severity = "info"
+type = "file_exists"
+path = "docs/2-planning/risk_register.md"
+
+[[rules]]
+id = 84
+category = "planning"
+description = "docs/2-planning/estimation.md exists"
+severity = "info"
+type = "file_exists"
+path = "docs/2-planning/estimation.md"
+
+[[rules]]
+id = 85
+category = "planning"
+description = "docs/2-planning/schedule.md exists (open-source)"
+severity = "info"
+type = "file_exists"
+path = "docs/2-planning/schedule.md"
+project_type = "open_source"
+
+[[rules]]
+id = 86
+category = "planning"
+description = "docs/2-planning/resource_plan.md exists (open-source)"
+severity = "info"
+type = "file_exists"
+path = "docs/2-planning/resource_plan.md"
+project_type = "open_source"
+
+[[rules]]
+id = 87
+category = "planning"
+description = "docs/2-planning/communication_plan.md exists (open-source)"
+severity = "info"
+type = "file_exists"
+path = "docs/2-planning/communication_plan.md"
+project_type = "open_source"
+
+[[rules]]
+id = 88
+category = "planning"
+description = "docs/2-planning/quality_plan.md exists"
+severity = "info"
+type = "file_exists"
+path = "docs/2-planning/quality_plan.md"

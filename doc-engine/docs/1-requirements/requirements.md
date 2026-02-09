@@ -1091,6 +1091,18 @@ Library crates consumed as dependencies are not independently deployable and sho
 
 Not all projects use formal feature request tracking. The check is opt-in: it activates only when the project already contains FR-prefixed artifacts, then validates they follow the underscore convention.
 
+#### FR-804: Planning phase artifact verification
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Should |
+| **State** | Approved |
+| **Verification** | Test |
+| **Traces to** | Checks 83-88 -> `rules.toml` (declarative `file_exists`) |
+| **Acceptance** | The tool shall verify that standard planning phase artifacts exist under `docs/2-planning/`: risk register (`risk_register.md`), estimation records (`estimation.md`), schedule (`schedule.md`), resource plan (`resource_plan.md`), communication plan (`communication_plan.md`), and quality plan (`quality_plan.md`). Each missing artifact produces an `info`-level finding. Schedule, resource plan, and communication plan are scoped to `open_source` projects only and produce `Skip` for internal projects. |
+
+Traditional software engineering planning phases produce artifacts beyond the implementation plan and backlog. Risk registers, estimation records, and quality plans are universally valuable regardless of project size. Schedule, resource plan, and communication plan are primarily relevant to larger open-source projects with multiple contributors and stakeholders; internal/small projects may skip these without penalty.
+
 ---
 
 ## 5. Non-Functional Requirements

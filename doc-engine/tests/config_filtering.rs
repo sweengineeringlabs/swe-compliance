@@ -36,7 +36,7 @@ fn test_check_filter_none() {
         rules_path: None,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
-    assert_eq!(report.results.len(), 67);
+    assert_eq!(report.results.len(), 73);
 }
 
 #[test]

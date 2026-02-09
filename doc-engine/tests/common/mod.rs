@@ -64,6 +64,20 @@ pub fn create_minimal_project() -> TempDir {
     write_file(root, "docs/2-planning/backlog.md",
         "# Backlog\n\n**Audience**: Developers\n\nSee architecture.md for design context.\n");
 
+    // Planning phase artifacts (checks 83-88); each references architecture for check 53
+    write_file(root, "docs/2-planning/risk_register.md",
+        "# Risk Register\n\n**Audience**: Developers\n\nSee architecture.md for system context.\n");
+    write_file(root, "docs/2-planning/estimation.md",
+        "# Estimation\n\n**Audience**: Developers\n\nSee architecture.md for system context.\n");
+    write_file(root, "docs/2-planning/schedule.md",
+        "# Schedule\n\n**Audience**: Developers\n\nSee architecture.md for system context.\n");
+    write_file(root, "docs/2-planning/resource_plan.md",
+        "# Resource Plan\n\n**Audience**: Developers\n\nSee architecture.md for system context.\n");
+    write_file(root, "docs/2-planning/communication_plan.md",
+        "# Communication Plan\n\n**Audience**: Developers\n\nSee architecture.md for system context.\n");
+    write_file(root, "docs/2-planning/quality_plan.md",
+        "# Quality Plan\n\n**Audience**: Developers\n\nSee architecture.md for system context.\n");
+
     // templates directory for checks 72-73
     write_file(root, "docs/templates/check_template.md",
         "# Check Template\n\n**Audience**: Developers\n");

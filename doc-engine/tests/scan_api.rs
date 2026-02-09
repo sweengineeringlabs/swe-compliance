@@ -20,14 +20,14 @@ fn test_scan_empty_dir() {
     let report = scan(tmp.path()).unwrap();
     // Should have many failures but no panics
     assert!(report.summary.failed > 0);
-    assert_eq!(report.summary.total, 67);
+    assert_eq!(report.summary.total, 73);
 }
 
 #[test]
 fn test_scan_returns_67_checks() {
     let tmp = tempfile::TempDir::new().unwrap();
     let report = scan(tmp.path()).unwrap();
-    assert_eq!(report.results.len(), 67);
+    assert_eq!(report.results.len(), 73);
 }
 
 #[test]
@@ -125,6 +125,24 @@ fn test_internal_usage_skip_open_source() {
         matches!(report.results[0].result, doc_engine::CheckResult::Skip { .. }),
         "Check 70 should be skipped for OpenSource but got {:?}", report.results[0].result
     );
+}
+
+#[test]
+fn test_planning_checks_pass_minimal() {
+    let tmp = common::create_minimal_project();
+    let config = ScanConfig {
+        project_type: doc_engine::ProjectType::OpenSource,
+        checks: Some(vec![83, 84, 85, 86, 87, 88]),
+        rules_path: None,
+    };
+    let report = scan_with_config(tmp.path(), &config).unwrap();
+    assert_eq!(report.results.len(), 6);
+    for entry in &report.results {
+        assert!(
+            matches!(entry.result, doc_engine::CheckResult::Pass),
+            "Check {} should pass but got {:?}", entry.id.0, entry.result
+        );
+    }
 }
 
 #[test]
