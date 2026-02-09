@@ -1,10 +1,48 @@
 use std::fs;
+use std::sync::LazyLock;
 
 use regex::Regex;
 
 use crate::api::types::RuleDef;
 use crate::spi::traits::CheckRunner;
 use crate::spi::types::{CheckId, CheckResult, ScanContext, Violation};
+
+// SRS 29148 attribute regexes
+static SRS_HEADING_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"^####\s+((?:FR|NFR)-\d+):\s+.+$").unwrap()
+});
+static SRS_NEXT_HEADING_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"^#{1,4}\s+").unwrap()
+});
+static ATTR_PRIORITY_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\*\*Priority\*\*").unwrap());
+static ATTR_STATE_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\*\*State\*\*").unwrap());
+static ATTR_VERIFICATION_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\*\*Verification\*\*").unwrap());
+static ATTR_TRACES_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"\*\*Traces\s+to\*\*|\*\*Traceability\*\*").unwrap()
+});
+static ATTR_ACCEPTANCE_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\*\*Acceptance\*\*").unwrap());
+
+// ISO/IEC/IEEE 42010:2022 section regexes
+static ARCH_STAKEHOLDERS_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)(stakeholder|## who\b)").unwrap()
+});
+static ARCH_CONCERNS_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)(concern|rationale|## why\b|design.decision)").unwrap()
+});
+static ARCH_VIEWPOINTS_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)(viewpoint|## what\b|## how\b|layer.model|layer.architect|system.diagram)").unwrap()
+});
+
+// ISO/IEC/IEEE 29119-3:2021 section regexes
+static TEST_STRATEGY_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)(test.strateg|test.scope|test.design|test.approach)").unwrap()
+});
+static TEST_CASES_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)(test.categor|test.case|test.plan|test.pyramid)").unwrap()
+});
+static TEST_COVERAGE_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)(coverage.target|exit.criteria|entry.criteria|test.procedure)").unwrap()
+});
 
 /// Check 89: srs_29148_attributes
 /// Validates that SRS requirement blocks (FR-xxx, NFR-xxx) have the five
@@ -36,8 +74,8 @@ impl CheckRunner for Srs29148Attributes {
             }
         };
 
-        let heading_re = Regex::new(r"^####\s+((?:FR|NFR)-\d+):\s+.+$").unwrap();
-        let next_heading_re = Regex::new(r"^#{1,4}\s+").unwrap();
+        let heading_re = &*SRS_HEADING_RE;
+        let next_heading_re = &*SRS_NEXT_HEADING_RE;
 
         // Collect requirement blocks: (id, block_text)
         let lines: Vec<&str> = content.lines().collect();
@@ -69,12 +107,12 @@ impl CheckRunner for Srs29148Attributes {
         }
 
         // Define the 5 mandatory attributes as regex patterns
-        let attrs: &[(&str, Regex)] = &[
-            ("Priority", Regex::new(r"\*\*Priority\*\*").unwrap()),
-            ("State", Regex::new(r"\*\*State\*\*").unwrap()),
-            ("Verification", Regex::new(r"\*\*Verification\*\*").unwrap()),
-            ("Traces to", Regex::new(r"\*\*Traces\s+to\*\*|\*\*Traceability\*\*").unwrap()),
-            ("Acceptance", Regex::new(r"\*\*Acceptance\*\*").unwrap()),
+        let attrs: &[(&str, &Regex)] = &[
+            ("Priority", &ATTR_PRIORITY_RE),
+            ("State", &ATTR_STATE_RE),
+            ("Verification", &ATTR_VERIFICATION_RE),
+            ("Traces to", &ATTR_TRACES_RE),
+            ("Acceptance", &ATTR_ACCEPTANCE_RE),
         ];
 
         let mut violations = Vec::new();
@@ -124,7 +162,7 @@ enum FileCheckResult<'a> {
 
 fn check_file_sections<'a>(
     path: &std::path::Path,
-    categories: &'a [(&'a str, Regex)],
+    categories: &'a [(&'a str, &'a Regex)],
 ) -> FileCheckResult<'a> {
     if !path.exists() {
         return FileCheckResult::FileAbsent;
@@ -143,19 +181,19 @@ fn check_file_sections<'a>(
     FileCheckResult::Missing(missing)
 }
 
-fn arch_42010_categories() -> Vec<(&'static str, Regex)> {
+fn arch_42010_categories() -> Vec<(&'static str, &'static Regex)> {
     vec![
-        ("Stakeholders", Regex::new(r"(?i)(stakeholder|## who\b)").unwrap()),
-        ("Concerns/rationale", Regex::new(r"(?i)(concern|rationale|## why\b|design.decision)").unwrap()),
-        ("Viewpoints/views", Regex::new(r"(?i)(viewpoint|## what\b|## how\b|layer.model|layer.architect|system.diagram)").unwrap()),
+        ("Stakeholders", &*ARCH_STAKEHOLDERS_RE),
+        ("Concerns/rationale", &*ARCH_CONCERNS_RE),
+        ("Viewpoints/views", &*ARCH_VIEWPOINTS_RE),
     ]
 }
 
-fn test_29119_categories() -> Vec<(&'static str, Regex)> {
+fn test_29119_categories() -> Vec<(&'static str, &'static Regex)> {
     vec![
-        ("Strategy/scope", Regex::new(r"(?i)(test.strateg|test.scope|test.design|test.approach)").unwrap()),
-        ("Test cases/categories", Regex::new(r"(?i)(test.categor|test.case|test.plan|test.pyramid)").unwrap()),
-        ("Coverage/criteria", Regex::new(r"(?i)(coverage.target|exit.criteria|entry.criteria|test.procedure)").unwrap()),
+        ("Strategy/scope", &*TEST_STRATEGY_RE),
+        ("Test cases/categories", &*TEST_CASES_RE),
+        ("Coverage/criteria", &*TEST_COVERAGE_RE),
     ]
 }
 

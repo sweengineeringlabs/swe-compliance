@@ -1,10 +1,18 @@
 use std::fs;
+use std::sync::LazyLock;
 
 use regex::Regex;
 
 use crate::api::types::RuleDef;
 use crate::spi::traits::CheckRunner;
 use crate::spi::types::{CheckId, CheckResult, ScanContext, Violation};
+
+static TLDR_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(?i)\*\*TLDR\*\*|## TLDR|## TL;DR").unwrap());
+static GLOSSARY_TERM_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^\*\*[^*]+\*\*").unwrap());
+static GLOSSARY_VALID_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^\*\*[^*]+\*\*\s*[-—–:]\s+\S").unwrap());
+static GLOSSARY_TERM_CAPTURE_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^\*\*([^*]+)\*\*").unwrap());
+static GLOSSARY_TERM_DEF_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^\*\*([^*]+)\*\*\s*[-—–:]\s*(.*)").unwrap());
+static ACRONYM_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^[A-Z]{2,}$").unwrap());
 
 /// Checks 35-36: tldr_conditional
 /// 35: Docs >=200 lines should have TLDR
@@ -19,8 +27,6 @@ impl CheckRunner for TldrConditional {
     fn description(&self) -> &str { &self.def.description }
 
     fn run(&self, ctx: &ScanContext) -> CheckResult {
-        let tldr_re = Regex::new(r"(?i)\*\*TLDR\*\*|## TLDR|## TL;DR").unwrap();
-
         let docs_files: Vec<_> = ctx.files.iter()
             .filter(|f| {
                 let s = f.to_string_lossy();
@@ -41,7 +47,7 @@ impl CheckRunner for TldrConditional {
             };
 
             let line_count = content.lines().count();
-            let has_tldr = tldr_re.is_match(&content);
+            let has_tldr = TLDR_RE.is_match(&content);
 
             match self.def.id {
                 35 => {
@@ -110,14 +116,11 @@ impl CheckRunner for GlossaryFormat {
             }
         };
 
-        let term_re = Regex::new(r"^\*\*[^*]+\*\*").unwrap();
-        let valid_re = Regex::new(r"^\*\*[^*]+\*\*\s*[-—–:]\s+\S").unwrap();
-
         let mut violations = Vec::new();
         for (i, line) in content.lines().enumerate() {
             let line = line.trim();
             // Only check lines that start with bold text (appear to be term definitions)
-            if term_re.is_match(line) && !valid_re.is_match(line) {
+            if GLOSSARY_TERM_RE.is_match(line) && !GLOSSARY_VALID_RE.is_match(line) {
                 violations.push(Violation {
                     check_id: CheckId(self.def.id),
                     path: Some("docs/glossary.md".into()),
@@ -164,10 +167,9 @@ impl CheckRunner for GlossaryAlphabetized {
             }
         };
 
-        let term_re = Regex::new(r"^\*\*([^*]+)\*\*").unwrap();
         let terms: Vec<String> = content.lines()
             .filter_map(|line| {
-                term_re.captures(line.trim()).map(|caps| caps[1].to_lowercase())
+                GLOSSARY_TERM_CAPTURE_RE.captures(line.trim()).map(|caps| caps[1].to_lowercase())
             })
             .collect();
 
@@ -224,17 +226,14 @@ impl CheckRunner for GlossaryAcronyms {
             }
         };
 
-        let term_re = Regex::new(r"^\*\*([^*]+)\*\*\s*[-—–:]\s*(.*)").unwrap();
-        let acronym_re = Regex::new(r"^[A-Z]{2,}$").unwrap();
-
         let mut violations = Vec::new();
         for (i, line) in content.lines().enumerate() {
-            if let Some(caps) = term_re.captures(line.trim()) {
+            if let Some(caps) = GLOSSARY_TERM_DEF_RE.captures(line.trim()) {
                 let term = &caps[1];
                 let definition = &caps[2];
 
                 // If term looks like an acronym (all caps, 2+ letters)
-                if acronym_re.is_match(term) {
+                if ACRONYM_RE.is_match(term) {
                     // Check that definition contains expansion (at least some lowercase words)
                     let has_expansion = definition.split_whitespace()
                         .any(|w| w.chars().any(|c| c.is_lowercase()));

@@ -1,10 +1,21 @@
 use std::fs;
+use std::sync::LazyLock;
 
 use regex::Regex;
 
 use crate::api::types::RuleDef;
 use crate::spi::traits::CheckRunner;
 use crate::spi::types::{CheckId, CheckResult, ScanContext, Violation};
+
+static DESIGN_REQ_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)requirements\.md|FR-\d|STK-\d|SRS|1-requirements").unwrap()
+});
+static PLAN_ARCH_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)architecture\.md|3-design|architectural").unwrap()
+});
+static BACKLOG_REQ_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)requirements\.md|requirements\b|FR-\d|STK-\d|SRS|1-requirements|BL-\d").unwrap()
+});
 
 /// Check 51: phase_artifact_presence
 /// Populated SDLC phase directories contain their expected artifact.
@@ -46,8 +57,7 @@ impl CheckRunner for PhaseArtifactPresence {
                 }
                 // Only look at direct children (not subdirs)
                 let relative = &s[dir.len()..];
-                if relative.starts_with('/') {
-                    let rest = &relative[1..];
+                if let Some(rest) = relative.strip_prefix('/') {
                     // Skip files in subdirectories
                     if rest.contains('/') {
                         return false;
@@ -116,8 +126,6 @@ impl CheckRunner for DesignTracesRequirements {
             return CheckResult::Skip { reason: "docs/3-design/ does not exist".to_string() };
         }
 
-        let req_re = Regex::new(r"(?i)requirements\.md|FR-\d|STK-\d|SRS|1-requirements").unwrap();
-
         // Find qualifying .md files in docs/3-design/ (excluding adr/, compliance/, and README.md)
         let qualifying_files: Vec<_> = ctx.files.iter()
             .filter(|f| {
@@ -143,7 +151,7 @@ impl CheckRunner for DesignTracesRequirements {
                 Err(_) => continue,
             };
 
-            if !req_re.is_match(&content) {
+            if !DESIGN_REQ_RE.is_match(&content) {
                 violations.push(Violation {
                     check_id: CheckId(self.def.id),
                     path: Some(file.to_path_buf()),
@@ -181,8 +189,6 @@ impl CheckRunner for PlanTracesDesign {
             return CheckResult::Skip { reason: "docs/2-planning/ does not exist".to_string() };
         }
 
-        let arch_re = Regex::new(r"(?i)architecture\.md|3-design|architectural").unwrap();
-
         // Find qualifying .md files in docs/2-planning/ (excluding README.md)
         let qualifying_files: Vec<_> = ctx.files.iter()
             .filter(|f| {
@@ -206,7 +212,7 @@ impl CheckRunner for PlanTracesDesign {
                 Err(_) => continue,
             };
 
-            if !arch_re.is_match(&content) {
+            if !PLAN_ARCH_RE.is_match(&content) {
                 violations.push(Violation {
                     check_id: CheckId(self.def.id),
                     path: Some(file.to_path_buf()),
@@ -253,9 +259,7 @@ impl CheckRunner for BacklogTracesRequirements {
             }
         };
 
-        let req_re = Regex::new(r"(?i)requirements\.md|requirements\b|FR-\d|STK-\d|SRS|1-requirements|BL-\d").unwrap();
-
-        if req_re.is_match(&content) {
+        if BACKLOG_REQ_RE.is_match(&content) {
             CheckResult::Pass
         } else {
             CheckResult::Fail {

@@ -1,11 +1,25 @@
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::sync::LazyLock;
 
 use regex::Regex;
 
 use crate::api::types::RuleDef;
 use crate::spi::traits::CheckRunner;
 use crate::spi::types::{CheckId, CheckResult, ScanContext, Violation};
+
+static MODULE_W3H_WHAT_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(?i)#{1,3}\s+.*what").unwrap());
+static MODULE_W3H_WHY_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(?i)#{1,3}\s+.*why").unwrap());
+static MODULE_W3H_HOW_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(?i)#{1,3}\s+.*how").unwrap());
+
+fn module_w3h_re(keyword: &str) -> &'static LazyLock<Regex> {
+    match keyword {
+        "what" => &MODULE_W3H_WHAT_RE,
+        "why" => &MODULE_W3H_WHY_RE,
+        "how" => &MODULE_W3H_HOW_RE,
+        _ => unreachable!(),
+    }
+}
 
 /// A discovered module with its relative path and name.
 #[derive(Debug, Clone)]
@@ -38,7 +52,7 @@ pub fn discover_modules(ctx: &ScanContext) -> Vec<ModuleInfo> {
         if dir.is_dir() {
             if let Ok(entries) = fs::read_dir(&dir) {
                 for entry in entries.flatten() {
-                    if entry.file_type().map_or(false, |ft| ft.is_dir()) {
+                    if entry.file_type().is_ok_and(|ft| ft.is_dir()) {
                         let sub = entry.path();
                         if has_manifest(&sub) {
                             let rel = sub.strip_prefix(&ctx.root).unwrap_or(&sub);
@@ -56,7 +70,7 @@ pub fn discover_modules(ctx: &ScanContext) -> Vec<ModuleInfo> {
     // Also scan direct children of root (for flat module layouts)
     if let Ok(entries) = fs::read_dir(&ctx.root) {
         for entry in entries.flatten() {
-            if entry.file_type().map_or(false, |ft| ft.is_dir()) {
+            if entry.file_type().is_ok_and(|ft| ft.is_dir()) {
                 let name = entry.file_name().to_string_lossy().to_string();
                 // Skip known non-module directories
                 if name.starts_with('.') || name == "docs" || name == "target"
@@ -118,8 +132,7 @@ impl CheckRunner for ModuleReadmeW3h {
 
             let mut missing = Vec::new();
             for keyword in &w3h_keywords {
-                let pattern = format!(r"(?i)#{{1,3}}\s+.*{}", keyword);
-                let re = Regex::new(&pattern).unwrap();
+                let re = module_w3h_re(keyword);
                 if !re.is_match(&content) {
                     missing.push(*keyword);
                 }
@@ -301,7 +314,7 @@ impl CheckRunner for ModuleDeploymentDocs {
 fn dir_has_files(dir: &Path) -> bool {
     if let Ok(entries) = fs::read_dir(dir) {
         for entry in entries.flatten() {
-            if entry.file_type().map_or(false, |ft| ft.is_file()) {
+            if entry.file_type().is_ok_and(|ft| ft.is_file()) {
                 return true;
             }
         }

@@ -1,11 +1,14 @@
 use std::fs;
 use std::path::Path;
+use std::sync::LazyLock;
 
 use regex::Regex;
 
 use crate::api::types::RuleDef;
 use crate::spi::traits::CheckRunner;
 use crate::spi::types::{CheckId, CheckResult, ScanContext, Violation};
+
+static LINK_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\[([^\]]*)\]\(([^)]+)\)").unwrap());
 
 /// Checks 44-45: link_resolution
 /// 44: All internal markdown links resolve to existing files (error)
@@ -20,8 +23,6 @@ impl CheckRunner for LinkResolution {
     fn description(&self) -> &str { &self.def.description }
 
     fn run(&self, ctx: &ScanContext) -> CheckResult {
-        let link_re = Regex::new(r"\[([^\]]*)\]\(([^)]+)\)").unwrap();
-
         let md_files: Vec<_> = ctx.files.iter()
             .filter(|f| {
                 let s = f.to_string_lossy();
@@ -43,7 +44,7 @@ impl CheckRunner for LinkResolution {
 
             let file_dir = file.parent().unwrap_or(Path::new(""));
 
-            for caps in link_re.captures_iter(&content) {
+            for caps in LINK_RE.captures_iter(&content) {
                 let target = &caps[2];
 
                 // Skip external links, anchors, and mailto

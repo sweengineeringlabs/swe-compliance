@@ -1,10 +1,28 @@
 use std::fs;
+use std::sync::LazyLock;
 
 use regex::Regex;
 
 use crate::api::types::RuleDef;
 use crate::spi::traits::CheckRunner;
 use crate::spi::types::{CheckId, CheckResult, ScanContext, Violation};
+
+static W3H_WHO_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(?i)#{1,3}\s+.*who").unwrap());
+static W3H_WHAT_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(?i)#{1,3}\s+.*what").unwrap());
+static W3H_WHY_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(?i)#{1,3}\s+.*why").unwrap());
+static W3H_HOW_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(?i)#{1,3}\s+.*how").unwrap());
+static NAV_PHASE_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^(\d+-[a-z_]+)$").unwrap());
+static DEEP_LINK_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\]\(docs/\d+-[^)]+\)").unwrap());
+
+fn w3h_re(keyword: &str) -> &'static LazyLock<Regex> {
+    match keyword {
+        "who" => &W3H_WHO_RE,
+        "what" => &W3H_WHAT_RE,
+        "why" => &W3H_WHY_RE,
+        "how" => &W3H_HOW_RE,
+        _ => unreachable!(),
+    }
+}
 
 /// Check 41: w3h_hub
 /// Detect W3H (WHO-WHAT-WHY-HOW) structure in docs/README.md
@@ -38,8 +56,7 @@ impl CheckRunner for W3hHub {
 
         for keyword in &w3h_keywords {
             // Look for section headers containing the keyword
-            let pattern = format!(r"(?i)#{{1,3}}\s+.*{}", keyword);
-            let re = Regex::new(&pattern).unwrap();
+            let re = w3h_re(keyword);
             if !re.is_match(&content) && !content_lower.contains(&format!("**{}**", keyword)) {
                 missing.push(*keyword);
             }
@@ -90,14 +107,13 @@ impl CheckRunner for HubLinksPhases {
         };
 
         // Find all phase directories
-        let phase_re = Regex::new(r"^(\d+-[a-z_]+)$").unwrap();
         let mut phase_dirs: Vec<String> = Vec::new();
 
         if let Ok(entries) = fs::read_dir(ctx.root.join("docs")) {
             for entry in entries.flatten() {
-                if entry.file_type().map_or(false, |ft| ft.is_dir()) {
+                if entry.file_type().is_ok_and(|ft| ft.is_dir()) {
                     let name = entry.file_name().to_string_lossy().to_string();
-                    if phase_re.is_match(&name) {
+                    if NAV_PHASE_RE.is_match(&name) {
                         phase_dirs.push(name);
                     }
                 }
@@ -157,11 +173,9 @@ impl CheckRunner for NoDeepLinks {
 
         // Deep links go into docs/ subdirectories (e.g., docs/3-design/architecture.md)
         // Allowed: links to docs/README.md, docs/glossary.md (top-level docs files)
-        let deep_link_re = Regex::new(r"\]\(docs/\d+-[^)]+\)").unwrap();
-
         let mut violations = Vec::new();
         for (i, line) in content.lines().enumerate() {
-            if deep_link_re.is_match(line) {
+            if DEEP_LINK_RE.is_match(line) {
                 violations.push(Violation {
                     check_id: CheckId(self.def.id),
                     path: Some("README.md".into()),
@@ -215,8 +229,7 @@ impl CheckRunner for W3hExtended {
 
             let mut missing = Vec::new();
             for keyword in &w3h_keywords {
-                let pattern = format!(r"(?i)#{{1,3}}\s+.*{}", keyword);
-                let re = Regex::new(&pattern).unwrap();
+                let re = w3h_re(keyword);
                 if !re.is_match(&content) {
                     missing.push(*keyword);
                 }

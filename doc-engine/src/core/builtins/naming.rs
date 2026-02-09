@@ -1,8 +1,17 @@
+use std::sync::LazyLock;
+
 use regex::Regex;
 
 use crate::api::types::RuleDef;
 use crate::spi::traits::CheckRunner;
 use crate::spi::types::{CheckId, CheckResult, ScanContext, Violation};
+
+static PHASE_PREFIX_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^\d+-").unwrap());
+static GUIDE_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^[a-z_]+_[a-z]+_guide\.md$").unwrap());
+static TESTING_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"_testing_").unwrap());
+static FR_DETECT_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(?i)\bFR[-_]\d").unwrap());
+static FR_VALID_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\bFR_\d{3}\b").unwrap());
+static FR_HYPHEN_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(?i)\bFR-\d").unwrap());
 
 /// Checks 21-23: snake_lower_case
 /// 21: All filenames in docs/ are lowercase
@@ -31,7 +40,6 @@ impl CheckRunner for SnakeLowerCase {
 
         // Exclude ADR files (they use NNN-title.md convention) and phase dir names
         let adr_prefix = "docs/3-design/adr/";
-        let phase_prefix_re = Regex::new(r"^\d+-").unwrap();
 
         let mut violations = Vec::new();
         for file in &docs_files {
@@ -69,7 +77,7 @@ impl CheckRunner for SnakeLowerCase {
                 22 => {
                     // Check no hyphens (underscores only)
                     let stem = filename.trim_end_matches(".md");
-                    if stem.contains('-') && !phase_prefix_re.is_match(stem) {
+                    if stem.contains('-') && !PHASE_PREFIX_RE.is_match(stem) {
                         violations.push(Violation {
                             check_id: CheckId(self.def.id),
                             path: Some(file.to_path_buf()),
@@ -113,8 +121,6 @@ impl CheckRunner for GuideNaming {
     fn description(&self) -> &str { &self.def.description }
 
     fn run(&self, ctx: &ScanContext) -> CheckResult {
-        let guide_re = Regex::new(r"^[a-z_]+_[a-z]+_guide\.md$").unwrap();
-
         let guide_files: Vec<_> = ctx.files.iter()
             .filter(|f| {
                 let s = f.to_string_lossy();
@@ -136,7 +142,7 @@ impl CheckRunner for GuideNaming {
                 continue;
             }
 
-            if !guide_re.is_match(&filename) {
+            if !GUIDE_RE.is_match(&filename) {
                 violations.push(Violation {
                     check_id: CheckId(self.def.id),
                     path: Some(file.to_path_buf()),
@@ -169,8 +175,6 @@ impl CheckRunner for TestingFilePlacement {
     fn description(&self) -> &str { &self.def.description }
 
     fn run(&self, ctx: &ScanContext) -> CheckResult {
-        let testing_re = Regex::new(r"_testing_").unwrap();
-
         let mut violations = Vec::new();
         for file in &ctx.files {
             let path_str = file.to_string_lossy();
@@ -182,7 +186,7 @@ impl CheckRunner for TestingFilePlacement {
                 .map(|f| f.to_string_lossy().to_string())
                 .unwrap_or_default();
 
-            if testing_re.is_match(&filename) && !path_str.contains("5-testing") {
+            if TESTING_RE.is_match(&filename) && !path_str.contains("5-testing") {
                 violations.push(Violation {
                     check_id: CheckId(self.def.id),
                     path: Some(file.to_path_buf()),
@@ -217,12 +221,8 @@ impl CheckRunner for FrNaming {
     fn description(&self) -> &str { &self.def.description }
 
     fn run(&self, ctx: &ScanContext) -> CheckResult {
-        let fr_detect = Regex::new(r"(?i)\bFR[-_]\d").unwrap();
-        let fr_valid = Regex::new(r"\bFR_\d{3}\b").unwrap();
-        let fr_hyphen = Regex::new(r"(?i)\bFR-\d").unwrap();
-
         let fr_files: Vec<_> = ctx.files.iter()
-            .filter(|f| fr_detect.is_match(&f.to_string_lossy()))
+            .filter(|f| FR_DETECT_RE.is_match(&f.to_string_lossy()))
             .collect();
 
         if fr_files.is_empty() {
@@ -232,7 +232,7 @@ impl CheckRunner for FrNaming {
         let mut violations = Vec::new();
         for file in &fr_files {
             let path_str = file.to_string_lossy();
-            if fr_hyphen.is_match(&path_str) {
+            if FR_HYPHEN_RE.is_match(&path_str) {
                 violations.push(Violation {
                     check_id: CheckId(self.def.id),
                     path: Some(file.to_path_buf()),
@@ -242,7 +242,7 @@ impl CheckRunner for FrNaming {
                     ),
                     severity: self.def.severity.clone(),
                 });
-            } else if !fr_valid.is_match(&path_str) {
+            } else if !FR_VALID_RE.is_match(&path_str) {
                 violations.push(Violation {
                     check_id: CheckId(self.def.id),
                     path: Some(file.to_path_buf()),

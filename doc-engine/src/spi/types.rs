@@ -15,38 +15,57 @@ impl fmt::Display for CheckId {
     }
 }
 
-/// Severity level of a check violation
+/// Severity level of a check violation.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Severity {
+    /// A blocking error that must be fixed before release.
     Error,
+    /// A non-blocking issue that should be addressed.
     Warning,
+    /// An informational note with no compliance impact.
     Info,
 }
 
-/// A single violation found by a check
+/// A single violation found by a check.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Violation {
+    /// The check that produced this violation.
     pub check_id: CheckId,
+    /// The file path related to the violation, if applicable.
     pub path: Option<PathBuf>,
+    /// Human-readable description of the violation.
     pub message: String,
+    /// Severity level of this violation.
     pub severity: Severity,
 }
 
-/// Outcome of running a single check
+/// Outcome of running a single check.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "status", rename_all = "lowercase")]
 pub enum CheckResult {
+    /// The check passed with no violations.
     Pass,
-    Fail { violations: Vec<Violation> },
-    Skip { reason: String },
+    /// The check failed; contains one or more violations.
+    Fail {
+        /// The violations that caused the check to fail.
+        violations: Vec<Violation>,
+    },
+    /// The check was skipped (e.g. not applicable for the project type).
+    Skip {
+        /// Explanation of why the check was skipped.
+        reason: String,
+    },
 }
 
-/// Error type for scan operations
+/// Error type for scan operations.
 #[derive(Debug)]
 pub enum ScanError {
+    /// An I/O error encountered during scanning.
     Io(io::Error),
+    /// The supplied project path is invalid or does not exist.
     Path(String),
+    /// A configuration or rule parsing error.
     Config(String),
 }
 
@@ -68,18 +87,24 @@ impl From<io::Error> for ScanError {
     }
 }
 
-/// Project type for filtering checks
+/// Project type for filtering checks.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ProjectType {
+    /// An open-source project with community-facing requirements.
     OpenSource,
+    /// An internal/proprietary project.
     Internal,
 }
 
-/// Context passed to each CheckRunner during scan
+/// Context passed to each CheckRunner during scan.
 pub struct ScanContext {
+    /// Absolute path to the project root directory.
     pub root: PathBuf,
+    /// Relative paths of all files discovered under `root`.
     pub files: Vec<PathBuf>,
+    /// Cached file contents keyed by path.
     pub file_contents: HashMap<PathBuf, String>,
+    /// The project type used to filter applicable checks.
     pub project_type: ProjectType,
 }

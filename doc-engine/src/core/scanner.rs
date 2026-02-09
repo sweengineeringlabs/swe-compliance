@@ -17,10 +17,10 @@ impl FileScanner for FileSystemScanner {
             .filter_entry(|e| {
                 let name = e.file_name().to_string_lossy();
                 // Skip hidden directories, target/, node_modules/
-                if e.file_type().is_dir() {
-                    if name.starts_with('.') || name == "target" || name == "node_modules" {
-                        return false;
-                    }
+                if e.file_type().is_dir()
+                    && (name.starts_with('.') || name == "target" || name == "node_modules")
+                {
+                    return false;
                 }
                 true
             })

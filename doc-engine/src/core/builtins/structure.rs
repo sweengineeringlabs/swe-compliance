@@ -1,11 +1,15 @@
 use std::collections::HashSet;
 use std::fs;
+use std::sync::LazyLock;
 
 use regex::Regex;
 
 use crate::api::types::RuleDef;
 use crate::spi::traits::CheckRunner;
 use crate::spi::types::{CheckId, CheckResult, ScanContext, Violation};
+
+static PHASE_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^(\d+)-").unwrap());
+static CHECKBOX_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"- \[([ xX])\]").unwrap());
 
 /// Checks 4-5: module_docs_plural
 /// Check 4: All module doc folders use docs/ (plural), not doc/
@@ -95,14 +99,13 @@ impl CheckRunner for SdlcPhaseNumbering {
             return CheckResult::Skip { reason: "docs/ directory does not exist".to_string() };
         }
 
-        let phase_re = Regex::new(r"^(\d+)-").unwrap();
         let mut phase_dirs: Vec<(u8, String)> = Vec::new();
 
         if let Ok(entries) = fs::read_dir(&docs_path) {
             for entry in entries.flatten() {
-                if entry.file_type().map_or(false, |ft| ft.is_dir()) {
+                if entry.file_type().is_ok_and(|ft| ft.is_dir()) {
                     let name = entry.file_name().to_string_lossy().to_string();
-                    if let Some(caps) = phase_re.captures(&name) {
+                    if let Some(caps) = PHASE_RE.captures(&name) {
                         if let Ok(num) = caps[1].parse::<u8>() {
                             phase_dirs.push((num, name));
                         }
@@ -187,8 +190,7 @@ impl CheckRunner for ChecklistCompleteness {
         };
 
         // Count checkboxes (both checked and unchecked)
-        let checkbox_re = Regex::new(r"- \[([ xX])\]").unwrap();
-        let checkbox_count = checkbox_re.find_iter(&content).count();
+        let checkbox_count = CHECKBOX_RE.find_iter(&content).count();
 
         // Simple heuristic: a valid checklist should have many checkboxes
         if checkbox_count >= 10 {

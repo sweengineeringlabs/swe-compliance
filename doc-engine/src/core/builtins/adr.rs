@@ -1,10 +1,14 @@
 use std::fs;
+use std::sync::LazyLock;
 
 use regex::Regex;
 
 use crate::api::types::RuleDef;
 use crate::spi::traits::CheckRunner;
 use crate::spi::types::{CheckId, CheckResult, ScanContext, Violation};
+
+static ADR_NAMING_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^\d{3}-[a-z0-9_-]+\.md$").unwrap());
+static ADR_PREFIX_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^\d{3}-").unwrap());
 
 /// Check 49: adr_naming
 /// ADR files follow NNN-title.md naming convention
@@ -22,8 +26,6 @@ impl CheckRunner for AdrNaming {
         if !adr_dir.is_dir() {
             return CheckResult::Skip { reason: "ADR directory does not exist".to_string() };
         }
-
-        let adr_re = Regex::new(r"^\d{3}-[a-z0-9_-]+\.md$").unwrap();
 
         let adr_files: Vec<_> = ctx.files.iter()
             .filter(|f| {
@@ -47,7 +49,7 @@ impl CheckRunner for AdrNaming {
                 continue;
             }
 
-            if !adr_re.is_match(&filename) {
+            if !ADR_NAMING_RE.is_match(&filename) {
                 violations.push(Violation {
                     check_id: CheckId(self.def.id),
                     path: Some(file.to_path_buf()),
@@ -104,7 +106,6 @@ impl CheckRunner for AdrIndexCompleteness {
         };
 
         // Collect actual ADR files (excluding index/readme)
-        let adr_re = Regex::new(r"^\d{3}-").unwrap();
         let adr_files: Vec<String> = ctx.files.iter()
             .filter(|f| {
                 let s = f.to_string_lossy();
@@ -112,7 +113,7 @@ impl CheckRunner for AdrIndexCompleteness {
             })
             .filter_map(|f| {
                 let filename = f.file_name()?.to_string_lossy().to_string();
-                if adr_re.is_match(&filename) {
+                if ADR_PREFIX_RE.is_match(&filename) {
                     Some(filename)
                 } else {
                     None

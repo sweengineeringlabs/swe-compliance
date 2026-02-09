@@ -4,9 +4,9 @@
 
 ## TLDR
 
-All 15 compliance check backlog items (BL-01 through BL-15) are complete — 76 checks implemented covering all SDLC phases plus ISO/IEC/IEEE standards validation. A production readiness audit identified 10 additional items (PB-01 through PB-10): 1 critical (CI/CD pipeline), 3 high (deprecated dep, clippy, dependency auditing), 4 medium (API docs, regex init, Cargo metadata, README), and 2 low (release automation, missing_docs lint).
+All 15 compliance check backlog items (BL-01 through BL-15) are complete — 76 checks implemented covering all SDLC phases plus ISO/IEC/IEEE standards validation. All 10 production blocker items (PB-01 through PB-10) are complete: CI/CD pipeline, deprecated dep removal, clippy clean, dependency auditing, API docs, regex LazyLock, Cargo metadata, README enhancement, release automation, and missing_docs lint.
 
-## Status: Compliance checks complete — Production blockers open
+## Status: All items complete
 
 ## Overview
 
@@ -306,6 +306,16 @@ Gap analysis of compliance checks missing from doc-engine relative to the [templ
 - [x] Checks 83-88: Planning phase artifacts per FR-804 (risk register, estimation, schedule, resource plan, communication plan, quality plan) — 2026-02-09
 - [x] Check 89: SRS 29148 attribute validation per FR-805 — 2026-02-09
 - [x] Checks 90-91: ISO/IEC/IEEE 42010 architecture + 29119-3 testing per FR-806, FR-807 — 2026-02-09
+- [x] PB-01: CI/CD pipeline (GitHub Actions: test, clippy, audit, self-compliance) — 2026-02-09
+- [x] PB-02: Removed unused serde_yaml dependency — 2026-02-09
+- [x] PB-03: Clippy clean (7 warnings fixed, zero-warning policy) — 2026-02-09
+- [x] PB-04: Dependency auditing (cargo-deny with deny.toml) — 2026-02-09
+- [x] PB-05: Public API documentation (crate doc, SAF functions, all traits) — 2026-02-09
+- [x] PB-06: Regex LazyLock (~40 regexes across 9 files) — 2026-02-09
+- [x] PB-07: Cargo.toml metadata (repository, authors, keywords, categories) — 2026-02-09
+- [x] PB-08: README enhancement (badge, examples, exit codes, contributing) — 2026-02-09
+- [x] PB-09: Release automation (tag-triggered workflow) — 2026-02-09
+- [x] PB-10: missing_docs lint enabled with full API coverage — 2026-02-09
 
 ## Blockers
 
@@ -322,25 +332,25 @@ Production readiness audit (2026-02-09) identified 10 areas; 1 critical blocker,
 
 ### Critical
 
-- [ ] **PB-01** — CI/CD pipeline: GitHub Actions workflow for `cargo test`, `cargo clippy`, `cargo audit`, and self-compliance scan
+- [x] **PB-01** — CI/CD pipeline: GitHub Actions workflow for `cargo test`, `cargo clippy`, `cargo audit`, and self-compliance scan — 2026-02-09
 
 ### High Priority
 
-- [ ] **PB-02** — Migrate `serde_yaml` 0.9 (deprecated) to `serde_yml` or alternative maintained YAML crate
-- [ ] **PB-03** — Clippy clean: fix 7 warnings (`collapsible_if`, `unnecessary_map_or`, `manual_strip`)
-- [ ] **PB-04** — Dependency auditing: add `cargo-audit` or `cargo-deny` to CI and project config
+- [x] **PB-02** — Remove unused `serde_yaml` 0.9 (deprecated) from dependencies — 2026-02-09
+- [x] **PB-03** — Clippy clean: fix 7 warnings (`collapsible_if`, `unnecessary_map_or`, `manual_strip`) — 2026-02-09
+- [x] **PB-04** — Dependency auditing: add `cargo-deny` with `deny.toml` to CI — 2026-02-09
 
 ### Medium Priority
 
-- [ ] **PB-05** — Public API documentation: add `//!` crate-level doc, doc comments on SAF functions (`scan()`, `scan_with_config()`), and trait definitions
-- [ ] **PB-06** — Regex initialization: replace `Regex::new().unwrap()` in production handlers with `LazyLock` or `OnceLock` (compile-once, no runtime panic risk)
-- [ ] **PB-07** — Cargo.toml metadata: add `repository`, `authors`, `keywords`, `categories` for crates.io publishing
-- [ ] **PB-08** — README enhancement: add CI badge, usage examples for all flags (`--json`, `--checks`, `--type`, `--rules`), contributing link
+- [x] **PB-05** — Public API documentation: `//!` crate-level doc, doc comments on SAF functions and trait definitions — 2026-02-09
+- [x] **PB-06** — Regex initialization: replaced ~40 `Regex::new().unwrap()` calls with `LazyLock` statics across 9 handler files — 2026-02-09
+- [x] **PB-07** — Cargo.toml metadata: added `repository`, `authors`, `keywords`, `categories` — 2026-02-09
+- [x] **PB-08** — README enhancement: CI badge, usage examples for all flags, spec examples, exit codes, contributing link — 2026-02-09
 
 ### Low Priority
 
-- [ ] **PB-09** — Release automation: configure `cargo-release` or `release-plz` with tag-based workflow
-- [ ] **PB-10** — Enable `#![warn(missing_docs)]` lint and resolve missing doc comments across public API
+- [x] **PB-09** — Release automation: tag-triggered GitHub Actions release workflow with binary attachment — 2026-02-09
+- [x] **PB-10** — Enable `#![warn(missing_docs)]` lint with full public API coverage — 2026-02-09
 
 ---
 
