@@ -1115,6 +1115,30 @@ Traditional software engineering planning phases produce artifacts beyond the im
 
 The engine shall validate SRS documents for ISO/IEC/IEEE 29148:2018 compliance by checking that each requirement block has the five mandatory attribute table entries.
 
+#### FR-806: Architecture 42010 attribute validation
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Should |
+| **State** | Approved |
+| **Verification** | Test |
+| **Traces to** | Check 90 -> `core/builtins/requirements.rs` |
+| **Acceptance** | Check 90 validates that `docs/3-design/architecture.md` contains key ISO/IEC/IEEE 42010:2022 sections: stakeholder identification, architectural concerns/rationale, and viewpoints/views. Missing sections produce per-category violations. Projects without an architecture file or with an empty file produce Skip. W3H sections (Who/Why/What/How) satisfy the 42010 requirements. |
+
+The engine shall validate architecture documents for ISO/IEC/IEEE 42010:2022 compliance by checking for stakeholder, concern, and viewpoint sections.
+
+#### FR-807: Testing 29119-3 attribute validation
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Should |
+| **State** | Approved |
+| **Verification** | Test |
+| **Traces to** | Check 91 -> `core/builtins/requirements.rs` |
+| **Acceptance** | Check 91 validates that `docs/5-testing/testing_strategy.md` contains key ISO/IEC/IEEE 29119-3:2021 sections: test strategy/scope, test cases/categories, and coverage targets/criteria. Missing sections produce per-category violations. Projects without a testing strategy file or with an empty file produce Skip. |
+
+The engine shall validate testing strategy documents for ISO/IEC/IEEE 29119-3:2021 compliance by checking for test design, test case, and test procedure sections.
+
 ---
 
 ## 5. Non-Functional Requirements

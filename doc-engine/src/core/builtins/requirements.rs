@@ -108,6 +108,136 @@ impl CheckRunner for Srs29148Attributes {
     }
 }
 
+/// Check 90: arch_42010_sections
+/// Validates that docs/3-design/architecture.md has key ISO/IEC/IEEE 42010:2022
+/// sections: stakeholder identification, architectural concerns, and viewpoints.
+pub struct Arch42010Sections {
+    pub def: RuleDef,
+}
+
+impl CheckRunner for Arch42010Sections {
+    fn id(&self) -> CheckId { CheckId(self.def.id) }
+    fn category(&self) -> &str { &self.def.category }
+    fn description(&self) -> &str { &self.def.description }
+
+    fn run(&self, ctx: &ScanContext) -> CheckResult {
+        let arch_path = ctx.root.join("docs/3-design/architecture.md");
+        if !arch_path.exists() {
+            return CheckResult::Skip {
+                reason: "docs/3-design/architecture.md does not exist".to_string(),
+            };
+        }
+
+        let content = match fs::read_to_string(&arch_path) {
+            Ok(c) => c,
+            Err(e) => {
+                return CheckResult::Skip {
+                    reason: format!("Cannot read architecture.md: {}", e),
+                };
+            }
+        };
+
+        if content.trim().is_empty() {
+            return CheckResult::Skip {
+                reason: "architecture.md is empty".to_string(),
+            };
+        }
+
+        let categories: &[(&str, Regex)] = &[
+            ("Stakeholders", Regex::new(r"(?i)(stakeholder|## who\b)").unwrap()),
+            ("Concerns/rationale", Regex::new(r"(?i)(concern|rationale|## why\b|design.decision)").unwrap()),
+            ("Viewpoints/views", Regex::new(r"(?i)(viewpoint|## what\b|## how\b|layer.model|layer.architect|system.diagram)").unwrap()),
+        ];
+
+        let missing: Vec<&str> = categories.iter()
+            .filter(|(_, re)| !re.is_match(&content))
+            .map(|(name, _)| *name)
+            .collect();
+
+        if missing.is_empty() {
+            CheckResult::Pass
+        } else {
+            CheckResult::Fail {
+                violations: vec![Violation {
+                    check_id: CheckId(self.def.id),
+                    path: Some("docs/3-design/architecture.md".into()),
+                    message: format!(
+                        "Architecture document missing 42010 section{}: {}",
+                        if missing.len() > 1 { "s" } else { "" },
+                        missing.join(", ")
+                    ),
+                    severity: self.def.severity.clone(),
+                }],
+            }
+        }
+    }
+}
+
+/// Check 91: test_29119_sections
+/// Validates that docs/5-testing/testing_strategy.md has key ISO/IEC/IEEE 29119-3:2021
+/// sections: test strategy/scope, test categories/cases, and coverage/criteria.
+pub struct Test29119Sections {
+    pub def: RuleDef,
+}
+
+impl CheckRunner for Test29119Sections {
+    fn id(&self) -> CheckId { CheckId(self.def.id) }
+    fn category(&self) -> &str { &self.def.category }
+    fn description(&self) -> &str { &self.def.description }
+
+    fn run(&self, ctx: &ScanContext) -> CheckResult {
+        let test_path = ctx.root.join("docs/5-testing/testing_strategy.md");
+        if !test_path.exists() {
+            return CheckResult::Skip {
+                reason: "docs/5-testing/testing_strategy.md does not exist".to_string(),
+            };
+        }
+
+        let content = match fs::read_to_string(&test_path) {
+            Ok(c) => c,
+            Err(e) => {
+                return CheckResult::Skip {
+                    reason: format!("Cannot read testing_strategy.md: {}", e),
+                };
+            }
+        };
+
+        if content.trim().is_empty() {
+            return CheckResult::Skip {
+                reason: "testing_strategy.md is empty".to_string(),
+            };
+        }
+
+        let categories: &[(&str, Regex)] = &[
+            ("Strategy/scope", Regex::new(r"(?i)(test.strateg|test.scope|test.design|test.approach)").unwrap()),
+            ("Test cases/categories", Regex::new(r"(?i)(test.categor|test.case|test.plan|test.pyramid)").unwrap()),
+            ("Coverage/criteria", Regex::new(r"(?i)(coverage.target|exit.criteria|entry.criteria|test.procedure)").unwrap()),
+        ];
+
+        let missing: Vec<&str> = categories.iter()
+            .filter(|(_, re)| !re.is_match(&content))
+            .map(|(name, _)| *name)
+            .collect();
+
+        if missing.is_empty() {
+            CheckResult::Pass
+        } else {
+            CheckResult::Fail {
+                violations: vec![Violation {
+                    check_id: CheckId(self.def.id),
+                    path: Some("docs/5-testing/testing_strategy.md".into()),
+                    message: format!(
+                        "Testing strategy missing 29119-3 section{}: {}",
+                        if missing.len() > 1 { "s" } else { "" },
+                        missing.join(", ")
+                    ),
+                    severity: self.def.severity.clone(),
+                }],
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -336,6 +466,207 @@ mod tests {
              | STK-01 | The tool shall audit | Compliance |\n");
 
         let handler = Srs29148Attributes { def: make_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Skip { .. }));
+    }
+
+    // =========================================================================
+    // Check 90: Arch42010Sections
+    // =========================================================================
+
+    fn make_arch_def() -> RuleDef {
+        RuleDef {
+            id: 90,
+            category: "requirements".to_string(),
+            description: "Architecture document has ISO/IEC/IEEE 42010:2022 sections".to_string(),
+            severity: Severity::Info,
+            rule_type: RuleType::Builtin { handler: "arch_42010_sections".to_string() },
+            project_type: None,
+        }
+    }
+
+    #[test]
+    fn test_arch_42010_pass_explicit_sections() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/3-design/architecture.md",
+            "# Architecture\n\n**Audience**: Developers\n\n\
+             ## Stakeholders\nDevelopers, Architects\n\n\
+             ## Concerns\nModularity, performance\n\n\
+             ## Viewpoints\nStructural, behavioral\n");
+
+        let handler = Arch42010Sections { def: make_arch_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_arch_42010_pass_w3h_sections() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/3-design/architecture.md",
+            "# Architecture\n\n**Audience**: Developers\n\n\
+             ## Who\nStakeholders\n\n\
+             ## Why\nDesign rationale\n\n\
+             ## What\nSystem overview\n\n\
+             ## How\nImplementation\n");
+
+        let handler = Arch42010Sections { def: make_arch_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_arch_42010_fail_missing_stakeholders() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/3-design/architecture.md",
+            "# Architecture\n\n**Audience**: Developers\n\n\
+             ## Concerns\nModularity\n\n\
+             ## Viewpoints\nStructural\n");
+
+        let handler = Arch42010Sections { def: make_arch_def() };
+        let ctx = make_ctx(tmp.path());
+        match handler.run(&ctx) {
+            CheckResult::Fail { violations } => {
+                assert_eq!(violations.len(), 1);
+                assert!(violations[0].message.contains("Stakeholders"));
+            }
+            other => panic!("Expected Fail, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_arch_42010_fail_missing_all() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/3-design/architecture.md",
+            "# Architecture\n\n**Audience**: Developers\n\nSome generic content.\n");
+
+        let handler = Arch42010Sections { def: make_arch_def() };
+        let ctx = make_ctx(tmp.path());
+        match handler.run(&ctx) {
+            CheckResult::Fail { violations } => {
+                assert_eq!(violations.len(), 1);
+                assert!(violations[0].message.contains("Stakeholders"));
+                assert!(violations[0].message.contains("Concerns"));
+                assert!(violations[0].message.contains("Viewpoints"));
+            }
+            other => panic!("Expected Fail, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_arch_42010_skip_no_file() {
+        let tmp = TempDir::new().unwrap();
+
+        let handler = Arch42010Sections { def: make_arch_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Skip { .. }));
+    }
+
+    #[test]
+    fn test_arch_42010_skip_empty_file() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/3-design/architecture.md", "  \n  \n");
+
+        let handler = Arch42010Sections { def: make_arch_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Skip { .. }));
+    }
+
+    // =========================================================================
+    // Check 91: Test29119Sections
+    // =========================================================================
+
+    fn make_test_def() -> RuleDef {
+        RuleDef {
+            id: 91,
+            category: "requirements".to_string(),
+            description: "Testing strategy has ISO/IEC/IEEE 29119-3:2021 sections".to_string(),
+            severity: Severity::Info,
+            rule_type: RuleType::Builtin { handler: "test_29119_sections".to_string() },
+            project_type: None,
+        }
+    }
+
+    #[test]
+    fn test_29119_pass_explicit_sections() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/5-testing/testing_strategy.md",
+            "# Testing Strategy\n\n**Audience**: Developers\n\n\
+             ## Test Strategy\nRisk-based testing.\n\n\
+             ## Test Categories\nUnit, integration, E2E.\n\n\
+             ## Coverage Targets\n80% line coverage.\n");
+
+        let handler = Test29119Sections { def: make_test_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_29119_pass_pyramid_and_coverage() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/5-testing/testing_strategy.md",
+            "# Testing Strategy\n\n**Audience**: Developers\n\n\
+             ## Test Design\nRequirements-based.\n\n\
+             ## Test Pyramid\nUnit > Integration > E2E.\n\n\
+             ## Coverage Targets\n80%.\n");
+
+        let handler = Test29119Sections { def: make_test_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_29119_fail_missing_coverage() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/5-testing/testing_strategy.md",
+            "# Testing Strategy\n\n**Audience**: Developers\n\n\
+             ## Test Strategy\nRisk-based.\n\n\
+             ## Test Categories\nUnit tests.\n");
+
+        let handler = Test29119Sections { def: make_test_def() };
+        let ctx = make_ctx(tmp.path());
+        match handler.run(&ctx) {
+            CheckResult::Fail { violations } => {
+                assert_eq!(violations.len(), 1);
+                assert!(violations[0].message.contains("Coverage"));
+            }
+            other => panic!("Expected Fail, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_29119_fail_missing_all() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/5-testing/testing_strategy.md",
+            "# Testing Strategy\n\n**Audience**: Developers\n\nGeneric content only.\n");
+
+        let handler = Test29119Sections { def: make_test_def() };
+        let ctx = make_ctx(tmp.path());
+        match handler.run(&ctx) {
+            CheckResult::Fail { violations } => {
+                assert_eq!(violations.len(), 1);
+                assert!(violations[0].message.contains("Strategy"));
+                assert!(violations[0].message.contains("Test cases"));
+                assert!(violations[0].message.contains("Coverage"));
+            }
+            other => panic!("Expected Fail, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_29119_skip_no_file() {
+        let tmp = TempDir::new().unwrap();
+
+        let handler = Test29119Sections { def: make_test_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Skip { .. }));
+    }
+
+    #[test]
+    fn test_29119_skip_empty_file() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/5-testing/testing_strategy.md", "  \n");
+
+        let handler = Test29119Sections { def: make_test_def() };
         let ctx = make_ctx(tmp.path());
         assert!(matches!(handler.run(&ctx), CheckResult::Skip { .. }));
     }

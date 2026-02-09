@@ -37,6 +37,13 @@ pub fn create_minimal_project() -> TempDir {
             &format!("# {}\n\n**Audience**: Developers\n", phase));
     }
 
+    // Testing strategy for check 91 (29119-3 sections)
+    write_file(root, "docs/5-testing/testing_strategy.md",
+        "# Testing Strategy\n\n**Audience**: Developers\n\n\
+         ## Test Strategy\nRequirements-based testing approach.\n\n\
+         ## Test Categories\nUnit, integration, and E2E tests.\n\n\
+         ## Coverage Targets\n80% line coverage target.\n");
+
     // Traceability artifacts (checks 51-53) + 29148 attributes (check 89)
     write_file(root, "docs/1-requirements/requirements.md",
         "# Requirements\n\n**Audience**: Developers\n\n\
@@ -61,9 +68,9 @@ pub fn create_minimal_project() -> TempDir {
         &format!("# Compliance Checklist\n\n**Audience**: All\n\n{}\n\nSee [architecture](../architecture.md)\n", checklist_content));
 
     // architecture.md for the checklist reference (also references requirements for check 52)
-    // W3H sections for check 74
+    // W3H sections for check 74; W3H also satisfies 42010 (Who=stakeholders, Why=concerns, What+How=viewpoints)
     write_file(root, "docs/3-design/architecture.md",
-        "# Architecture\n\n**Audience**: Developers\n\n## What\nSystem architecture.\n\n## Why\nDesign rationale.\n\n## How\nComponent design.\n\nSee requirements.md for FR-001.\n");
+        "# Architecture\n\n**Audience**: Developers\n\n## Who\nStakeholders: developers, architects.\n\n## What\nSystem architecture.\n\n## Why\nDesign rationale and concerns.\n\n## How\nComponent design.\n\nSee requirements.md for FR-001.\n");
 
     // developer_guide.md for check 69 + W3H for check 74
     write_file(root, "docs/4-development/developer_guide.md",

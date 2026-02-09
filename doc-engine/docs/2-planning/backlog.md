@@ -39,6 +39,7 @@ Gap analysis of compliance checks missing from doc-engine relative to the [templ
 - [x] **BL-12** — Backlog→requirements traceability (check 82) — 2026-02-09
 - [x] **BL-13** — Planning phase artifacts: risk register, estimation, schedule, resource plan, communication plan, quality plan (checks 83-88, FR-804) — 2026-02-09
 - [x] **BL-14** — SRS 29148 attribute validation (check 89, FR-805) — 2026-02-09
+- [x] **BL-15** — ISO/IEC/IEEE standards validation: 42010 architecture + 29119-3 testing (checks 90-91, FR-806, FR-807) — 2026-02-09
 
 ---
 
@@ -293,7 +294,8 @@ Gap analysis of compliance checks missing from doc-engine relative to the [templ
 | BL-12 | Backlog→requirements traceability | Traceability | High | 1 | warning |
 | BL-13 | Planning phase artifacts (FR-804) | Planning | Medium | 6 | info |
 | BL-14 | SRS 29148 attribute validation (FR-805) | Requirements | Medium | 1 | warning |
-| | | **Total** | | **~24-32** | |
+| BL-15 | ISO standards: 42010 arch + 29119-3 testing (FR-806, FR-807) | Requirements | Medium | 2 | info |
+| | | **Total** | | **~26-34** | |
 
 ## Completed
 
@@ -303,6 +305,7 @@ Gap analysis of compliance checks missing from doc-engine relative to the [templ
 - [x] Check 82: Backlog→requirements traceability (FR-804 precursor) — 2026-02-09
 - [x] Checks 83-88: Planning phase artifacts per FR-804 (risk register, estimation, schedule, resource plan, communication plan, quality plan) — 2026-02-09
 - [x] Check 89: SRS 29148 attribute validation per FR-805 — 2026-02-09
+- [x] Checks 90-91: ISO/IEC/IEEE 42010 architecture + 29119-3 testing per FR-806, FR-807 — 2026-02-09
 
 ## Blockers
 
