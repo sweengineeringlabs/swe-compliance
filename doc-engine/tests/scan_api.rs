@@ -345,6 +345,183 @@ fn test_backlog_existence_and_sections_combined() {
 }
 
 #[test]
+fn test_prod_12207_pass_minimal() {
+    let tmp = common::create_minimal_project();
+    let config = ScanConfig {
+        project_type: Some(doc_engine::ProjectType::OpenSource),
+        checks: Some(vec![96]),
+        rules_path: None,
+    };
+    let report = scan_with_config(tmp.path(), &config).unwrap();
+    assert_eq!(report.results.len(), 1);
+    assert!(
+        matches!(report.results[0].result, doc_engine::CheckResult::Pass),
+        "Check 96 should pass but got {:?}", report.results[0].result
+    );
+}
+
+#[test]
+fn test_prod_12207_skip_empty() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let config = ScanConfig {
+        project_type: Some(doc_engine::ProjectType::OpenSource),
+        checks: Some(vec![96]),
+        rules_path: None,
+    };
+    let report = scan_with_config(tmp.path(), &config).unwrap();
+    assert_eq!(report.results.len(), 1);
+    assert!(
+        matches!(report.results[0].result, doc_engine::CheckResult::Skip { .. }),
+        "Check 96 should skip on empty dir but got {:?}", report.results[0].result
+    );
+}
+
+#[test]
+fn test_prod_25010_supp_pass_minimal() {
+    let tmp = common::create_minimal_project();
+    let config = ScanConfig {
+        project_type: Some(doc_engine::ProjectType::OpenSource),
+        checks: Some(vec![97]),
+        rules_path: None,
+    };
+    let report = scan_with_config(tmp.path(), &config).unwrap();
+    assert_eq!(report.results.len(), 1);
+    assert!(
+        matches!(report.results[0].result, doc_engine::CheckResult::Pass),
+        "Check 97 should pass but got {:?}", report.results[0].result
+    );
+}
+
+#[test]
+fn test_prod_25010_supp_skip_empty() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let config = ScanConfig {
+        project_type: Some(doc_engine::ProjectType::OpenSource),
+        checks: Some(vec![97]),
+        rules_path: None,
+    };
+    let report = scan_with_config(tmp.path(), &config).unwrap();
+    assert_eq!(report.results.len(), 1);
+    assert!(
+        matches!(report.results[0].result, doc_engine::CheckResult::Skip { .. }),
+        "Check 97 should skip on empty dir but got {:?}", report.results[0].result
+    );
+}
+
+#[test]
+fn test_prod_25040_pass_minimal() {
+    let tmp = common::create_minimal_project();
+    let config = ScanConfig {
+        project_type: Some(doc_engine::ProjectType::OpenSource),
+        checks: Some(vec![98]),
+        rules_path: None,
+    };
+    let report = scan_with_config(tmp.path(), &config).unwrap();
+    assert_eq!(report.results.len(), 1);
+    assert!(
+        matches!(report.results[0].result, doc_engine::CheckResult::Pass),
+        "Check 98 should pass but got {:?}", report.results[0].result
+    );
+}
+
+#[test]
+fn test_prod_25040_skip_empty() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let config = ScanConfig {
+        project_type: Some(doc_engine::ProjectType::OpenSource),
+        checks: Some(vec![98]),
+        rules_path: None,
+    };
+    let report = scan_with_config(tmp.path(), &config).unwrap();
+    assert_eq!(report.results.len(), 1);
+    assert!(
+        matches!(report.results[0].result, doc_engine::CheckResult::Skip { .. }),
+        "Check 98 should skip on empty dir but got {:?}", report.results[0].result
+    );
+}
+
+#[test]
+fn test_prod_12207_fail_missing_sections() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    common::write_file(tmp.path(), "docs/6-deployment/production_readiness.md",
+        "# Production Readiness\n\n**Audience**: Developers\n\nGeneric content only.\n");
+    let config = ScanConfig {
+        project_type: Some(doc_engine::ProjectType::OpenSource),
+        checks: Some(vec![96]),
+        rules_path: None,
+    };
+    let report = scan_with_config(tmp.path(), &config).unwrap();
+    assert_eq!(report.results.len(), 1);
+    match &report.results[0].result {
+        doc_engine::CheckResult::Fail { violations } => {
+            assert_eq!(violations.len(), 1);
+            assert!(violations[0].message.contains("CI/CD Pipeline"));
+        }
+        other => panic!("Check 96 should fail but got {:?}", other),
+    }
+}
+
+#[test]
+fn test_prod_25010_supp_fail_missing_sections() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    common::write_file(tmp.path(), "docs/6-deployment/production_readiness.md",
+        "# Production Readiness\n\n**Audience**: Developers\n\nGeneric content only.\n");
+    let config = ScanConfig {
+        project_type: Some(doc_engine::ProjectType::OpenSource),
+        checks: Some(vec![97]),
+        rules_path: None,
+    };
+    let report = scan_with_config(tmp.path(), &config).unwrap();
+    assert_eq!(report.results.len(), 1);
+    match &report.results[0].result {
+        doc_engine::CheckResult::Fail { violations } => {
+            assert_eq!(violations.len(), 1);
+            assert!(violations[0].message.contains("Static Analysis"));
+        }
+        other => panic!("Check 97 should fail but got {:?}", other),
+    }
+}
+
+#[test]
+fn test_prod_25040_fail_missing_sections() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    common::write_file(tmp.path(), "docs/6-deployment/production_readiness.md",
+        "# Production Readiness\n\n**Audience**: Developers\n\nGeneric content only.\n");
+    let config = ScanConfig {
+        project_type: Some(doc_engine::ProjectType::OpenSource),
+        checks: Some(vec![98]),
+        rules_path: None,
+    };
+    let report = scan_with_config(tmp.path(), &config).unwrap();
+    assert_eq!(report.results.len(), 1);
+    match &report.results[0].result {
+        doc_engine::CheckResult::Fail { violations } => {
+            assert_eq!(violations.len(), 1);
+            assert!(violations[0].message.contains("Scoring"));
+        }
+        other => panic!("Check 98 should fail but got {:?}", other),
+    }
+}
+
+#[test]
+fn test_prod_readiness_all_checks_combined() {
+    let tmp = common::create_minimal_project();
+    let config = ScanConfig {
+        project_type: Some(doc_engine::ProjectType::OpenSource),
+        checks: Some(vec![92, 93, 96, 97, 98]),
+        rules_path: None,
+    };
+    let report = scan_with_config(tmp.path(), &config).unwrap();
+    assert_eq!(report.results.len(), 5);
+    for entry in &report.results {
+        assert!(
+            matches!(entry.result, doc_engine::CheckResult::Pass),
+            "Check {} should pass but got {:?}", entry.id.0, entry.result
+        );
+    }
+}
+
+#[test]
 fn test_scan_summary_math() {
     let tmp = common::create_minimal_project();
     let report = scan(tmp.path()).unwrap();

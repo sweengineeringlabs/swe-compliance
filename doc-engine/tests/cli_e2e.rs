@@ -349,6 +349,170 @@ fn test_cli_content_checks_combined() {
 }
 
 #[test]
+fn test_cli_prod_12207_check() {
+    let tmp = common::create_minimal_project();
+    cmd()
+        .arg("scan")
+        .arg(tmp.path())
+        .arg("--checks")
+        .arg("96")
+        .assert()
+        .success();
+}
+
+#[test]
+fn test_cli_prod_25010_supp_check() {
+    let tmp = common::create_minimal_project();
+    cmd()
+        .arg("scan")
+        .arg(tmp.path())
+        .arg("--checks")
+        .arg("97")
+        .assert()
+        .success();
+}
+
+#[test]
+fn test_cli_prod_25040_check() {
+    let tmp = common::create_minimal_project();
+    cmd()
+        .arg("scan")
+        .arg(tmp.path())
+        .arg("--checks")
+        .arg("98")
+        .assert()
+        .success();
+}
+
+#[test]
+fn test_cli_prod_12207_skip_no_file() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let output = cmd()
+        .arg("scan")
+        .arg(tmp.path())
+        .arg("--json")
+        .arg("--checks")
+        .arg("96")
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    let val: serde_json::Value = serde_json::from_str(&stdout).unwrap();
+    let results = val["results"].as_array().unwrap();
+    assert_eq!(results[0]["result"]["status"].as_str().unwrap(), "skip");
+}
+
+#[test]
+fn test_cli_prod_25010_supp_skip_no_file() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let output = cmd()
+        .arg("scan")
+        .arg(tmp.path())
+        .arg("--json")
+        .arg("--checks")
+        .arg("97")
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    let val: serde_json::Value = serde_json::from_str(&stdout).unwrap();
+    let results = val["results"].as_array().unwrap();
+    assert_eq!(results[0]["result"]["status"].as_str().unwrap(), "skip");
+}
+
+#[test]
+fn test_cli_prod_25040_skip_no_file() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let output = cmd()
+        .arg("scan")
+        .arg(tmp.path())
+        .arg("--json")
+        .arg("--checks")
+        .arg("98")
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    let val: serde_json::Value = serde_json::from_str(&stdout).unwrap();
+    let results = val["results"].as_array().unwrap();
+    assert_eq!(results[0]["result"]["status"].as_str().unwrap(), "skip");
+}
+
+#[test]
+fn test_cli_prod_12207_json_pass() {
+    let tmp = common::create_minimal_project();
+    let output = cmd()
+        .arg("scan")
+        .arg(tmp.path())
+        .arg("--json")
+        .arg("--checks")
+        .arg("96")
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    let val: serde_json::Value = serde_json::from_str(&stdout).unwrap();
+    let results = val["results"].as_array().unwrap();
+    assert_eq!(results.len(), 1);
+    assert_eq!(results[0]["result"]["status"].as_str().unwrap(), "pass");
+}
+
+#[test]
+fn test_cli_prod_25010_supp_json_pass() {
+    let tmp = common::create_minimal_project();
+    let output = cmd()
+        .arg("scan")
+        .arg(tmp.path())
+        .arg("--json")
+        .arg("--checks")
+        .arg("97")
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    let val: serde_json::Value = serde_json::from_str(&stdout).unwrap();
+    let results = val["results"].as_array().unwrap();
+    assert_eq!(results.len(), 1);
+    assert_eq!(results[0]["result"]["status"].as_str().unwrap(), "pass");
+}
+
+#[test]
+fn test_cli_prod_25040_json_pass() {
+    let tmp = common::create_minimal_project();
+    let output = cmd()
+        .arg("scan")
+        .arg(tmp.path())
+        .arg("--json")
+        .arg("--checks")
+        .arg("98")
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    let val: serde_json::Value = serde_json::from_str(&stdout).unwrap();
+    let results = val["results"].as_array().unwrap();
+    assert_eq!(results.len(), 1);
+    assert_eq!(results[0]["result"]["status"].as_str().unwrap(), "pass");
+}
+
+#[test]
+fn test_cli_prod_readiness_combined_json() {
+    let tmp = common::create_minimal_project();
+    let output = cmd()
+        .arg("scan")
+        .arg(tmp.path())
+        .arg("--json")
+        .arg("--checks")
+        .arg("92-98")
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    let val: serde_json::Value = serde_json::from_str(&stdout).unwrap();
+    let results = val["results"].as_array().unwrap();
+    assert_eq!(results.len(), 7);
+    for r in results {
+        assert_eq!(
+            r["result"]["status"].as_str().unwrap(), "pass",
+            "Check {} failed: {:?}", r["id"], r["result"]
+        );
+    }
+}
+
+#[test]
 fn test_cli_text_format() {
     let tmp = common::create_minimal_project();
     let output = cmd()

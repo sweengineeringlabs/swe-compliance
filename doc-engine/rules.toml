@@ -718,3 +718,30 @@ description = "Backlog has required sections (items, completed, blockers)"
 severity = "info"
 type = "builtin"
 handler = "backlog_sections"
+
+# Check 96: Production readiness ISO/IEC/IEEE 12207:2017 lifecycle sections (FR-812)
+[[rules]]
+id = 96
+category = "requirements"
+description = "Production readiness has ISO/IEC/IEEE 12207:2017 lifecycle sections"
+severity = "info"
+type = "builtin"
+handler = "prod_readiness_12207_sections"
+
+# Check 97: Production readiness ISO/IEC 25010:2023 supplementary sections (FR-813)
+[[rules]]
+id = 97
+category = "requirements"
+description = "Production readiness has supplementary ISO/IEC 25010:2023 quality sections"
+severity = "info"
+type = "builtin"
+handler = "prod_readiness_25010_supp_sections"
+
+# Check 98: Production readiness ISO/IEC 25040:2024 evaluation sections (FR-814)
+[[rules]]
+id = 98
+category = "requirements"
+description = "Production readiness has ISO/IEC 25040:2024 evaluation sections"
+severity = "info"
+type = "builtin"
+handler = "prod_readiness_25040_sections"

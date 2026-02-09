@@ -86,6 +86,45 @@ static PR_VERDICT_RE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"(?i)(verdict|ready\s*\|\s*not.ready|PASS.*WARN.*FAIL)").unwrap()
 });
 
+// ISO/IEC/IEEE 12207:2017 lifecycle process section regexes
+static PR_CICD_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)(##\s+\d*\.?\s*ci/?cd|ci/?cd.pipeline\s*\|)").unwrap()
+});
+static PR_DEP_HEALTH_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)(##\s+\d*\.?\s*dependenc.+health|dependency.health\s*\|)").unwrap()
+});
+static PR_DEP_AUDIT_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)(##\s+\d*\.?\s*dependenc.+audit|dependency.audit\w*\s*\|)").unwrap()
+});
+static PR_PKG_META_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)(##\s+\d*\.?\s*package.metadata|package.metadata\s*\|)").unwrap()
+});
+static PR_RELEASE_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)(##\s+\d*\.?\s*release.automat|release.automat\w*\s*\|)").unwrap()
+});
+
+// ISO/IEC 25010:2023 supplementary quality section regexes
+static PR_STATIC_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)(##\s+\d*\.?\s*static.analysis|static.analysis\s*\|)").unwrap()
+});
+static PR_API_DOCS_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)(##\s+\d*\.?\s*api.doc|api.doc\w*\s*\|)").unwrap()
+});
+static PR_README_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)(##\s+\d*\.?\s*readme|readme.*onboarding\s*\|)").unwrap()
+});
+static PR_DOC_LINT_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)(##\s+\d*\.?\s*doc.*lint|doc.*lint\s*\|)").unwrap()
+});
+
+// ISO/IEC 25040:2024 evaluation process section regexes
+static PR_SCORING_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)(##\s+scor|PASS.*WARN.*FAIL)").unwrap()
+});
+static PR_SIGNOFF_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)(##\s+sign.off|role.*name.*date.*verdict)").unwrap()
+});
+
 /// Check 89: srs_29148_attributes
 /// Validates that SRS requirement blocks (FR-xxx, NFR-xxx) have the five
 /// mandatory ISO/IEC/IEEE 29148:2018 attribute table entries:
@@ -460,6 +499,166 @@ impl CheckRunner for ProdReadiness25010Sections {
                             path: Some("docs/6-deployment/production_readiness.md".into()),
                             message: format!(
                                 "Production readiness missing 25010 section{}: {}",
+                                if missing.len() > 1 { "s" } else { "" },
+                                missing.join(", ")
+                            ),
+                            severity: self.def.severity.clone(),
+                        }],
+                    }
+                }
+            }
+            FileCheckResult::FileAbsent | FileCheckResult::FileEmpty | FileCheckResult::ReadError(_) => {
+                CheckResult::Skip {
+                    reason: "docs/6-deployment/production_readiness.md not found".to_string(),
+                }
+            }
+        }
+    }
+}
+
+fn prod_readiness_12207_categories() -> Vec<(&'static str, &'static Regex)> {
+    vec![
+        ("CI/CD Pipeline", &*PR_CICD_RE),
+        ("Dependency Health", &*PR_DEP_HEALTH_RE),
+        ("Dependency Auditing", &*PR_DEP_AUDIT_RE),
+        ("Package Metadata", &*PR_PKG_META_RE),
+        ("Release Automation", &*PR_RELEASE_RE),
+    ]
+}
+
+/// Check 96: prod_readiness_12207_sections
+/// Validates that the production readiness document has key ISO/IEC/IEEE
+/// 12207:2017 lifecycle sections: CI/CD, dependency health, dependency
+/// auditing, package metadata, release automation.
+pub struct ProdReadiness12207Sections {
+    pub def: RuleDef,
+}
+
+impl CheckRunner for ProdReadiness12207Sections {
+    fn id(&self) -> CheckId { CheckId(self.def.id) }
+    fn category(&self) -> &str { &self.def.category }
+    fn description(&self) -> &str { &self.def.description }
+
+    fn run(&self, ctx: &ScanContext) -> CheckResult {
+        let categories = prod_readiness_12207_categories();
+
+        let project_path = ctx.root.join("docs/6-deployment/production_readiness.md");
+        match check_file_sections(&project_path, &categories) {
+            FileCheckResult::Missing(missing) => {
+                if missing.is_empty() {
+                    CheckResult::Pass
+                } else {
+                    CheckResult::Fail {
+                        violations: vec![Violation {
+                            check_id: CheckId(self.def.id),
+                            path: Some("docs/6-deployment/production_readiness.md".into()),
+                            message: format!(
+                                "Production readiness missing 12207 section{}: {}",
+                                if missing.len() > 1 { "s" } else { "" },
+                                missing.join(", ")
+                            ),
+                            severity: self.def.severity.clone(),
+                        }],
+                    }
+                }
+            }
+            FileCheckResult::FileAbsent | FileCheckResult::FileEmpty | FileCheckResult::ReadError(_) => {
+                CheckResult::Skip {
+                    reason: "docs/6-deployment/production_readiness.md not found".to_string(),
+                }
+            }
+        }
+    }
+}
+
+fn prod_readiness_25010_supp_categories() -> Vec<(&'static str, &'static Regex)> {
+    vec![
+        ("Static Analysis", &*PR_STATIC_RE),
+        ("API Documentation", &*PR_API_DOCS_RE),
+        ("README & Onboarding", &*PR_README_RE),
+        ("Documentation Lint", &*PR_DOC_LINT_RE),
+    ]
+}
+
+/// Check 97: prod_readiness_25010_supp_sections
+/// Validates that the production readiness document has supplementary
+/// ISO/IEC 25010:2023 quality sections: static analysis, API documentation,
+/// README & onboarding, documentation lint.
+pub struct ProdReadiness25010SuppSections {
+    pub def: RuleDef,
+}
+
+impl CheckRunner for ProdReadiness25010SuppSections {
+    fn id(&self) -> CheckId { CheckId(self.def.id) }
+    fn category(&self) -> &str { &self.def.category }
+    fn description(&self) -> &str { &self.def.description }
+
+    fn run(&self, ctx: &ScanContext) -> CheckResult {
+        let categories = prod_readiness_25010_supp_categories();
+
+        let project_path = ctx.root.join("docs/6-deployment/production_readiness.md");
+        match check_file_sections(&project_path, &categories) {
+            FileCheckResult::Missing(missing) => {
+                if missing.is_empty() {
+                    CheckResult::Pass
+                } else {
+                    CheckResult::Fail {
+                        violations: vec![Violation {
+                            check_id: CheckId(self.def.id),
+                            path: Some("docs/6-deployment/production_readiness.md".into()),
+                            message: format!(
+                                "Production readiness missing 25010 supplementary section{}: {}",
+                                if missing.len() > 1 { "s" } else { "" },
+                                missing.join(", ")
+                            ),
+                            severity: self.def.severity.clone(),
+                        }],
+                    }
+                }
+            }
+            FileCheckResult::FileAbsent | FileCheckResult::FileEmpty | FileCheckResult::ReadError(_) => {
+                CheckResult::Skip {
+                    reason: "docs/6-deployment/production_readiness.md not found".to_string(),
+                }
+            }
+        }
+    }
+}
+
+fn prod_readiness_25040_categories() -> Vec<(&'static str, &'static Regex)> {
+    vec![
+        ("Scoring", &*PR_SCORING_RE),
+        ("Sign-Off", &*PR_SIGNOFF_RE),
+    ]
+}
+
+/// Check 98: prod_readiness_25040_sections
+/// Validates that the production readiness document has ISO/IEC 25040:2024
+/// evaluation sections: scoring and sign-off.
+pub struct ProdReadiness25040Sections {
+    pub def: RuleDef,
+}
+
+impl CheckRunner for ProdReadiness25040Sections {
+    fn id(&self) -> CheckId { CheckId(self.def.id) }
+    fn category(&self) -> &str { &self.def.category }
+    fn description(&self) -> &str { &self.def.description }
+
+    fn run(&self, ctx: &ScanContext) -> CheckResult {
+        let categories = prod_readiness_25040_categories();
+
+        let project_path = ctx.root.join("docs/6-deployment/production_readiness.md");
+        match check_file_sections(&project_path, &categories) {
+            FileCheckResult::Missing(missing) => {
+                if missing.is_empty() {
+                    CheckResult::Pass
+                } else {
+                    CheckResult::Fail {
+                        violations: vec![Violation {
+                            check_id: CheckId(self.def.id),
+                            path: Some("docs/6-deployment/production_readiness.md".into()),
+                            message: format!(
+                                "Production readiness missing 25040 section{}: {}",
                                 if missing.len() > 1 { "s" } else { "" },
                                 missing.join(", ")
                             ),
@@ -1597,5 +1796,383 @@ mod tests {
         let handler = BacklogSections { def: make_backlog_def() };
         let ctx = make_ctx(tmp.path());
         assert!(matches!(handler.run(&ctx), CheckResult::Skip { .. }));
+    }
+
+    // =========================================================================
+    // Check 96: ProdReadiness12207Sections
+    // =========================================================================
+
+    fn make_prod_12207_def() -> RuleDef {
+        RuleDef {
+            id: 96,
+            category: "requirements".to_string(),
+            description: "Production readiness has ISO/IEC/IEEE 12207:2017 lifecycle sections".to_string(),
+            severity: Severity::Info,
+            rule_type: RuleType::Builtin { handler: "prod_readiness_12207_sections".to_string() },
+            project_type: None,
+        }
+    }
+
+    #[test]
+    fn test_prod_12207_pass() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/6-deployment/production_readiness.md",
+            "# Production Readiness Review\n\n\
+             ## 1. CI/CD Pipeline\nPipeline runs on every push.\n\n\
+             ## 2. Dependency Health\nAll deps maintained.\n\n\
+             ## 4. Dependency Auditing\nNo advisories.\n\n\
+             ## 7. Package Metadata\nAll fields set.\n\n\
+             ## 9. Release Automation\nTag-triggered workflow.\n");
+
+        let handler = ProdReadiness12207Sections { def: make_prod_12207_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_prod_12207_fail_missing() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/6-deployment/production_readiness.md",
+            "# Production Readiness Review\n\n\
+             ## 1. CI/CD Pipeline\nPipeline runs.\n\n\
+             ## 2. Dependency Health\nOk.\n");
+
+        let handler = ProdReadiness12207Sections { def: make_prod_12207_def() };
+        let ctx = make_ctx(tmp.path());
+        match handler.run(&ctx) {
+            CheckResult::Fail { violations } => {
+                assert_eq!(violations.len(), 1);
+                assert!(violations[0].message.contains("Dependency Auditing"));
+                assert!(violations[0].message.contains("Package Metadata"));
+                assert!(violations[0].message.contains("Release Automation"));
+            }
+            other => panic!("Expected Fail, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_prod_12207_skip_no_file() {
+        let tmp = TempDir::new().unwrap();
+
+        let handler = ProdReadiness12207Sections { def: make_prod_12207_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Skip { .. }));
+    }
+
+    #[test]
+    fn test_prod_12207_skip_empty() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/6-deployment/production_readiness.md", "  \n");
+
+        let handler = ProdReadiness12207Sections { def: make_prod_12207_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Skip { .. }));
+    }
+
+    #[test]
+    fn test_prod_12207_pass_table_format() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/6-deployment/production_readiness.md",
+            "# Production Readiness Review\n\n\
+             | Area | Status |\n|------|--------|\n\
+             | CI/CD Pipeline | PASS |\n\
+             | Dependency Health | PASS |\n\
+             | Dependency Auditing | PASS |\n\
+             | Package Metadata | PASS |\n\
+             | Release Automation | PASS |\n");
+
+        let handler = ProdReadiness12207Sections { def: make_prod_12207_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_prod_12207_fail_missing_all() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/6-deployment/production_readiness.md",
+            "# Production Readiness Review\n\n**Audience**: Developers\n\nGeneric content only.\n");
+
+        let handler = ProdReadiness12207Sections { def: make_prod_12207_def() };
+        let ctx = make_ctx(tmp.path());
+        match handler.run(&ctx) {
+            CheckResult::Fail { violations } => {
+                assert_eq!(violations.len(), 1);
+                assert!(violations[0].message.contains("CI/CD Pipeline"));
+                assert!(violations[0].message.contains("Dependency Health"));
+                assert!(violations[0].message.contains("Dependency Auditing"));
+                assert!(violations[0].message.contains("Package Metadata"));
+                assert!(violations[0].message.contains("Release Automation"));
+            }
+            other => panic!("Expected Fail, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_prod_12207_fail_single_missing() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/6-deployment/production_readiness.md",
+            "# Production Readiness Review\n\n\
+             ## 1. CI/CD Pipeline\nOk.\n\n\
+             ## 2. Dependency Health\nOk.\n\n\
+             ## 4. Dependency Auditing\nOk.\n\n\
+             ## 9. Release Automation\nOk.\n");
+
+        let handler = ProdReadiness12207Sections { def: make_prod_12207_def() };
+        let ctx = make_ctx(tmp.path());
+        match handler.run(&ctx) {
+            CheckResult::Fail { violations } => {
+                assert_eq!(violations.len(), 1);
+                assert!(violations[0].message.contains("Package Metadata"));
+                assert!(!violations[0].message.contains("CI/CD"));
+            }
+            other => panic!("Expected Fail, got {:?}", other),
+        }
+    }
+
+    // =========================================================================
+    // Check 97: ProdReadiness25010SuppSections
+    // =========================================================================
+
+    fn make_prod_25010_supp_def() -> RuleDef {
+        RuleDef {
+            id: 97,
+            category: "requirements".to_string(),
+            description: "Production readiness has supplementary ISO/IEC 25010:2023 quality sections".to_string(),
+            severity: Severity::Info,
+            rule_type: RuleType::Builtin { handler: "prod_readiness_25010_supp_sections".to_string() },
+            project_type: None,
+        }
+    }
+
+    #[test]
+    fn test_prod_25010_supp_pass() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/6-deployment/production_readiness.md",
+            "# Production Readiness Review\n\n\
+             ## 3. Static Analysis\nZero clippy warnings.\n\n\
+             ## 5. API Documentation\nAll public items documented.\n\n\
+             ## 8. README & Onboarding\nQuick start provided.\n\n\
+             ## 10. Documentation Lint\nMissing-docs enabled.\n");
+
+        let handler = ProdReadiness25010SuppSections { def: make_prod_25010_supp_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_prod_25010_supp_fail_missing() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/6-deployment/production_readiness.md",
+            "# Production Readiness Review\n\n\
+             ## 3. Static Analysis\nOk.\n\n\
+             ## 5. API Documentation\nOk.\n");
+
+        let handler = ProdReadiness25010SuppSections { def: make_prod_25010_supp_def() };
+        let ctx = make_ctx(tmp.path());
+        match handler.run(&ctx) {
+            CheckResult::Fail { violations } => {
+                assert_eq!(violations.len(), 1);
+                assert!(violations[0].message.contains("README & Onboarding"));
+                assert!(violations[0].message.contains("Documentation Lint"));
+            }
+            other => panic!("Expected Fail, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_prod_25010_supp_skip_no_file() {
+        let tmp = TempDir::new().unwrap();
+
+        let handler = ProdReadiness25010SuppSections { def: make_prod_25010_supp_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Skip { .. }));
+    }
+
+    #[test]
+    fn test_prod_25010_supp_skip_empty() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/6-deployment/production_readiness.md", "  \n");
+
+        let handler = ProdReadiness25010SuppSections { def: make_prod_25010_supp_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Skip { .. }));
+    }
+
+    #[test]
+    fn test_prod_25010_supp_pass_table_format() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/6-deployment/production_readiness.md",
+            "# Production Readiness Review\n\n\
+             | Area | Status |\n|------|--------|\n\
+             | Static Analysis | PASS |\n\
+             | API Documentation | PASS |\n\
+             | README & Onboarding | PASS |\n\
+             | Documentation Lint | PASS |\n");
+
+        let handler = ProdReadiness25010SuppSections { def: make_prod_25010_supp_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_prod_25010_supp_fail_missing_all() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/6-deployment/production_readiness.md",
+            "# Production Readiness Review\n\n**Audience**: Developers\n\nGeneric content only.\n");
+
+        let handler = ProdReadiness25010SuppSections { def: make_prod_25010_supp_def() };
+        let ctx = make_ctx(tmp.path());
+        match handler.run(&ctx) {
+            CheckResult::Fail { violations } => {
+                assert_eq!(violations.len(), 1);
+                assert!(violations[0].message.contains("Static Analysis"));
+                assert!(violations[0].message.contains("API Documentation"));
+                assert!(violations[0].message.contains("README & Onboarding"));
+                assert!(violations[0].message.contains("Documentation Lint"));
+            }
+            other => panic!("Expected Fail, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_prod_25010_supp_fail_single_missing() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/6-deployment/production_readiness.md",
+            "# Production Readiness Review\n\n\
+             ## 3. Static Analysis\nOk.\n\n\
+             ## 5. API Documentation\nOk.\n\n\
+             ## 8. README & Onboarding\nOk.\n");
+
+        let handler = ProdReadiness25010SuppSections { def: make_prod_25010_supp_def() };
+        let ctx = make_ctx(tmp.path());
+        match handler.run(&ctx) {
+            CheckResult::Fail { violations } => {
+                assert_eq!(violations.len(), 1);
+                assert!(violations[0].message.contains("Documentation Lint"));
+                assert!(!violations[0].message.contains("Static Analysis"));
+            }
+            other => panic!("Expected Fail, got {:?}", other),
+        }
+    }
+
+    // =========================================================================
+    // Check 98: ProdReadiness25040Sections
+    // =========================================================================
+
+    fn make_prod_25040_def() -> RuleDef {
+        RuleDef {
+            id: 98,
+            category: "requirements".to_string(),
+            description: "Production readiness has ISO/IEC 25040:2024 evaluation sections".to_string(),
+            severity: Severity::Info,
+            rule_type: RuleType::Builtin { handler: "prod_readiness_25040_sections".to_string() },
+            project_type: None,
+        }
+    }
+
+    #[test]
+    fn test_prod_25040_pass() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/6-deployment/production_readiness.md",
+            "# Production Readiness Review\n\n\
+             ## Scoring\n\n| Score | Meaning |\n|-------|---------|\n\
+             | PASS | Meets criteria | WARN | Gaps | FAIL | Risk |\n\n\
+             ## Sign-Off\n\n| Role | Name | Date | Verdict |\n\
+             |------|------|------|---------|");
+
+        let handler = ProdReadiness25040Sections { def: make_prod_25040_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_prod_25040_fail_missing() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/6-deployment/production_readiness.md",
+            "# Production Readiness Review\n\n\
+             ## Scoring\n\n| Score | Meaning |\n|-------|---------|\n\
+             | PASS | Meets criteria | WARN | Gaps | FAIL | Risk |\n");
+
+        let handler = ProdReadiness25040Sections { def: make_prod_25040_def() };
+        let ctx = make_ctx(tmp.path());
+        match handler.run(&ctx) {
+            CheckResult::Fail { violations } => {
+                assert_eq!(violations.len(), 1);
+                assert!(violations[0].message.contains("Sign-Off"));
+            }
+            other => panic!("Expected Fail, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_prod_25040_skip_no_file() {
+        let tmp = TempDir::new().unwrap();
+
+        let handler = ProdReadiness25040Sections { def: make_prod_25040_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Skip { .. }));
+    }
+
+    #[test]
+    fn test_prod_25040_skip_empty() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/6-deployment/production_readiness.md", "  \n");
+
+        let handler = ProdReadiness25040Sections { def: make_prod_25040_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Skip { .. }));
+    }
+
+    #[test]
+    fn test_prod_25040_pass_table_signoff() {
+        let tmp = TempDir::new().unwrap();
+        // Uses the table-header "Role | Name | Date | Verdict" regex branch
+        write_file(tmp.path(), "docs/6-deployment/production_readiness.md",
+            "# Production Readiness Review\n\n\
+             PASS | WARN | FAIL scoring system.\n\n\
+             | Role | Name | Date | Verdict |\n\
+             |------|------|------|---------|");
+
+        let handler = ProdReadiness25040Sections { def: make_prod_25040_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_prod_25040_fail_missing_both() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/6-deployment/production_readiness.md",
+            "# Production Readiness Review\n\n**Audience**: Developers\n\nGeneric content only.\n");
+
+        let handler = ProdReadiness25040Sections { def: make_prod_25040_def() };
+        let ctx = make_ctx(tmp.path());
+        match handler.run(&ctx) {
+            CheckResult::Fail { violations } => {
+                assert_eq!(violations.len(), 1);
+                assert!(violations[0].message.contains("Scoring"));
+                assert!(violations[0].message.contains("Sign-Off"));
+            }
+            other => panic!("Expected Fail, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_prod_25040_fail_missing_scoring_only() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/6-deployment/production_readiness.md",
+            "# Production Readiness Review\n\n\
+             ## Sign-Off\n\n| Role | Name | Date | Verdict |\n\
+             |------|------|------|---------|");
+
+        let handler = ProdReadiness25040Sections { def: make_prod_25040_def() };
+        let ctx = make_ctx(tmp.path());
+        match handler.run(&ctx) {
+            CheckResult::Fail { violations } => {
+                assert_eq!(violations.len(), 1);
+                assert!(violations[0].message.contains("Scoring"));
+                assert!(!violations[0].message.contains("Sign-Off"));
+            }
+            other => panic!("Expected Fail, got {:?}", other),
+        }
     }
 }

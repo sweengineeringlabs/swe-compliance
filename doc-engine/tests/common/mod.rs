@@ -112,16 +112,36 @@ pub fn create_minimal_project() -> TempDir {
     write_file(root, "docs/templates/check_template.md",
         "# Check Template\n\n**Audience**: Developers\n");
 
-    // Production readiness for checks 92-93 (25010 sections)
+    // Production readiness for checks 92-98 (25010 + 12207 + 25010 supp + 25040 sections)
     write_file(root, "docs/6-deployment/production_readiness.md",
         "# Production Readiness Review\n\n**Audience**: Developers\n\n\
          ## Verdict: READY\n\n\
-         | Area | Status |\n|------|--------|\n| Security | PASS |\n| Test Coverage | PASS |\n\n\
-         ## 6. Runtime Safety\n\nNo avoidable panics.\n\n\
-         ## 11. Security\n\nNo hardcoded secrets.\n\n\
-         ## 12. Test Coverage\n\n252 tests pass.\n\n\
-         ## 13. Observability\n\nStructured logging.\n\n\
-         ## 14. Backwards Compatibility\n\nSemver followed.\n");
+         | Area | Status |\n|------|--------|\n\
+         | CI/CD Pipeline | PASS |\n| Dependency Health | PASS |\n\
+         | Static Analysis | PASS |\n| Dependency Auditing | PASS |\n\
+         | API Documentation | PASS |\n| Runtime Safety | PASS |\n\
+         | Package Metadata | PASS |\n| README & Onboarding | PASS |\n\
+         | Release Automation | PASS |\n| Documentation Lint | PASS |\n\
+         | Security | PASS |\n| Test Coverage | PASS |\n\
+         | Observability | PASS |\n| Backwards Compatibility | PASS |\n\n\
+         ## 1. CI/CD Pipeline\nPipeline runs on every push.\n\n\
+         ## 2. Dependency Health\nAll deps maintained.\n\n\
+         ## 3. Static Analysis\nZero clippy warnings.\n\n\
+         ## 4. Dependency Auditing\nNo advisories.\n\n\
+         ## 5. API Documentation\nAll public items documented.\n\n\
+         ## 6. Runtime Safety\nNo avoidable panics.\n\n\
+         ## 7. Package Metadata\nAll fields set.\n\n\
+         ## 8. README & Onboarding\nQuick start provided.\n\n\
+         ## 9. Release Automation\nTag-triggered workflow.\n\n\
+         ## 10. Documentation Lint\nMissing-docs enabled.\n\n\
+         ## 11. Security\nNo hardcoded secrets.\n\n\
+         ## 12. Test Coverage\n252 tests pass.\n\n\
+         ## 13. Observability\nStructured logging.\n\n\
+         ## 14. Backwards Compatibility\nSemver followed.\n\n\
+         ## Scoring\n\n| Score | Meaning |\n|-------|---------|\n\
+         | PASS | Meets criteria | WARN | Gaps | FAIL | Risk |\n\n\
+         ## Sign-Off\n\n| Role | Name | Date | Verdict |\n\
+         |------|------|------|---------|");
 
     // ADR directory
     write_file(root, "docs/3-design/adr/README.md",
