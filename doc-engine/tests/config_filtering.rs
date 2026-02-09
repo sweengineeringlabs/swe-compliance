@@ -1,6 +1,6 @@
 mod common;
 
-use doc_engine::{scan_with_config, ScanConfig, ProjectType, CheckResult};
+use doc_engine::{default_rule_count, scan_with_config, ScanConfig, ProjectType, CheckResult};
 
 #[test]
 fn test_check_filter_single() {
@@ -36,7 +36,7 @@ fn test_check_filter_none() {
         rules_path: None,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
-    assert_eq!(report.results.len(), 78);
+    assert_eq!(report.results.len(), default_rule_count());
 }
 
 #[test]

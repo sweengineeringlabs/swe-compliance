@@ -1,6 +1,7 @@
 mod common;
 
 use assert_cmd::Command;
+use doc_engine::default_rule_count;
 use predicates::prelude::*;
 
 #[allow(deprecated)]
@@ -179,7 +180,7 @@ fn test_cli_78_total_checks() {
         .unwrap();
     let stdout = String::from_utf8(output.stdout).unwrap();
     let val: serde_json::Value = serde_json::from_str(&stdout).unwrap();
-    assert_eq!(val["summary"]["total"].as_u64().unwrap(), 78);
+    assert_eq!(val["summary"]["total"].as_u64().unwrap(), default_rule_count() as u64);
 }
 
 #[test]

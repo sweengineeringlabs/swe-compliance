@@ -1,4 +1,4 @@
-# doc-engine rules — 78 documentation compliance checks
+# doc-engine rules — 79 documentation compliance checks
 # Embedded in binary via include_str!("../../rules.toml")
 
 # =============================================================================
@@ -700,3 +700,12 @@ description = "Production readiness has ISO/IEC 25010:2023 quality sections"
 severity = "info"
 type = "builtin"
 handler = "prod_readiness_25010_sections"
+
+# Check 94: Developer guide ISO/IEC/IEEE 26514 sections (FR-810)
+[[rules]]
+id = 94
+category = "requirements"
+description = "Developer guide has ISO/IEC/IEEE 26514:2022 sections"
+severity = "info"
+type = "builtin"
+handler = "dev_guide_26514_sections"

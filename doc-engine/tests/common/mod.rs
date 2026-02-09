@@ -72,9 +72,15 @@ pub fn create_minimal_project() -> TempDir {
     write_file(root, "docs/3-design/architecture.md",
         "# Architecture\n\n**Audience**: Developers\n\n## Who\nStakeholders: developers, architects.\n\n## What\nSystem architecture.\n\n## Why\nDesign rationale and concerns.\n\n## How\nComponent design.\n\nSee requirements.md for FR-001.\n");
 
-    // developer_guide.md for check 69 + W3H for check 74
+    // developer_guide.md for check 69 + W3H for check 74 + 26514 sections for check 94
     write_file(root, "docs/4-development/developer_guide.md",
-        "# Developer Guide\n\n**Audience**: Developers\n\n## What\nDevelopment guide.\n\n## Why\nOnboarding.\n\n## How\nBuild and test.\n");
+        "# Developer Guide\n\n**Audience**: Developers\n\n\
+         ## What\nDevelopment guide.\n\n\
+         ## Why\nOnboarding.\n\n\
+         ## How\n\n\
+         ### Build & Test\nRun `cargo build` and `cargo test`.\n\n\
+         ### Project Structure\nSee src/ for code layout.\n\n\
+         ### Adding New Features\nExtend the codebase.\n");
 
     // backlog.md for check 71 (in 2-planning/); references architecture for check 53
     write_file(root, "docs/2-planning/backlog.md",

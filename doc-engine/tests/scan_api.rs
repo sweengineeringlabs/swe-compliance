@@ -1,6 +1,6 @@
 mod common;
 
-use doc_engine::{scan, scan_with_config, ScanConfig};
+use doc_engine::{default_rule_count, scan, scan_with_config, ScanConfig};
 
 #[test]
 fn test_scan_minimal_project() {
@@ -20,14 +20,14 @@ fn test_scan_empty_dir() {
     let report = scan(tmp.path()).unwrap();
     // Should have many failures but no panics
     assert!(report.summary.failed > 0);
-    assert_eq!(report.summary.total, 78);
+    assert_eq!(report.summary.total as usize, default_rule_count());
 }
 
 #[test]
-fn test_scan_returns_67_checks() {
+fn test_scan_returns_all_checks() {
     let tmp = tempfile::TempDir::new().unwrap();
     let report = scan(tmp.path()).unwrap();
-    assert_eq!(report.results.len(), 78);
+    assert_eq!(report.results.len(), default_rule_count());
 }
 
 #[test]
@@ -238,6 +238,38 @@ fn test_test_29119_skip_empty() {
     assert!(
         matches!(report.results[0].result, doc_engine::CheckResult::Skip { .. }),
         "Check 91 should skip on empty dir but got {:?}", report.results[0].result
+    );
+}
+
+#[test]
+fn test_dev_guide_26514_pass_minimal() {
+    let tmp = common::create_minimal_project();
+    let config = ScanConfig {
+        project_type: Some(doc_engine::ProjectType::OpenSource),
+        checks: Some(vec![94]),
+        rules_path: None,
+    };
+    let report = scan_with_config(tmp.path(), &config).unwrap();
+    assert_eq!(report.results.len(), 1);
+    assert!(
+        matches!(report.results[0].result, doc_engine::CheckResult::Pass),
+        "Check 94 should pass but got {:?}", report.results[0].result
+    );
+}
+
+#[test]
+fn test_dev_guide_26514_skip_empty() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let config = ScanConfig {
+        project_type: Some(doc_engine::ProjectType::OpenSource),
+        checks: Some(vec![94]),
+        rules_path: None,
+    };
+    let report = scan_with_config(tmp.path(), &config).unwrap();
+    assert_eq!(report.results.len(), 1);
+    assert!(
+        matches!(report.results[0].result, doc_engine::CheckResult::Skip { .. }),
+        "Check 94 should skip on empty dir but got {:?}", report.results[0].result
     );
 }
 

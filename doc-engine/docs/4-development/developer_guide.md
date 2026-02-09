@@ -1,5 +1,7 @@
 # Developer Guide
 
+**Validated by**: Check 69 (file_exists), FR-801 (W3H hub document)
+
 **Audience**: Developers, contributors
 
 ## What

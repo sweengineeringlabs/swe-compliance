@@ -18,6 +18,9 @@ pub use crate::api::types::{
 // Re-export detect_project_type for library consumers
 pub use crate::core::engine::detect_project_type;
 
+// Re-export rule_count for test assertions
+pub use crate::core::rules::default_rule_count;
+
 /// Scan a project directory using default configuration.
 ///
 /// Equivalent to calling [`scan_with_config`] with [`ScanConfig::default()`].

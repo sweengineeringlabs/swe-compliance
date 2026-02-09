@@ -44,6 +44,17 @@ static TEST_COVERAGE_RE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"(?i)(coverage.target|exit.criteria|entry.criteria|test.procedure)").unwrap()
 });
 
+// ISO/IEC/IEEE 26514:2022 developer guide section regexes
+static GUIDE_BUILD_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)(build|setup|install|getting.started|quick.start|prerequisite)").unwrap()
+});
+static GUIDE_STRUCTURE_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)(project.structure|codebase|architecture|directory|layout|key.files)").unwrap()
+});
+static GUIDE_EXTENSION_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)(adding|extend|contribut|modif|new.check|new.feature|how.to)").unwrap()
+});
+
 // ISO/IEC 25010:2023 production readiness section regexes
 static PR_SECURITY_RE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"(?i)(##\s+\d*\.?\s*security|security\s*\|)").unwrap()
@@ -451,6 +462,92 @@ impl CheckRunner for ProdReadiness25010Sections {
                     reason: "docs/6-deployment/production_readiness.md not found".to_string(),
                 }
             }
+        }
+    }
+}
+
+fn dev_guide_26514_categories() -> Vec<(&'static str, &'static Regex)> {
+    vec![
+        ("Build/setup", &*GUIDE_BUILD_RE),
+        ("Project structure", &*GUIDE_STRUCTURE_RE),
+        ("Extension/contribution", &*GUIDE_EXTENSION_RE),
+    ]
+}
+
+/// Check 94: dev_guide_26514_sections
+/// Validates that docs/4-development/developer_guide.md (project-level and
+/// module-level) has key ISO/IEC/IEEE 26514:2022 sections: build/setup,
+/// project structure, extension/contribution.
+pub struct DevGuide26514Sections {
+    pub def: RuleDef,
+}
+
+impl CheckRunner for DevGuide26514Sections {
+    fn id(&self) -> CheckId { CheckId(self.def.id) }
+    fn category(&self) -> &str { &self.def.category }
+    fn description(&self) -> &str { &self.def.description }
+
+    fn run(&self, ctx: &ScanContext) -> CheckResult {
+        let categories = dev_guide_26514_categories();
+        let mut violations = Vec::new();
+        let mut any_file_found = false;
+
+        // Project-level
+        let project_path = ctx.root.join("docs/4-development/developer_guide.md");
+        match check_file_sections(&project_path, &categories) {
+            FileCheckResult::Missing(missing) => {
+                any_file_found = true;
+                if !missing.is_empty() {
+                    violations.push(Violation {
+                        check_id: CheckId(self.def.id),
+                        path: Some("docs/4-development/developer_guide.md".into()),
+                        message: format!(
+                            "Developer guide missing 26514 section{}: {}",
+                            if missing.len() > 1 { "s" } else { "" },
+                            missing.join(", ")
+                        ),
+                        severity: self.def.severity.clone(),
+                    });
+                }
+            }
+            FileCheckResult::FileEmpty | FileCheckResult::FileAbsent | FileCheckResult::ReadError(_) => {}
+        }
+
+        // Module-level
+        for m in discover_modules(ctx) {
+            let rel: PathBuf = m.path.join("docs/4-development/developer_guide.md");
+            let abs = ctx.root.join(&rel);
+            match check_file_sections(&abs, &categories) {
+                FileCheckResult::Missing(missing) => {
+                    any_file_found = true;
+                    if !missing.is_empty() {
+                        violations.push(Violation {
+                            check_id: CheckId(self.def.id),
+                            path: Some(rel),
+                            message: format!(
+                                "Module '{}' developer guide missing 26514 section{}: {}",
+                                m.name,
+                                if missing.len() > 1 { "s" } else { "" },
+                                missing.join(", ")
+                            ),
+                            severity: self.def.severity.clone(),
+                        });
+                    }
+                }
+                FileCheckResult::FileEmpty | FileCheckResult::FileAbsent | FileCheckResult::ReadError(_) => {}
+            }
+        }
+
+        if !any_file_found {
+            return CheckResult::Skip {
+                reason: "No developer_guide.md files found (project or module level)".to_string(),
+            };
+        }
+
+        if violations.is_empty() {
+            CheckResult::Pass
+        } else {
+            CheckResult::Fail { violations }
         }
     }
 }
@@ -1150,5 +1247,109 @@ mod tests {
         let handler = Test29119Sections { def: make_test_def() };
         let ctx = make_ctx(tmp.path());
         assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    // =========================================================================
+    // Check 94: DevGuide26514Sections
+    // =========================================================================
+
+    fn make_guide_def() -> RuleDef {
+        RuleDef {
+            id: 94,
+            category: "requirements".to_string(),
+            description: "Developer guide has ISO/IEC/IEEE 26514:2022 sections".to_string(),
+            severity: Severity::Info,
+            rule_type: RuleType::Builtin { handler: "dev_guide_26514_sections".to_string() },
+            project_type: None,
+        }
+    }
+
+    #[test]
+    fn test_dev_guide_26514_pass() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/4-development/developer_guide.md",
+            "# Developer Guide\n\n**Audience**: Developers\n\n\
+             ## Build & Test\nRun `cargo build`.\n\n\
+             ## Project Structure\nSee src/ for layout.\n\n\
+             ## Adding New Features\nExtend the codebase.\n");
+
+        let handler = DevGuide26514Sections { def: make_guide_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_dev_guide_26514_fail_missing_structure() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/4-development/developer_guide.md",
+            "# Developer Guide\n\n**Audience**: Developers\n\n\
+             ## Build & Test\nRun `cargo build`.\n\n\
+             ## Adding New Features\nCreate new modules.\n");
+
+        let handler = DevGuide26514Sections { def: make_guide_def() };
+        let ctx = make_ctx(tmp.path());
+        match handler.run(&ctx) {
+            CheckResult::Fail { violations } => {
+                assert_eq!(violations.len(), 1);
+                assert!(violations[0].message.contains("Project structure"));
+            }
+            other => panic!("Expected Fail, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_dev_guide_26514_skip_no_file() {
+        let tmp = TempDir::new().unwrap();
+
+        let handler = DevGuide26514Sections { def: make_guide_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Skip { .. }));
+    }
+
+    #[test]
+    fn test_dev_guide_26514_skip_empty() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/4-development/developer_guide.md", "  \n");
+
+        let handler = DevGuide26514Sections { def: make_guide_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Skip { .. }));
+    }
+
+    #[test]
+    fn test_dev_guide_26514_pass_module_level() {
+        let tmp = TempDir::new().unwrap();
+        std::fs::create_dir_all(tmp.path().join("crates/auth")).unwrap();
+        std::fs::write(tmp.path().join("crates/auth/Cargo.toml"), "[package]").unwrap();
+        write_file(tmp.path(), "crates/auth/docs/4-development/developer_guide.md",
+            "# Auth Developer Guide\n\n\
+             ## Getting Started\nInstall deps.\n\n\
+             ## Codebase\nSrc layout.\n\n\
+             ## Contributing\nOpen a PR.\n");
+
+        let handler = DevGuide26514Sections { def: make_guide_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_dev_guide_26514_fail_module_missing_sections() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/4-development/developer_guide.md",
+            "# Developer Guide\n\n## Build\nOk.\n\n## Project Structure\nOk.\n\n## Adding\nOk.\n");
+        std::fs::create_dir_all(tmp.path().join("crates/auth")).unwrap();
+        std::fs::write(tmp.path().join("crates/auth/Cargo.toml"), "[package]").unwrap();
+        write_file(tmp.path(), "crates/auth/docs/4-development/developer_guide.md",
+            "# Auth Guide\n\nNo sections here.\n");
+
+        let handler = DevGuide26514Sections { def: make_guide_def() };
+        let ctx = make_ctx(tmp.path());
+        match handler.run(&ctx) {
+            CheckResult::Fail { violations } => {
+                assert_eq!(violations.len(), 1);
+                assert!(violations[0].message.contains("auth"));
+            }
+            other => panic!("Expected Fail, got {:?}", other),
+        }
     }
 }

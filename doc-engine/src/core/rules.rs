@@ -8,6 +8,11 @@ use super::declarative::DeclarativeCheck;
 
 pub const DEFAULT_RULES: &str = include_str!("../../rules.toml");
 
+/// Return the number of rules defined in the embedded `rules.toml`.
+pub fn default_rule_count() -> usize {
+    parse_rules(DEFAULT_RULES).expect("embedded rules.toml is invalid").rules.len()
+}
+
 /// Intermediate struct for flat TOML deserialization.
 /// The `type` field determines which sibling fields are relevant.
 #[derive(Debug, Deserialize)]
@@ -406,7 +411,7 @@ path = "x"
     #[test]
     fn test_parse_default_rules_valid() {
         let rs = parse_rules(DEFAULT_RULES).unwrap();
-        assert_eq!(rs.rules.len(), 78);
+        assert_eq!(rs.rules.len(), default_rule_count());
     }
 
     #[test]
@@ -483,6 +488,6 @@ path = "x"
     fn test_build_registry_default_rules() {
         let rs = parse_rules(DEFAULT_RULES).unwrap();
         let reg = build_registry(&rs.rules).unwrap();
-        assert_eq!(reg.len(), 78);
+        assert_eq!(reg.len(), default_rule_count());
     }
 }

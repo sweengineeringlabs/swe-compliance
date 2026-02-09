@@ -164,6 +164,7 @@ impl ComplianceEngine for DocComplianceEngine {
 mod tests {
     use super::*;
     use crate::api::traits::ComplianceEngine;
+    use crate::core::rules::default_rule_count;
     use crate::spi::types::ProjectType;
     use tempfile::TempDir;
 
@@ -180,8 +181,9 @@ mod tests {
         let tmp = TempDir::new().unwrap();
         let engine = DocComplianceEngine;
         let report = engine.scan(tmp.path()).unwrap();
-        assert_eq!(report.results.len(), 78);
-        assert_eq!(report.summary.total, 78);
+        let expected = default_rule_count();
+        assert_eq!(report.results.len(), expected);
+        assert_eq!(report.summary.total, expected as u8);
     }
 
     #[test]
