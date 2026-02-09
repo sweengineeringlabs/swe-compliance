@@ -125,8 +125,8 @@ mod tests {
         let tmp = TempDir::new().unwrap();
         let engine = DocComplianceEngine;
         let report = engine.scan(tmp.path()).unwrap();
-        assert_eq!(report.results.len(), 76);
-        assert_eq!(report.summary.total, 76);
+        assert_eq!(report.results.len(), 78);
+        assert_eq!(report.summary.total, 78);
     }
 
     #[test]

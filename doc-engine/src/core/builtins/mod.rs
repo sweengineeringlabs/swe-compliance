@@ -71,6 +71,8 @@ pub fn get_handler(name: &str, def: &RuleDef) -> Option<Box<dyn CheckRunner>> {
         "srs_29148_attributes" => Some(Box::new(requirements::Srs29148Attributes { def: def.clone() })),
         "arch_42010_sections" => Some(Box::new(requirements::Arch42010Sections { def: def.clone() })),
         "test_29119_sections" => Some(Box::new(requirements::Test29119Sections { def: def.clone() })),
+        "prod_readiness_exists" => Some(Box::new(requirements::ProdReadinessExists { def: def.clone() })),
+        "prod_readiness_25010_sections" => Some(Box::new(requirements::ProdReadiness25010Sections { def: def.clone() })),
 
         _ => None,
     }

@@ -20,14 +20,14 @@ fn test_scan_empty_dir() {
     let report = scan(tmp.path()).unwrap();
     // Should have many failures but no panics
     assert!(report.summary.failed > 0);
-    assert_eq!(report.summary.total, 76);
+    assert_eq!(report.summary.total, 78);
 }
 
 #[test]
 fn test_scan_returns_67_checks() {
     let tmp = tempfile::TempDir::new().unwrap();
     let report = scan(tmp.path()).unwrap();
-    assert_eq!(report.results.len(), 76);
+    assert_eq!(report.results.len(), 78);
 }
 
 #[test]

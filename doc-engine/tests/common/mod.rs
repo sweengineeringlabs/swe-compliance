@@ -98,6 +98,17 @@ pub fn create_minimal_project() -> TempDir {
     write_file(root, "docs/templates/check_template.md",
         "# Check Template\n\n**Audience**: Developers\n");
 
+    // Production readiness for checks 92-93 (25010 sections)
+    write_file(root, "docs/6-deployment/production_readiness.md",
+        "# Production Readiness Review\n\n**Audience**: Developers\n\n\
+         ## Verdict: READY\n\n\
+         | Area | Status |\n|------|--------|\n| Security | PASS |\n| Test Coverage | PASS |\n\n\
+         ## 6. Runtime Safety\n\nNo avoidable panics.\n\n\
+         ## 11. Security\n\nNo hardcoded secrets.\n\n\
+         ## 12. Test Coverage\n\n252 tests pass.\n\n\
+         ## 13. Observability\n\nStructured logging.\n\n\
+         ## 14. Backwards Compatibility\n\nSemver followed.\n");
+
     // ADR directory
     write_file(root, "docs/3-design/adr/README.md",
         "# ADR Index\n\n**Audience**: All\n\n- [001-use-rust.md](001-use-rust.md)\n");

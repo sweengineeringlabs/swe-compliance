@@ -1,4 +1,4 @@
-# doc-engine rules — 76 documentation compliance checks
+# doc-engine rules — 78 documentation compliance checks
 # Embedded in binary via include_str!("../../rules.toml")
 
 # =============================================================================
@@ -682,3 +682,21 @@ description = "Testing strategies have ISO/IEC/IEEE 29119-3:2021 sections"
 severity = "info"
 type = "builtin"
 handler = "test_29119_sections"
+
+# Check 92: Production readiness document (ISO/IEC 25010:2023, FR-808)
+[[rules]]
+id = 92
+category = "requirements"
+description = "Production readiness document exists"
+severity = "info"
+type = "builtin"
+handler = "prod_readiness_exists"
+
+# Check 93: Production readiness ISO/IEC 25010 sections (FR-809)
+[[rules]]
+id = 93
+category = "requirements"
+description = "Production readiness has ISO/IEC 25010:2023 quality sections"
+severity = "info"
+type = "builtin"
+handler = "prod_readiness_25010_sections"
