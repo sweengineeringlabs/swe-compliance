@@ -38,8 +38,12 @@ name = "report_format"
 path = "src/test/report_format.rs"
 
 [[test]]
-name = "scaffold"
-path = "src/test/scaffold.rs"
+name = "scaffold_int_test"
+path = "src/test/scaffold_int_test.rs"
+
+[[test]]
+name = "scaffold_e2e_test"
+path = "src/test/scaffold_e2e_test.rs"
 
 [dependencies]
 clap = { version = "4", features = ["derive"] }
