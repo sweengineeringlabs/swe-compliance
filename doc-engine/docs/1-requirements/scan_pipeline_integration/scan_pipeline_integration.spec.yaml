@@ -1,0 +1,25 @@
+kind: feature_request
+domain: Scan Pipeline Integration
+section: '4.11'
+requirements:
+- id: REQ-001
+  sourceId: FR-740
+  title: Spec checks in scan pipeline
+  priority: Should
+  status: Superseded
+  verification: —
+  acceptance: 'Superseded: IDs 54-68 are now phase artifact `file_exists` checks (FR-815). Spec checks use dedicated builtin handlers.'
+- id: REQ-002
+  sourceId: FR-741
+  title: Spec check category
+  priority: Should
+  status: Superseded
+  verification: —
+  acceptance: 'Superseded: IDs 54-68 now use per-phase categories (ideation, requirements, planning, design, development, testing, deployment, operations).'
+- id: REQ-003
+  sourceId: FR-742
+  title: Spec check descriptions
+  priority: Should
+  status: Approved
+  verification: Inspection
+  acceptance: Each check 54-68 and 99-128 has a unique, descriptive `description` field in `rules.toml`

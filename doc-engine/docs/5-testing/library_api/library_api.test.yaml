@@ -1,0 +1,17 @@
+kind: test_plan
+domain: Library API
+section: '4.6'
+specRef: docs/1-requirements/library_api/library_api.spec.yaml
+testCases:
+- id: TC-001
+  test: 'FR-600: Public scan function (—)'
+  verifies: REQ-001
+  priority: Should
+- id: TC-002
+  test: 'FR-601: Configurable scan function (Test)'
+  verifies: REQ-002
+  priority: Should
+- id: TC-003
+  test: 'FR-602: Public types (Inspection)'
+  verifies: REQ-003
+  priority: Should

@@ -1,0 +1,23 @@
+# Architecture: Spec Subcommand
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/spec_subcommand/spec_subcommand.spec)
+
+## Components
+
+| Component | Traces To | Description |
+|-----------|-----------|-------------|
+| FR-750 handler | STK-08 -> `main.rs` | ``` |
+| FR-751 handler | STK-08 -> `main.rs` | ``` |
+| FR-752 handler | STK-08 -> `main.rs` | ``` |
+| FR-753 handler | STK-08 -> `main.rs` | The `spec` subcommand shall use the same exit code semantics as `scan`: 0 = clean, 1 = violations, 2 = error. |
+| FR-754 handler | STK-03, STK-08 -> `core/reporter.rs` | The `--json` flag on spec subcommands shall produce JSON output matching the report types. |
+| FR-755 handler | STK-05, STK-08 -> `core/reporter.rs` | Spec text output |
+
+## Related Documents
+
+- [Feature Spec](../1-requirements/spec_subcommand/spec_subcommand.spec)
+- [Test Plan](../5-testing/spec_subcommand/spec_subcommand.test)
+- [Deployment](../6-deployment/spec_subcommand/spec_subcommand.deploy)
+

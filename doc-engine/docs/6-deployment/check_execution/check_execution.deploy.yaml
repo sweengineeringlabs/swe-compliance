@@ -1,0 +1,9 @@
+kind: deployment
+domain: Check Execution
+section: '4.3'
+specRef: docs/1-requirements/check_execution/check_execution.spec.yaml
+environments:
+- name: staging
+  description: Staging environment for Check Execution validation
+- name: production
+  description: Production environment for Check Execution

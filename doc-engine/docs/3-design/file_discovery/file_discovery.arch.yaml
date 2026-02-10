@@ -1,0 +1,14 @@
+kind: architecture
+domain: File Discovery
+section: '4.2'
+specRef: docs/1-requirements/file_discovery/file_discovery.spec.yaml
+components:
+- name: FR-200 handler
+  tracesTo: SYS-02 -> `core/scanner.rs`
+  description: The scanner shall recursively discover all files under the provided project root directory.
+- name: FR-201 handler
+  tracesTo: SYS-02 -> `core/scanner.rs`
+  description: 'The scanner shall skip: hidden directories (names starting with `.`), `target/`, `node_modules/`.'
+- name: FR-202 handler
+  tracesTo: SYS-02 -> `core/scanner.rs`
+  description: All discovered file paths shall be relative to the project root.

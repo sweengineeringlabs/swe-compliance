@@ -1,0 +1,17 @@
+# Automated Test Execution: Performance
+
+> **TLDR:** CI/automated test tracker for Performance — maps each test case to a CI job and build.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](performance.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Verifies | CI Job | Build | Status | Last Run |
+|----|------|----------|--------|-------|--------|----------|
+| TC-001 | NFR-200: Synchronous execution (Inspection) | REQ-001 | | | Pending | |
+| TC-002 | NFR-201: Single pass (Analysis) | REQ-002 | | | Pending | |
+

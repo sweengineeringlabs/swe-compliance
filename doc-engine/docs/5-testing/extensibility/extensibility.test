@@ -1,0 +1,13 @@
+# Test Plan: Extensibility
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/extensibility/extensibility.spec)
+
+## Test Cases
+
+| ID | Test | Verifies | Priority |
+|----|------|----------|----------|
+| TC-001 | NFR-400: Declarative rule extensibility (Demonstration) | REQ-001 | Must |
+| TC-002 | NFR-401: Builtin handler extensibility (Inspection) | REQ-002 | Should |
+

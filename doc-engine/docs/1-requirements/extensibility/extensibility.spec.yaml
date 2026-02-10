@@ -1,0 +1,18 @@
+kind: feature_request
+domain: Extensibility
+section: '5.4'
+requirements:
+- id: REQ-001
+  sourceId: NFR-400
+  title: Declarative rule extensibility
+  priority: Must
+  status: Approved
+  verification: Demonstration
+  acceptance: Adding a `[[rules]]` entry with `type = "file_exists"` to `rules.toml` and running `--rules` enforces the new rule without recompilation
+- id: REQ-002
+  sourceId: NFR-401
+  title: Builtin handler extensibility
+  priority: Should
+  status: Approved
+  verification: Inspection
+  acceptance: 'A new handler can be added in 3 steps: implement function, register in mod.rs, add TOML entry'

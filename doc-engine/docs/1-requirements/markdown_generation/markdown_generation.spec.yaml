@@ -1,0 +1,46 @@
+kind: feature_request
+domain: Markdown Generation
+section: '4.10'
+requirements:
+- id: REQ-001
+  sourceId: FR-730
+  title: Spec-to-markdown generation
+  priority: Should
+  status: Approved
+  verification: Demonstration
+  acceptance: Given a valid `login.spec.yaml`, the generator produces a markdown file with title, requirements table, dependencies, and related documents sections
+- id: REQ-002
+  sourceId: FR-731
+  title: BRD markdown generation
+  priority: Should
+  status: Approved
+  verification: Demonstration
+  acceptance: Given a valid `brd.spec.yaml`, the generator produces a markdown document with domain inventory table and links to individual specs
+- id: REQ-003
+  sourceId: FR-732
+  title: Architecture markdown generation
+  priority: Should
+  status: Approved
+  verification: Demonstration
+  acceptance: Given a valid `.arch.yaml`, the generator produces a markdown document with component descriptions and dependency diagrams
+- id: REQ-004
+  sourceId: FR-733
+  title: Test plan markdown generation
+  priority: Should
+  status: Approved
+  verification: Demonstration
+  acceptance: Given a valid `.test.yaml`, the generator produces a markdown document with test case table including verifies traceability
+- id: REQ-005
+  sourceId: FR-734
+  title: Deployment markdown generation
+  priority: May
+  status: Approved
+  verification: Demonstration
+  acceptance: Given a valid `.deploy.yaml`, the generator produces a markdown document with environment configuration table
+- id: REQ-006
+  sourceId: FR-735
+  title: Output path control
+  priority: Should
+  status: Approved
+  verification: Test
+  acceptance: '`--output <dir>` writes generated markdown to the specified directory; default writes to stdout'

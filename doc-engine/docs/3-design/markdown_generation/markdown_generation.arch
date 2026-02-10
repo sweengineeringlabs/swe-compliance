@@ -1,0 +1,23 @@
+# Architecture: Markdown Generation
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/markdown_generation/markdown_generation.spec)
+
+## Components
+
+| Component | Traces To | Description |
+|-----------|-----------|-------------|
+| FR-730 handler | STK-08 -> `core/spec/generate.rs` | The engine shall generate markdown documents from YAML spec files, matching the template-engine template format. |
+| FR-731 handler | STK-08 -> `core/spec/generate.rs` | BRD markdown generation |
+| FR-732 handler | STK-08 -> `core/spec/generate.rs` | Architecture markdown generation |
+| FR-733 handler | STK-08 -> `core/spec/generate.rs` | Test plan markdown generation |
+| FR-734 handler | STK-08 -> `core/spec/generate.rs` | Deployment markdown generation |
+| FR-735 handler | STK-08 -> `core/spec/generate.rs` | Output path control |
+
+## Related Documents
+
+- [Feature Spec](../1-requirements/markdown_generation/markdown_generation.spec)
+- [Test Plan](../5-testing/markdown_generation/markdown_generation.test)
+- [Deployment](../6-deployment/markdown_generation/markdown_generation.deploy)
+

@@ -1,0 +1,28 @@
+# Manual Test Execution: File Discovery
+
+> **TLDR:** Manual test checklist for File Discovery — step-by-step procedures with expected outcomes.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](file_discovery.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Steps | Expected |
+|----|------|-------|----------|
+| TC-001 | FR-200: Recursive scanning (Test) | _TODO_ | Given a project with nested directories 5 levels deep, all files are discovered |
+| TC-002 | FR-201: Directory exclusions (Test) | _TODO_ | Files inside `.git/`, `target/`, and `node_modules/` are not included in the file list |
+| TC-003 | FR-202: Relative paths (Test) | _TODO_ | All paths in the file list are relative (no leading `/` or absolute prefix) |
+
+---
+
+## Execution Log
+
+| TC | Tester | Date | Pass/Fail | Notes |
+|----|--------|------|-----------|-------|
+| TC-001 | | | | |
+| TC-002 | | | | |
+| TC-003 | | | | |
+

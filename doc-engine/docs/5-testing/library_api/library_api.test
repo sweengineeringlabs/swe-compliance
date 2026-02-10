@@ -1,0 +1,14 @@
+# Test Plan: Library API
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/library_api/library_api.spec)
+
+## Test Cases
+
+| ID | Test | Verifies | Priority |
+|----|------|----------|----------|
+| TC-001 | FR-600: Public scan function (—) | REQ-001 | Should |
+| TC-002 | FR-601: Configurable scan function (Test) | REQ-002 | Should |
+| TC-003 | FR-602: Public types (Inspection) | REQ-003 | Should |
+

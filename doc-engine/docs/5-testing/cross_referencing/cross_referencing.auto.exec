@@ -1,0 +1,23 @@
+# Automated Test Execution: Cross-Referencing
+
+> **TLDR:** CI/automated test tracker for Cross-Referencing — maps each test case to a CI job and build.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](cross_referencing.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Verifies | CI Job | Build | Status | Last Run |
+|----|------|----------|--------|-------|--------|----------|
+| TC-001 | FR-720: Dependency resolution (Test) | REQ-001 | | | Pending | |
+| TC-002 | FR-721: SDLC chain completeness (Test) | REQ-002 | | | Pending | |
+| TC-003 | FR-722: BRD inventory accuracy (Test) | REQ-003 | | | Pending | |
+| TC-004 | FR-723: Test traceability (Test) | REQ-004 | | | Pending | |
+| TC-005 | FR-724: Architecture traceability (Test) | REQ-005 | | | Pending | |
+| TC-006 | FR-725: Related documents resolution (Test) | REQ-006 | | | Pending | |
+| TC-007 | FR-726: Cross-reference report (Test) | REQ-007 | | | Pending | |
+| TC-008 | FR-727: Opt-in spec checking (—) | REQ-008 | | | Pending | |
+

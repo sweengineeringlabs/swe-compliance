@@ -1,0 +1,53 @@
+kind: feature_request
+domain: CLI Interface
+section: '4.5'
+requirements:
+- id: REQ-001
+  sourceId: FR-500
+  title: Scan command
+  priority: Must
+  status: Approved
+  verification: Demonstration
+  acceptance: '`doc-engine scan <PATH> --scope <TIER>` executes a scoped scan and prints results'
+- id: REQ-002
+  sourceId: FR-501
+  title: JSON flag
+  priority: Must
+  status: Approved
+  verification: Test
+  acceptance: '`doc-engine scan <PATH> --json` outputs valid JSON'
+- id: REQ-003
+  sourceId: FR-502
+  title: Check filter flag
+  priority: Must
+  status: Approved
+  verification: Test
+  acceptance: '`--checks 1-13` runs exactly 13 checks; `--checks 1,2,3,14-25` runs exactly 15'
+- id: REQ-004
+  sourceId: FR-503
+  title: Project type flag
+  priority: Must
+  status: Approved
+  verification: Test
+  acceptance: '`--type internal` skips open-source-only rules; `--type open-source` is the default'
+- id: REQ-005
+  sourceId: FR-504
+  title: Rules file flag
+  priority: Must
+  status: Approved
+  verification: Test
+  acceptance: '`--rules custom.toml` loads and uses the specified file; missing file produces exit code 2'
+- id: REQ-006
+  sourceId: FR-505
+  title: Scope flag
+  priority: Must
+  status: Approved
+  verification: Test
+  acceptance: '`--scope small` runs only small-tier checks, skipping medium and large; `--scope medium` runs small+medium; `--scope large` runs all; unknown values produce exit code 2'
+- id: REQ-007
+  sourceId: FR-506
+  title: Output flag
+  priority: Should
+  status: Approved
+  verification: Test
+  acceptance: '`--output <path>` or `-o <path>` writes a JSON report to the specified path; parent directories are created automatically; the recommended filename is `documentation_audit_report_v{version}.json` per ISO/IEC/IEEE 15289:2019'

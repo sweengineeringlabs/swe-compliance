@@ -1,0 +1,33 @@
+kind: test_plan
+domain: Spec File Parsing
+section: '4.7'
+specRef: docs/1-requirements/spec_file_parsing/spec_file_parsing.spec.yaml
+testCases:
+- id: TC-001
+  test: 'FR-700: Dual-format spec file parsing (Test)'
+  verifies: REQ-001
+  priority: Should
+- id: TC-002
+  test: 'FR-701: Kind-based dispatch (Test)'
+  verifies: REQ-002
+  priority: Should
+- id: TC-003
+  test: 'FR-702: Spec file discovery (Test)'
+  verifies: REQ-003
+  priority: Should
+- id: TC-004
+  test: 'FR-703: Parse error reporting (Test)'
+  verifies: REQ-004
+  priority: Should
+- id: TC-005
+  test: 'FR-704: Markdown spec metadata extraction (Test)'
+  verifies: REQ-005
+  priority: Should
+- id: TC-006
+  test: 'FR-705: Markdown test table parsing (Test)'
+  verifies: REQ-006
+  priority: Should
+- id: TC-007
+  test: 'FR-706: Feature stem matching (Test)'
+  verifies: REQ-007
+  priority: Should

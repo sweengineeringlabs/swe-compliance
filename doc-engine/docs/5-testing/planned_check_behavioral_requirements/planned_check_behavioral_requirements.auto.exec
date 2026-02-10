@@ -1,0 +1,37 @@
+# Automated Test Execution: Planned Check Behavioral Requirements
+
+> **TLDR:** CI/automated test tracker for Planned Check Behavioral Requirements — maps each test case to a CI job and build.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](planned_check_behavioral_requirements.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Verifies | CI Job | Build | Status | Last Run |
+|----|------|----------|--------|-------|--------|----------|
+| TC-001 | FR-800: Module discovery strategy (Test) | REQ-001 | | | Pending | |
+| TC-002 | FR-801: W3H detection scope (Test) | REQ-002 | | | Pending | |
+| TC-003 | FR-802: Module deployment check skip behavior (Test) | REQ-003 | | | Pending | |
+| TC-004 | FR-803: Feature-prefixed artifact check opt-in (Test) | REQ-004 | | | Pending | |
+| TC-005 | FR-804: Planning phase artifact verification (Test) | REQ-005 | | | Pending | |
+| TC-006 | FR-805: SRS 29148 attribute validation (Test) | REQ-006 | | | Pending | |
+| TC-007 | FR-806: Architecture 42010 attribute validation (Test) | REQ-007 | | | Pending | |
+| TC-008 | FR-807: Testing 29119-3 attribute validation (Test) | REQ-008 | | | Pending | |
+| TC-009 | FR-808: Production readiness document existence (Test) | REQ-009 | | | Pending | |
+| TC-010 | FR-809: Production readiness ISO/IEC 25010:2023 quality sections (Test) | REQ-010 | | | Pending | |
+| TC-011 | FR-810: Developer guide ISO/IEC/IEEE 26514:2022 sections (Test) | REQ-011 | | | Pending | |
+| TC-012 | FR-811: Backlog content sections (Test) | REQ-012 | | | Pending | |
+| TC-013 | FR-812: Production readiness ISO/IEC/IEEE 12207:2017 lifecycle sections (Test) | REQ-013 | | | Pending | |
+| TC-014 | FR-813: Production readiness supplementary ISO/IEC 25010:2023 quality sections (Test) | REQ-014 | | | Pending | |
+| TC-015 | FR-814: Production readiness ISO/IEC 25040:2024 evaluation sections (Test) | REQ-015 | | | Pending | |
+| TC-016 | FR-815: Phase artifact file existence checks (Test) | REQ-016 | | | Pending | |
+| TC-017 | FR-816: Cross-phase and gap-closure artifact checks (Test) | REQ-017 | | | Pending | |
+| TC-018 | FR-817: Audit report IEEE 1028 content validation (Test) | REQ-018 | | | Pending | |
+| TC-019 | FR-818: Test plan ISO/IEC/IEEE 29119-3 content validation (Test) | REQ-019 | | | Pending | |
+| TC-020 | FR-819: Test design ISO/IEC/IEEE 29119-3 content validation (Test) | REQ-020 | | | Pending | |
+| TC-021 | FR-820: Test cases ISO/IEC/IEEE 29119-3 content validation (Test) | REQ-021 | | | Pending | |
+| TC-022 | FR-821: Verification report ISO/IEC/IEEE 29119-3 content validation (Test) | REQ-022 | | | Pending | |
+

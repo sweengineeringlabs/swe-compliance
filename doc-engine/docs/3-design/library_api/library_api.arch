@@ -1,0 +1,20 @@
+# Architecture: Library API
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/library_api/library_api.spec)
+
+## Components
+
+| Component | Traces To | Description |
+|-----------|-----------|-------------|
+| FR-600 handler | STK-04 -> `saf/mod.rs` | ~~The library shall expose `scan(root: &Path) -> Result<ScanReport, ScanError>` via the SAF layer.~~ Superseded: since `ProjectScope` is a required field in `ScanConfig`, a no-argument convenience is no longer meaningful. |
+| FR-601 handler | STK-04 -> `saf/mod.rs` | The library shall expose `scan_with_config(root: &Path, config: &ScanConfig) -> Result<ScanReport, ScanError>` via the SAF layer. |
+| FR-602 handler | STK-04 -> `saf/mod.rs` | Public via SAF: `ScanConfig`, `ScanReport`, `ScanSummary`, `ProjectType`, `ProjectScope`, `CheckId`, `CheckResult`, `Severity`, `Violation`, `RuleDef`, `RuleType`, `SpecFormat`, `SpecKind`, `SpecStatus`, `Priority`, `DiscoveredSpec`, `BrdSpec`, `FeatureRequestSpec`, `ArchSpec`, `TestSpec`, `DeploySpec`, `MarkdownSpec`, `MarkdownTestCase`, `SpecEnvelope`, `ParsedSpec`, `SpecValidationReport`, `CrossRefReport`, `SpecDiagnostic`, `CrossRefResult`. |
+
+## Related Documents
+
+- [Feature Spec](../1-requirements/library_api/library_api.spec)
+- [Test Plan](../5-testing/library_api/library_api.test)
+- [Deployment](../6-deployment/library_api/library_api.deploy)
+

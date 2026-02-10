@@ -1,0 +1,26 @@
+kind: architecture
+domain: Spec Schema Validation
+section: '4.8'
+specRef: docs/1-requirements/spec_schema_validation/spec_schema_validation.spec.yaml
+components:
+- name: FR-710 handler
+  tracesTo: STK-08 -> `core/spec/validate.rs`
+  description: 'Each spec kind shall have a set of required fields per format. Missing required fields shall produce validation diagnostics. For YAML specs: `kind`, `schemaVersion`, `title`. For markdown specs: `**Version:**`, `**Status:**`, and a top-level `#` heading.'
+- name: FR-711 handler
+  tracesTo: STK-08 -> `core/spec/validate.rs`, `api/spec_types.rs`
+  description: 'BRD spec files shall require: `kind`, `schemaVersion`, `title`, `domains` (array of domain entries each containing `name`, `specCount`, and `specs` array).'
+- name: FR-712 handler
+  tracesTo: STK-08 -> `core/spec/validate.rs`, `api/spec_types.rs`
+  description: 'Feature request spec files shall require: `kind`, `schemaVersion`, `id` (matching `[A-Z]+-\d{3}` pattern), `title`, `status`, `priority`, `requirements` array. Optional: `dependencies`, `relatedDocuments`.'
+- name: FR-713 handler
+  tracesTo: STK-08 -> `core/spec/validate.rs`, `api/spec_types.rs`
+  description: 'Architecture spec files shall require: `kind`, `schemaVersion`, `spec` (spec ID reference), `title`, `components` array. Optional: `dependencies`, `relatedDocuments`.'
+- name: FR-714 handler
+  tracesTo: STK-08 -> `core/spec/validate.rs`, `api/spec_types.rs`
+  description: 'Test plan spec files shall require: `kind`, `schemaVersion`, `spec` (spec ID reference), `title`, `testCases` array (each with `id`, `description`, `verifies` field referencing requirement IDs).'
+- name: FR-715 handler
+  tracesTo: STK-08 -> `core/spec/validate.rs`, `api/spec_types.rs`
+  description: 'Deployment spec files shall require: `kind`, `schemaVersion`, `spec` (spec ID reference), `title`, `environments` array.'
+- name: FR-716 handler
+  tracesTo: STK-08 -> `core/spec/validate.rs`
+  description: The validator shall detect duplicate spec IDs across all spec files (both YAML `id` fields and markdown `**Related:**` values) and report each duplicate with both file paths.

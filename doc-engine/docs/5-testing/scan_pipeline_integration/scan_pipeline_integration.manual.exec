@@ -1,0 +1,28 @@
+# Manual Test Execution: Scan Pipeline Integration
+
+> **TLDR:** Manual test checklist for Scan Pipeline Integration — step-by-step procedures with expected outcomes.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](scan_pipeline_integration.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Steps | Expected |
+|----|------|-------|----------|
+| TC-001 | FR-740: Spec checks in scan pipeline (—) | _TODO_ | Superseded: IDs 54-68 are now phase artifact `file_exists` checks (FR-815). Spec checks use dedicated builtin handlers. |
+| TC-002 | FR-741: Spec check category (—) | _TODO_ | Superseded: IDs 54-68 now use per-phase categories (ideation, requirements, planning, design, development, testing, deployment, operations). |
+| TC-003 | FR-742: Spec check descriptions (Inspection) | _TODO_ | Each check 54-68 and 99-128 has a unique, descriptive `description` field in `rules.toml` |
+
+---
+
+## Execution Log
+
+| TC | Tester | Date | Pass/Fail | Notes |
+|----|--------|------|-----------|-------|
+| TC-001 | | | | |
+| TC-002 | | | | |
+| TC-003 | | | | |
+

@@ -1,0 +1,14 @@
+# Test Plan: File Discovery
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/file_discovery/file_discovery.spec)
+
+## Test Cases
+
+| ID | Test | Verifies | Priority |
+|----|------|----------|----------|
+| TC-001 | FR-200: Recursive scanning (Test) | REQ-001 | Must |
+| TC-002 | FR-201: Directory exclusions (Test) | REQ-002 | Must |
+| TC-003 | FR-202: Relative paths (Test) | REQ-003 | Must |
+

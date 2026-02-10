@@ -1,0 +1,20 @@
+# Architecture: File Discovery
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/file_discovery/file_discovery.spec)
+
+## Components
+
+| Component | Traces To | Description |
+|-----------|-----------|-------------|
+| FR-200 handler | SYS-02 -> `core/scanner.rs` | The scanner shall recursively discover all files under the provided project root directory. |
+| FR-201 handler | SYS-02 -> `core/scanner.rs` | The scanner shall skip: hidden directories (names starting with `.`), `target/`, `node_modules/`. |
+| FR-202 handler | SYS-02 -> `core/scanner.rs` | All discovered file paths shall be relative to the project root. |
+
+## Related Documents
+
+- [Feature Spec](../1-requirements/file_discovery/file_discovery.spec)
+- [Test Plan](../5-testing/file_discovery/file_discovery.test)
+- [Deployment](../6-deployment/file_discovery/file_discovery.deploy)
+

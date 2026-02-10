@@ -1,0 +1,33 @@
+kind: test_plan
+domain: CLI Interface
+section: '4.5'
+specRef: docs/1-requirements/cli_interface/cli_interface.spec.yaml
+testCases:
+- id: TC-001
+  test: 'FR-500: Scan command (Demonstration)'
+  verifies: REQ-001
+  priority: Must
+- id: TC-002
+  test: 'FR-501: JSON flag (Test)'
+  verifies: REQ-002
+  priority: Must
+- id: TC-003
+  test: 'FR-502: Check filter flag (Test)'
+  verifies: REQ-003
+  priority: Must
+- id: TC-004
+  test: 'FR-503: Project type flag (Test)'
+  verifies: REQ-004
+  priority: Must
+- id: TC-005
+  test: 'FR-504: Rules file flag (Test)'
+  verifies: REQ-005
+  priority: Must
+- id: TC-006
+  test: 'FR-505: Scope flag (Test)'
+  verifies: REQ-006
+  priority: Must
+- id: TC-007
+  test: 'FR-506: Output flag (Test)'
+  verifies: REQ-007
+  priority: Should

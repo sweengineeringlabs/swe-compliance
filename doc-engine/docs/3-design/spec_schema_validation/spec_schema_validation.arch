@@ -1,0 +1,24 @@
+# Architecture: Spec Schema Validation
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/spec_schema_validation/spec_schema_validation.spec)
+
+## Components
+
+| Component | Traces To | Description |
+|-----------|-----------|-------------|
+| FR-710 handler | STK-08 -> `core/spec/validate.rs` | Each spec kind shall have a set of required fields per format. Missing required fields shall produce validation diagnostics. For YAML specs: `kind`, `schemaVersion`, `title`. For markdown specs: `**Version:**`, `**Status:**`, and a top-level `#` heading. |
+| FR-711 handler | STK-08 -> `core/spec/validate.rs`, `api/spec_types.rs` | BRD spec files shall require: `kind`, `schemaVersion`, `title`, `domains` (array of domain entries each containing `name`, `specCount`, and `specs` array). |
+| FR-712 handler | STK-08 -> `core/spec/validate.rs`, `api/spec_types.rs` | Feature request spec files shall require: `kind`, `schemaVersion`, `id` (matching `[A-Z]+-\d{3}` pattern), `title`, `status`, `priority`, `requirements` array. Optional: `dependencies`, `relatedDocuments`. |
+| FR-713 handler | STK-08 -> `core/spec/validate.rs`, `api/spec_types.rs` | Architecture spec files shall require: `kind`, `schemaVersion`, `spec` (spec ID reference), `title`, `components` array. Optional: `dependencies`, `relatedDocuments`. |
+| FR-714 handler | STK-08 -> `core/spec/validate.rs`, `api/spec_types.rs` | Test plan spec files shall require: `kind`, `schemaVersion`, `spec` (spec ID reference), `title`, `testCases` array (each with `id`, `description`, `verifies` field referencing requirement IDs). |
+| FR-715 handler | STK-08 -> `core/spec/validate.rs`, `api/spec_types.rs` | Deployment spec files shall require: `kind`, `schemaVersion`, `spec` (spec ID reference), `title`, `environments` array. |
+| FR-716 handler | STK-08 -> `core/spec/validate.rs` | The validator shall detect duplicate spec IDs across all spec files (both YAML `id` fields and markdown `**Related:**` values) and report each duplicate with both file paths. |
+
+## Related Documents
+
+- [Feature Spec](../1-requirements/spec_schema_validation/spec_schema_validation.spec)
+- [Test Plan](../5-testing/spec_schema_validation/spec_schema_validation.test)
+- [Deployment](../6-deployment/spec_schema_validation/spec_schema_validation.deploy)
+

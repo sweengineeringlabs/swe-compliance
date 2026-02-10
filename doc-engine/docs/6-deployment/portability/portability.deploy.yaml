@@ -1,0 +1,9 @@
+kind: deployment
+domain: Portability
+section: '5.3'
+specRef: docs/1-requirements/portability/portability.spec.yaml
+environments:
+- name: staging
+  description: Staging environment for Portability validation
+- name: production
+  description: Production environment for Portability

@@ -1,0 +1,9 @@
+kind: deployment
+domain: Spec File Parsing
+section: '4.7'
+specRef: docs/1-requirements/spec_file_parsing/spec_file_parsing.spec.yaml
+environments:
+- name: staging
+  description: Staging environment for Spec File Parsing validation
+- name: production
+  description: Production environment for Spec File Parsing

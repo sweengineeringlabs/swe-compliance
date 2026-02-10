@@ -1,0 +1,20 @@
+# Deployment: Scan Pipeline Integration
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/scan_pipeline_integration/scan_pipeline_integration.spec)
+
+## Environments
+
+| Environment | Description |
+|-------------|-------------|
+| staging | Staging environment for Scan Pipeline Integration validation |
+| production | Production environment for Scan Pipeline Integration |
+
+## Build
+
+_TODO: Define build steps._
+
+## Rollback
+
+_TODO: Define rollback procedures._

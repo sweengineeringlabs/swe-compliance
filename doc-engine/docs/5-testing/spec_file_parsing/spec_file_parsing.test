@@ -1,0 +1,18 @@
+# Test Plan: Spec File Parsing
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/spec_file_parsing/spec_file_parsing.spec)
+
+## Test Cases
+
+| ID | Test | Verifies | Priority |
+|----|------|----------|----------|
+| TC-001 | FR-700: Dual-format spec file parsing (Test) | REQ-001 | Should |
+| TC-002 | FR-701: Kind-based dispatch (Test) | REQ-002 | Should |
+| TC-003 | FR-702: Spec file discovery (Test) | REQ-003 | Should |
+| TC-004 | FR-703: Parse error reporting (Test) | REQ-004 | Should |
+| TC-005 | FR-704: Markdown spec metadata extraction (Test) | REQ-005 | Should |
+| TC-006 | FR-705: Markdown test table parsing (Test) | REQ-006 | Should |
+| TC-007 | FR-706: Feature stem matching (Test) | REQ-007 | Should |
+

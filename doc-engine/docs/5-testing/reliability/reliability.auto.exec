@@ -1,0 +1,17 @@
+# Automated Test Execution: Reliability
+
+> **TLDR:** CI/automated test tracker for Reliability — maps each test case to a CI job and build.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](reliability.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Verifies | CI Job | Build | Status | Last Run |
+|----|------|----------|--------|-------|--------|----------|
+| TC-001 | NFR-500: Graceful error handling (Test) | REQ-001 | | | Pending | |
+| TC-002 | NFR-501: Invalid rules detection (Test) | REQ-002 | | | Pending | |
+

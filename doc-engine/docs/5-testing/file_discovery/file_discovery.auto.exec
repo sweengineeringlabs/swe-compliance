@@ -1,0 +1,18 @@
+# Automated Test Execution: File Discovery
+
+> **TLDR:** CI/automated test tracker for File Discovery — maps each test case to a CI job and build.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](file_discovery.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Verifies | CI Job | Build | Status | Last Run |
+|----|------|----------|--------|-------|--------|----------|
+| TC-001 | FR-200: Recursive scanning (Test) | REQ-001 | | | Pending | |
+| TC-002 | FR-201: Directory exclusions (Test) | REQ-002 | | | Pending | |
+| TC-003 | FR-202: Relative paths (Test) | REQ-003 | | | Pending | |
+

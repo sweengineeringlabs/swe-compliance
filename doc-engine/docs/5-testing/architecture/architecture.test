@@ -1,0 +1,13 @@
+# Test Plan: Architecture
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/architecture/architecture.spec)
+
+## Test Cases
+
+| ID | Test | Verifies | Priority |
+|----|------|----------|----------|
+| TC-001 | NFR-100: SEA compliance (Inspection) | REQ-001 | Must |
+| TC-002 | NFR-101: Dependency direction (Inspection) | REQ-002 | Must |
+

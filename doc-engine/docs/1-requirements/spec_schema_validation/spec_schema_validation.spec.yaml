@@ -1,0 +1,53 @@
+kind: feature_request
+domain: Spec Schema Validation
+section: '4.8'
+requirements:
+- id: REQ-001
+  sourceId: FR-710
+  title: Required fields validation
+  priority: Should
+  status: Approved
+  verification: Test
+  acceptance: A `.spec.yaml` missing `kind`, `schemaVersion`, or `title` produces a validation diagnostic. A markdown `.spec` missing `**Version:**` or `**Status:**` produces a validation diagnostic.
+- id: REQ-002
+  sourceId: FR-711
+  title: BRD schema validation
+  priority: Should
+  status: Approved
+  verification: Test
+  acceptance: 'A valid `brd.spec.yaml` with `kind: brd`, `schemaVersion`, `title`, `domains[]` (each with `name`, `specCount`, `specs[]`) passes validation'
+- id: REQ-003
+  sourceId: FR-712
+  title: Feature request schema validation
+  priority: Should
+  status: Approved
+  verification: Test
+  acceptance: 'A valid `login.spec.yaml` with `kind: feature_request`, `id`, `title`, `status`, `priority`, `requirements[]` passes validation'
+- id: REQ-004
+  sourceId: FR-713
+  title: Architecture schema validation
+  priority: Should
+  status: Approved
+  verification: Test
+  acceptance: 'A valid `.arch.yaml` with `kind: architecture`, `spec` (spec ID reference), `components[]` passes validation'
+- id: REQ-005
+  sourceId: FR-714
+  title: Test plan schema validation
+  priority: Should
+  status: Approved
+  verification: Test
+  acceptance: 'A valid `.test.yaml` with `kind: test_plan`, `spec` (spec ID reference), `testCases[]` (each with `verifies` field) passes validation'
+- id: REQ-006
+  sourceId: FR-715
+  title: Deployment schema validation
+  priority: Should
+  status: Approved
+  verification: Test
+  acceptance: 'A valid `.deploy.yaml` with `kind: deployment`, `spec` (spec ID reference), `environments[]` passes validation'
+- id: REQ-007
+  sourceId: FR-716
+  title: Duplicate ID detection
+  priority: Should
+  status: Approved
+  verification: Test
+  acceptance: Two spec files (of either format) with the same spec ID produce a validation diagnostic listing both file paths

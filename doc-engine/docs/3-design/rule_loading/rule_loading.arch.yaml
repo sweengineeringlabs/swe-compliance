@@ -1,0 +1,23 @@
+kind: architecture
+domain: Rule Loading
+section: '4.1'
+specRef: docs/1-requirements/rule_loading/rule_loading.spec.yaml
+components:
+- name: FR-100 handler
+  tracesTo: STK-01, STK-02 -> `core/rules.rs`
+  description: The binary shall embed a default `rules.toml` via `include_str!`. When no `--rules` flag is provided, the embedded rules are used.
+- name: FR-101 handler
+  tracesTo: STK-02 -> `core/rules.rs`
+  description: When `--rules <path>` is provided, the engine shall load and parse the external TOML file instead of the embedded default.
+- name: FR-102 handler
+  tracesTo: STK-02 -> `api/types.rs` (RuleDef, RuleType)
+  description: 'Each rule entry shall contain:'
+- name: FR-103 handler
+  tracesTo: STK-02 -> `core/declarative.rs`
+  description: 'The engine shall support 9 declarative rule types:'
+- name: FR-104 handler
+  tracesTo: STK-01 -> `core/builtins/`
+  description: 'When `type = "builtin"`, the engine shall look up a Rust handler by `handler` name. Supported handlers:'
+- name: FR-105 handler
+  tracesTo: STK-05 -> `core/builtins/mod.rs`
+  description: If a `builtin` rule references an unknown handler name, the engine shall return a scan error (exit code 2) with a descriptive message.

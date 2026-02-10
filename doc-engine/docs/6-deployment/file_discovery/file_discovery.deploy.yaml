@@ -1,0 +1,9 @@
+kind: deployment
+domain: File Discovery
+section: '4.2'
+specRef: docs/1-requirements/file_discovery/file_discovery.spec.yaml
+environments:
+- name: staging
+  description: Staging environment for File Discovery validation
+- name: production
+  description: Production environment for File Discovery

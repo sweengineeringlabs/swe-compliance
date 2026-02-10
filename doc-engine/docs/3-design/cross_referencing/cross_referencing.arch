@@ -1,0 +1,25 @@
+# Architecture: Cross-Referencing
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/cross_referencing/cross_referencing.spec)
+
+## Components
+
+| Component | Traces To | Description |
+|-----------|-----------|-------------|
+| FR-720 handler | STK-08 -> `core/spec/cross_ref.rs` | Each dependency entry's `ref` and `file` fields shall be validated: the referenced file must exist and contain the referenced spec ID. |
+| FR-721 handler | STK-08 -> `core/spec/cross_ref.rs` | Each spec file should have matching architecture and test files. Both formats use **feature stem** matching — the shared filename without the domain extension (e.g., `compiler_design.spec` matches `compiler_design.arch` and `compiler_design.test`; `login.spec.yaml` matches `login.arch.yaml` and `login.test.yaml`). Spec IDs live inside file content, not in filenames. |
+| FR-722 handler | STK-08 -> `core/spec/cross_ref.rs` | For YAML BRDs: the `specCount` per domain shall match the actual count of spec files in that domain directory; each `specs[].file` reference shall resolve to an existing file. For markdown BRDs: the spec inventory table counts shall match actual `.spec` file counts per domain directory. |
+| FR-723 handler | STK-08 -> `core/spec/cross_ref.rs` | Each test case's verifies reference shall match a valid requirement ID. For YAML specs: the `verifies` field in `testCases[]`. For markdown specs: the `Verifies` column in test tables. |
+| FR-724 handler | STK-08 -> `core/spec/cross_ref.rs` | Each architecture file shall trace to a spec file. For YAML: the `spec` field references a spec ID. For markdown: the `**Spec:**` header contains a link to the parent `.spec` file. |
+| FR-725 handler | STK-08 -> `core/spec/cross_ref.rs` | All `relatedDocuments` paths in any spec file shall resolve to existing files relative to the project root. |
+| FR-726 handler | STK-08 -> `api/spec_types.rs`, `core/spec/cross_ref.rs` | Cross-reference analysis shall produce a `CrossRefReport` with results categorized by check type. |
+| FR-727 handler | STK-08 -> `core/builtins/spec.rs` | ~~Spec checks (54-68) shall be opt-in: if no spec files of either format exist in the project, all spec checks shall produce `Skip` results.~~ Superseded: IDs 54-68 were reassigned to phase artifact file existence checks per FR-815. |
+
+## Related Documents
+
+- [Feature Spec](../1-requirements/cross_referencing/cross_referencing.spec)
+- [Test Plan](../5-testing/cross_referencing/cross_referencing.test)
+- [Deployment](../6-deployment/cross_referencing/cross_referencing.deploy)
+

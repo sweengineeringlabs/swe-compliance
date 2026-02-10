@@ -1,0 +1,11 @@
+kind: architecture
+domain: Extensibility
+section: '5.4'
+specRef: docs/1-requirements/extensibility/extensibility.spec.yaml
+components:
+- name: NFR-400 handler
+  tracesTo: STK-02 -> `rules.toml`, `core/declarative.rs`
+  description: New declarative rules shall be addable by editing `rules.toml` alone.
+- name: NFR-401 handler
+  tracesTo: STK-02 -> `core/builtins/`
+  description: Builtin handler extensibility

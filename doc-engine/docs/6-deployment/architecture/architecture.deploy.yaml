@@ -1,0 +1,9 @@
+kind: deployment
+domain: Architecture
+section: '5.1'
+specRef: docs/1-requirements/architecture/architecture.spec.yaml
+environments:
+- name: staging
+  description: Staging environment for Architecture validation
+- name: production
+  description: Production environment for Architecture

@@ -1,0 +1,32 @@
+kind: feature_request
+domain: Reporting
+section: '4.4'
+requirements:
+- id: REQ-001
+  sourceId: FR-400
+  title: Text output (default)
+  priority: Must
+  status: Approved
+  verification: Demonstration
+  acceptance: Running without `--json` prints grouped results with check IDs, descriptions, statuses, violations, and a summary line
+- id: REQ-002
+  sourceId: FR-401
+  title: JSON output
+  priority: Must
+  status: Approved
+  verification: Test
+  acceptance: '`--json` output parses as valid JSON and deserializes to `ScanReport`'
+- id: REQ-003
+  sourceId: FR-402
+  title: Exit codes
+  priority: Must
+  status: Approved
+  verification: Test
+  acceptance: Clean project returns 0; project with violations returns 1; invalid path returns 2
+- id: REQ-004
+  sourceId: FR-403
+  title: Report file output
+  priority: Should
+  status: Approved
+  verification: Test
+  acceptance: '`--output <path>` writes a JSON audit report to the specified path, creating parent directories as needed; the recommended filename follows ISO/IEC/IEEE 15289:2019: `documentation_audit_report_v{version}.json`'

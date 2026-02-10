@@ -1,0 +1,9 @@
+kind: test_plan
+domain: Portability
+section: '5.3'
+specRef: docs/1-requirements/portability/portability.spec.yaml
+testCases:
+- id: TC-001
+  test: 'NFR-300: Cross-platform (Demonstration)'
+  verifies: REQ-001
+  priority: Should

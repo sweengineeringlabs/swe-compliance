@@ -1,0 +1,39 @@
+kind: feature_request
+domain: Check Execution
+section: '4.3'
+requirements:
+- id: REQ-001
+  sourceId: FR-300
+  title: All checks (83 base + 15 spec)
+  priority: Must
+  status: Approved
+  verification: Test
+  acceptance: Default `rules.toml` contains 128 rules; a full scan produces 128 check results
+- id: REQ-002
+  sourceId: FR-301
+  title: Check filtering
+  priority: Must
+  status: Approved
+  verification: Test
+  acceptance: '`--checks 1-13` produces exactly 13 results; `--checks 1,2,3` produces exactly 3'
+- id: REQ-003
+  sourceId: FR-302
+  title: Project type filtering
+  priority: Must
+  status: Approved
+  verification: Test
+  acceptance: Rules with `project_type = "open_source"` are skipped when `--type internal` is used, and vice versa
+- id: REQ-004
+  sourceId: FR-303
+  title: Check result types
+  priority: Must
+  status: Approved
+  verification: Inspection
+  acceptance: 'The `CheckResult` enum has exactly three variants: Pass, Fail (with violations), Skip (with reason)'
+- id: REQ-005
+  sourceId: FR-304
+  title: Violation record
+  priority: Must
+  status: Approved
+  verification: Inspection
+  acceptance: Each `Violation` contains check ID, optional file path, message, and severity

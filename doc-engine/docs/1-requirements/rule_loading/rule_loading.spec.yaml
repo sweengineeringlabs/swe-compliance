@@ -1,0 +1,46 @@
+kind: feature_request
+domain: Rule Loading
+section: '4.1'
+requirements:
+- id: REQ-001
+  sourceId: FR-100
+  title: Default rules embedded in binary
+  priority: Must
+  status: Approved
+  verification: Test
+  acceptance: When no `--rules` flag is provided, the engine loads rules from the embedded default and produces a valid `ScanReport` with 128 check results
+- id: REQ-002
+  sourceId: FR-101
+  title: External rules file override
+  priority: Must
+  status: Approved
+  verification: Test
+  acceptance: When `--rules custom.toml` is provided, only rules in `custom.toml` are executed; embedded defaults are ignored
+- id: REQ-003
+  sourceId: FR-102
+  title: TOML rules schema
+  priority: Must
+  status: Approved
+  verification: Inspection
+  acceptance: The TOML parser accepts all fields below without error; missing required fields produce exit code 2
+- id: REQ-004
+  sourceId: FR-103
+  title: Declarative rule types
+  priority: Must
+  status: Approved
+  verification: Test
+  acceptance: Each of the 9 rule types produces correct Pass/Fail results when tested against a fixture project
+- id: REQ-005
+  sourceId: FR-104
+  title: Builtin rule types
+  priority: Must
+  status: Approved
+  verification: Test
+  acceptance: Each handler produces correct results when tested against compliant and non-compliant fixture projects
+- id: REQ-006
+  sourceId: FR-105
+  title: Unknown handler error
+  priority: Must
+  status: Approved
+  verification: Test
+  acceptance: A rules file with `handler = "nonexistent"` produces exit code 2 and a message naming the unknown handler

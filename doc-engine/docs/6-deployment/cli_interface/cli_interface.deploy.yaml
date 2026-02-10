@@ -1,0 +1,9 @@
+kind: deployment
+domain: CLI Interface
+section: '4.5'
+specRef: docs/1-requirements/cli_interface/cli_interface.spec.yaml
+environments:
+- name: staging
+  description: Staging environment for CLI Interface validation
+- name: production
+  description: Production environment for CLI Interface

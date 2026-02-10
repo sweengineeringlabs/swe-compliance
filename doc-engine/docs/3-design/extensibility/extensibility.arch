@@ -1,0 +1,19 @@
+# Architecture: Extensibility
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/extensibility/extensibility.spec)
+
+## Components
+
+| Component | Traces To | Description |
+|-----------|-----------|-------------|
+| NFR-400 handler | STK-02 -> `rules.toml`, `core/declarative.rs` | New declarative rules shall be addable by editing `rules.toml` alone. |
+| NFR-401 handler | STK-02 -> `core/builtins/` | Builtin handler extensibility |
+
+## Related Documents
+
+- [Feature Spec](../1-requirements/extensibility/extensibility.spec)
+- [Test Plan](../5-testing/extensibility/extensibility.test)
+- [Deployment](../6-deployment/extensibility/extensibility.deploy)
+

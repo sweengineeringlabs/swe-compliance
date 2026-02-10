@@ -1,0 +1,22 @@
+# Automated Test Execution: CLI Interface
+
+> **TLDR:** CI/automated test tracker for CLI Interface — maps each test case to a CI job and build.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](cli_interface.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Verifies | CI Job | Build | Status | Last Run |
+|----|------|----------|--------|-------|--------|----------|
+| TC-001 | FR-500: Scan command (Demonstration) | REQ-001 | | | Pending | |
+| TC-002 | FR-501: JSON flag (Test) | REQ-002 | | | Pending | |
+| TC-003 | FR-502: Check filter flag (Test) | REQ-003 | | | Pending | |
+| TC-004 | FR-503: Project type flag (Test) | REQ-004 | | | Pending | |
+| TC-005 | FR-504: Rules file flag (Test) | REQ-005 | | | Pending | |
+| TC-006 | FR-505: Scope flag (Test) | REQ-006 | | | Pending | |
+| TC-007 | FR-506: Output flag (Test) | REQ-007 | | | Pending | |
+

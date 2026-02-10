@@ -1,0 +1,53 @@
+kind: feature_request
+domain: Spec File Parsing
+section: '4.7'
+requirements:
+- id: REQ-001
+  sourceId: FR-700
+  title: Dual-format spec file parsing
+  priority: Should
+  status: Approved
+  verification: Test
+  acceptance: Valid `.spec.yaml` files parse via serde_yaml; valid `.spec` markdown files have metadata extracted via regex; invalid files of either format produce a `SpecDiagnostic` with file path and error message
+- id: REQ-002
+  sourceId: FR-701
+  title: Kind-based dispatch
+  priority: Should
+  status: Approved
+  verification: Test
+  acceptance: 'A YAML file with `kind: brd` deserializes to `BrdSpec`; `kind: feature_request` to `FeatureRequestSpec`; `kind: architecture` to `ArchSpec`; `kind: test_plan` to `TestSpec`; `kind: deployment` to `DeploySpec`. A markdown `.spec` file produces a `MarkdownSpec` with extracted metadata.'
+- id: REQ-003
+  sourceId: FR-702
+  title: Spec file discovery
+  priority: Should
+  status: Approved
+  verification: Test
+  acceptance: Given a project with spec files in `1-requirements/`, `3-design/`, `5-testing/`, and `6-deployment/`, all spec files of both formats are discovered, categorized by extension, and tagged with their format (YAML or markdown)
+- id: REQ-004
+  sourceId: FR-703
+  title: Parse error reporting
+  priority: Should
+  status: Approved
+  verification: Test
+  acceptance: A YAML file with a syntax error produces a `SpecDiagnostic` containing the file path, line number (if available), and a descriptive error message. A markdown spec missing required metadata headers produces a `SpecDiagnostic`.
+- id: REQ-005
+  sourceId: FR-704
+  title: Markdown spec metadata extraction
+  priority: Should
+  status: Approved
+  verification: Test
+  acceptance: A markdown `.spec` file with `**Version:** 0.1.0`, `**Status:** Draft`, and `**Related:** RS-001` headers has all three values extracted. A `.test` file with a `**Spec:**` header containing a linked name and path has the spec link extracted.
+- id: REQ-006
+  sourceId: FR-705
+  title: Markdown test table parsing
+  priority: Should
+  status: Approved
+  verification: Test
+  acceptance: A `.test` file with a markdown table containing `
+- id: REQ-007
+  sourceId: FR-706
+  title: Feature stem matching
+  priority: Should
+  status: Approved
+  verification: Test
+  acceptance: Given `compiler_design.spec`, `compiler_design.arch`, `compiler_design.test`, `compiler_design.deploy`, all four files are linked as a single SDLC chain via the shared stem `compiler_design`

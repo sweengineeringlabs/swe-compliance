@@ -1,0 +1,26 @@
+kind: architecture
+domain: SRS Scaffold
+section: '4.14'
+specRef: docs/1-requirements/srs_scaffold/srs_scaffold.spec.yaml
+components:
+- name: FR-822 handler
+  tracesTo: STK-11 -> `main.rs`, `core/scaffold/mod.rs`
+  description: '```'
+- name: FR-823 handler
+  tracesTo: STK-11 -> `core/scaffold/parser.rs`
+  description: SRS domain extraction
+- name: FR-824 handler
+  tracesTo: STK-11 -> `core/scaffold/mod.rs`, `core/scaffold/yaml_gen.rs`, `core/scaffold/markdown_gen.rs`
+  description: 'Generated files per domain:'
+- name: FR-825 handler
+  tracesTo: STK-11 -> `core/scaffold/markdown_gen.rs`
+  description: Manual test execution plan
+- name: FR-826 handler
+  tracesTo: STK-11 -> `core/scaffold/markdown_gen.rs`
+  description: Automated test execution plan
+- name: FR-827 handler
+  tracesTo: STK-11 -> `core/scaffold/mod.rs`
+  description: Scaffold skip/force behavior
+- name: FR-828 handler
+  tracesTo: STK-11 -> `main.rs`
+  description: '---'

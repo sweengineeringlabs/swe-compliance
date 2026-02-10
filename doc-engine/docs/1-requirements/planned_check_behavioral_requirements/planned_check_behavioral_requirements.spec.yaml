@@ -1,0 +1,158 @@
+kind: feature_request
+domain: Planned Check Behavioral Requirements
+section: '4.13'
+requirements:
+- id: REQ-001
+  sourceId: FR-800
+  title: Module discovery strategy
+  priority: Must
+  status: Proposed
+  verification: Test
+  acceptance: Module discovery detects Rust (`Cargo.toml`), JavaScript/TypeScript (`package.json`), Python (`setup.py`, `pyproject.toml`), and Java (`pom.xml`, `build.gradle`) project manifests. Projects without recognized manifests produce Skip for all module-level checks.
+- id: REQ-002
+  sourceId: FR-801
+  title: W3H detection scope
+  priority: Must
+  status: Proposed
+  verification: Test
+  acceptance: W3H validation uses flexible regex `(?i)^##\s*(what
+- id: REQ-003
+  sourceId: FR-802
+  title: Module deployment check skip behavior
+  priority: Must
+  status: Proposed
+  verification: Test
+  acceptance: Module deployment checks produce Skip (not Fail) for modules that have no `docs/6-deployment/` directory. Only modules with an existing `docs/6-deployment/` directory are validated for required files (`README.md`, `prerequisites.md`, `installation.md`).
+- id: REQ-004
+  sourceId: FR-803
+  title: Feature-prefixed artifact check opt-in
+  priority: Must
+  status: Proposed
+  verification: Test
+  acceptance: Feature naming checks produce Skip if no files or directories matching `FR_\d{3}` exist anywhere in the project. When FR-prefixed artifacts do exist, folders must match `FR_\d{3}/` and files must match `FR_\d{3}_.+`. Hyphens (`FR-###`) in file paths produce a warning.
+- id: REQ-005
+  sourceId: FR-804
+  title: Planning phase artifact verification
+  priority: Should
+  status: Approved
+  verification: Test
+  acceptance: 'The tool shall verify that standard planning phase artifacts exist under `docs/2-planning/`: risk register (`risk_register.md`), estimation records (`estimation.md`), schedule (`schedule.md`), resource plan (`resource_plan.md`), communication plan (`communication_plan.md`), and quality plan (`quality_plan.md`). Each missing artifact produces an `info`-level finding. Schedule, resource plan, and communication plan are scoped to `open_source` projects only and produce `Skip` for internal projects.'
+- id: REQ-006
+  sourceId: FR-805
+  title: SRS 29148 attribute validation
+  priority: Should
+  status: Approved
+  verification: Test
+  acceptance: 'Check 89 validates that every FR-xxx and NFR-xxx block in `docs/1-requirements/srs.md` contains the five mandatory ISO/IEC/IEEE 29148:2018 attributes: Priority, State, Verification, Traces to (or Traceability), and Acceptance. Missing attributes produce per-requirement violations. Projects without an SRS file or without FR/NFR blocks produce Skip. STK-xxx blocks are excluded (they use a consolidated table format).'
+- id: REQ-007
+  sourceId: FR-806
+  title: Architecture 42010 attribute validation
+  priority: Should
+  status: Approved
+  verification: Test
+  acceptance: 'Check 90 validates that architecture documents at both project level (`docs/3-design/architecture.md`) and module level (`<module>/docs/3-design/architecture.md`) contain key ISO/IEC/IEEE 42010:2022 sections: stakeholder identification, architectural concerns/rationale, and viewpoints/views. Missing sections produce per-file violations. Projects and modules without an architecture file or with an empty file are skipped. If no architecture files exist anywhere, the check produces Skip. W3H sections (Who/Why/What/How) satisfy the 42010 requirements.'
+- id: REQ-008
+  sourceId: FR-807
+  title: Testing 29119-3 attribute validation
+  priority: Should
+  status: Approved
+  verification: Test
+  acceptance: 'Check 91 validates that testing strategy documents at both project level (`docs/5-testing/testing_strategy.md`) and module level (`<module>/docs/5-testing/testing_strategy.md`) contain key ISO/IEC/IEEE 29119-3:2021 sections: test strategy/scope, test cases/categories, and coverage targets/criteria. Missing sections produce per-file violations. Projects and modules without a testing strategy file or with an empty file are skipped. If no testing strategy files exist anywhere, the check produces Skip.'
+- id: REQ-009
+  sourceId: FR-808
+  title: Production readiness document existence
+  priority: Should
+  status: Approved
+  verification: Test
+  acceptance: Check 92 validates that `docs/6-deployment/production_readiness.md` exists. Projects without this file produce Skip.
+- id: REQ-010
+  sourceId: FR-809
+  title: Production readiness ISO/IEC 25010:2023 quality sections
+  priority: Should
+  status: Approved
+  verification: Test
+  acceptance: Check 93 validates that `docs/6-deployment/production_readiness.md` contains sections for Security, Test Coverage, Observability, Backwards Compatibility, Runtime Safety, and Verdict. Missing sections produce per-section violations. Projects without the file produce Skip.
+- id: REQ-011
+  sourceId: FR-810
+  title: Developer guide ISO/IEC/IEEE 26514:2022 sections
+  priority: Should
+  status: Approved
+  verification: Test
+  acceptance: Check 94 validates that `docs/4-development/developer_guide.md` contains sections for Build & Test, Project Structure, and Adding New Features. Missing sections produce per-section violations. Projects without the file produce Skip.
+- id: REQ-012
+  sourceId: FR-811
+  title: Backlog content sections
+  priority: Should
+  status: Approved
+  verification: Test
+  acceptance: Check 95 validates that `docs/2-planning/backlog.md` contains sections for Backlog Items (or High Priority), Completed, and Blockers. Missing sections produce per-section violations. Projects without the file produce Skip.
+- id: REQ-013
+  sourceId: FR-812
+  title: Production readiness ISO/IEC/IEEE 12207:2017 lifecycle sections
+  priority: Should
+  status: Approved
+  verification: Test
+  acceptance: Check 96 validates that `docs/6-deployment/production_readiness.md` contains sections for CI/CD Pipeline, Dependency Health, Dependency Auditing, Package Metadata, and Release Automation. Missing sections produce per-section violations. Projects without the file produce Skip.
+- id: REQ-014
+  sourceId: FR-813
+  title: Production readiness supplementary ISO/IEC 25010:2023 quality sections
+  priority: Should
+  status: Approved
+  verification: Test
+  acceptance: Check 97 validates that `docs/6-deployment/production_readiness.md` contains sections for Static Analysis, API Documentation, README & Onboarding, and Documentation Lint. Missing sections produce per-section violations. Projects without the file produce Skip.
+- id: REQ-015
+  sourceId: FR-814
+  title: Production readiness ISO/IEC 25040:2024 evaluation sections
+  priority: Should
+  status: Approved
+  verification: Test
+  acceptance: Check 98 validates that `docs/6-deployment/production_readiness.md` contains Scoring and Sign-Off sections. The Scoring section defines evaluation criteria (PASS/WARN/FAIL). The Sign-Off section captures role, name, date, and verdict. Missing sections produce per-section violations. Projects without the file produce Skip.
+- id: REQ-016
+  sourceId: FR-815
+  title: Phase artifact file existence checks
+  priority: Must
+  status: Approved
+  verification: Test
+  acceptance: The tool shall verify that ISO-mandated documentation artifacts exist for each SDLC phase. Each missing artifact produces a finding at the configured severity. All checks are declarative `file_exists` rules — no Rust code required.
+- id: REQ-017
+  sourceId: FR-816
+  title: Cross-phase and gap-closure artifact checks
+  priority: Must
+  status: Approved
+  verification: Test
+  acceptance: 'The tool shall verify existence of 6 additional ISO-mandated artifacts: ConOps (29148 Annex B), StRS (29148 Cl. 6.2), traceability matrix (29148 Cl. 5.2.6), progress reports (12207 Cl. 6.3.2), decision log (12207 Cl. 6.3.3), audit report (15289 Cl. 9.2), with IEEE 1028 content validation (check 124).'
+- id: REQ-018
+  sourceId: FR-817
+  title: Audit report IEEE 1028 content validation
+  priority: Should
+  status: Approved
+  verification: Test
+  acceptance: Check 124 validates that `docs/2-planning/audit_report.md` contains Scope, Findings, and Recommendations sections per IEEE 1028 clause 4. Missing sections produce per-section violations. Projects without the file produce Skip.
+- id: REQ-019
+  sourceId: FR-818
+  title: Test plan ISO/IEC/IEEE 29119-3 content validation
+  priority: Should
+  status: Approved
+  verification: Test
+  acceptance: Check 125 validates that `docs/5-testing/test_plan.md` contains Objectives/scope, Schedule/milestones, and Environment/resources sections per 29119-3 clause 7. Missing sections produce per-section violations. Projects without the file produce Skip.
+- id: REQ-020
+  sourceId: FR-819
+  title: Test design ISO/IEC/IEEE 29119-3 content validation
+  priority: Should
+  status: Approved
+  verification: Test
+  acceptance: Check 126 validates that `docs/5-testing/test_design.md` contains Test conditions, Test coverage, and Traceability sections per 29119-3 clause 8. Missing sections produce per-section violations. Projects without the file produce Skip.
+- id: REQ-021
+  sourceId: FR-820
+  title: Test cases ISO/IEC/IEEE 29119-3 content validation
+  priority: Should
+  status: Approved
+  verification: Test
+  acceptance: Check 127 validates that `docs/5-testing/test_cases.md` contains Test case ID/title, Pre-conditions/steps, and Expected results sections per 29119-3 clause 9. Missing sections produce per-section violations. Projects without the file produce Skip.
+- id: REQ-022
+  sourceId: FR-821
+  title: Verification report ISO/IEC/IEEE 29119-3 content validation
+  priority: Should
+  status: Approved
+  verification: Test
+  acceptance: Check 128 validates that `docs/5-testing/verification_report.md` contains Summary/results, Pass/fail status, and Defects/issues sections per 29119-3 clause 10. Missing sections produce per-section violations. Projects without the file produce Skip.

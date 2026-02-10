@@ -1,0 +1,18 @@
+# Architecture: Portability
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/portability/portability.spec)
+
+## Components
+
+| Component | Traces To | Description |
+|-----------|-----------|-------------|
+| NFR-300 handler | STK-01 | Cross-platform |
+
+## Related Documents
+
+- [Feature Spec](../1-requirements/portability/portability.spec)
+- [Test Plan](../5-testing/portability/portability.test)
+- [Deployment](../6-deployment/portability/portability.deploy)
+

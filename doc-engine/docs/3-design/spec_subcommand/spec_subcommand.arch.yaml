@@ -1,0 +1,23 @@
+kind: architecture
+domain: Spec Subcommand
+section: '4.12'
+specRef: docs/1-requirements/spec_subcommand/spec_subcommand.spec.yaml
+components:
+- name: FR-750 handler
+  tracesTo: STK-08 -> `main.rs`
+  description: '```'
+- name: FR-751 handler
+  tracesTo: STK-08 -> `main.rs`
+  description: '```'
+- name: FR-752 handler
+  tracesTo: STK-08 -> `main.rs`
+  description: '```'
+- name: FR-753 handler
+  tracesTo: STK-08 -> `main.rs`
+  description: 'The `spec` subcommand shall use the same exit code semantics as `scan`: 0 = clean, 1 = violations, 2 = error.'
+- name: FR-754 handler
+  tracesTo: STK-03, STK-08 -> `core/reporter.rs`
+  description: The `--json` flag on spec subcommands shall produce JSON output matching the report types.
+- name: FR-755 handler
+  tracesTo: STK-05, STK-08 -> `core/reporter.rs`
+  description: Spec text output

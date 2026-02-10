@@ -1,0 +1,36 @@
+# Manual Test Execution: Spec Schema Validation
+
+> **TLDR:** Manual test checklist for Spec Schema Validation — step-by-step procedures with expected outcomes.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](spec_schema_validation.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Steps | Expected |
+|----|------|-------|----------|
+| TC-001 | FR-710: Required fields validation (Test) | _TODO_ | A `.spec.yaml` missing `kind`, `schemaVersion`, or `title` produces a validation diagnostic. A markdown `.spec` missing `**Version:**` or `**Status:**` produces a validation diagnostic. |
+| TC-002 | FR-711: BRD schema validation (Test) | _TODO_ | A valid `brd.spec.yaml` with `kind: brd`, `schemaVersion`, `title`, `domains[]` (each with `name`, `specCount`, `specs[]`) passes validation |
+| TC-003 | FR-712: Feature request schema validation (Test) | _TODO_ | A valid `login.spec.yaml` with `kind: feature_request`, `id`, `title`, `status`, `priority`, `requirements[]` passes validation |
+| TC-004 | FR-713: Architecture schema validation (Test) | _TODO_ | A valid `.arch.yaml` with `kind: architecture`, `spec` (spec ID reference), `components[]` passes validation |
+| TC-005 | FR-714: Test plan schema validation (Test) | _TODO_ | A valid `.test.yaml` with `kind: test_plan`, `spec` (spec ID reference), `testCases[]` (each with `verifies` field) passes validation |
+| TC-006 | FR-715: Deployment schema validation (Test) | _TODO_ | A valid `.deploy.yaml` with `kind: deployment`, `spec` (spec ID reference), `environments[]` passes validation |
+| TC-007 | FR-716: Duplicate ID detection (Test) | _TODO_ | Two spec files (of either format) with the same spec ID produce a validation diagnostic listing both file paths |
+
+---
+
+## Execution Log
+
+| TC | Tester | Date | Pass/Fail | Notes |
+|----|--------|------|-----------|-------|
+| TC-001 | | | | |
+| TC-002 | | | | |
+| TC-003 | | | | |
+| TC-004 | | | | |
+| TC-005 | | | | |
+| TC-006 | | | | |
+| TC-007 | | | | |
+

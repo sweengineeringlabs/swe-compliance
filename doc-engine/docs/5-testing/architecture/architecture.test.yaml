@@ -1,0 +1,13 @@
+kind: test_plan
+domain: Architecture
+section: '5.1'
+specRef: docs/1-requirements/architecture/architecture.spec.yaml
+testCases:
+- id: TC-001
+  test: 'NFR-100: SEA compliance (Inspection)'
+  verifies: REQ-001
+  priority: Must
+- id: TC-002
+  test: 'NFR-101: Dependency direction (Inspection)'
+  verifies: REQ-002
+  priority: Must

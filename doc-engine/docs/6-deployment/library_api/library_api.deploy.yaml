@@ -1,0 +1,9 @@
+kind: deployment
+domain: Library API
+section: '4.6'
+specRef: docs/1-requirements/library_api/library_api.spec.yaml
+environments:
+- name: staging
+  description: Staging environment for Library API validation
+- name: production
+  description: Production environment for Library API

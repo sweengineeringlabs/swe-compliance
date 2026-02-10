@@ -1,0 +1,29 @@
+kind: test_plan
+domain: Spec Subcommand
+section: '4.12'
+specRef: docs/1-requirements/spec_subcommand/spec_subcommand.spec.yaml
+testCases:
+- id: TC-001
+  test: 'FR-750: Spec validate subcommand (Demonstration)'
+  verifies: REQ-001
+  priority: Should
+- id: TC-002
+  test: 'FR-751: Spec cross-ref subcommand (Demonstration)'
+  verifies: REQ-002
+  priority: Should
+- id: TC-003
+  test: 'FR-752: Spec generate subcommand (Demonstration)'
+  verifies: REQ-003
+  priority: Should
+- id: TC-004
+  test: 'FR-753: Spec subcommand exit codes (Test)'
+  verifies: REQ-004
+  priority: Should
+- id: TC-005
+  test: 'FR-754: Spec JSON output (Test)'
+  verifies: REQ-005
+  priority: Should
+- id: TC-006
+  test: 'FR-755: Spec text output (Demonstration)'
+  verifies: REQ-006
+  priority: Should

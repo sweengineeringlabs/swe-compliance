@@ -1,0 +1,26 @@
+kind: architecture
+domain: CLI Interface
+section: '4.5'
+specRef: docs/1-requirements/cli_interface/cli_interface.spec.yaml
+components:
+- name: FR-500 handler
+  tracesTo: STK-01 -> `main.rs`
+  description: '```'
+- name: FR-501 handler
+  tracesTo: STK-03 -> `main.rs`
+  description: JSON flag
+- name: FR-502 handler
+  tracesTo: STK-01 -> `main.rs`
+  description: Supports ranges and comma-separated values.
+- name: FR-503 handler
+  tracesTo: STK-07 -> `main.rs`
+  description: Project type flag
+- name: FR-504 handler
+  tracesTo: STK-02 -> `main.rs`
+  description: Rules file flag
+- name: FR-505 handler
+  tracesTo: STK-10 -> `main.rs`
+  description: Required flag. Each rule in `rules.toml` carries a `scope = "small"|"medium"|"large"` attribute. Rules whose scope exceeds the configured tier are skipped with a descriptive reason. `ProjectScope` derives `Ord` so that `Small < Medium < Large`.
+- name: FR-506 handler
+  tracesTo: STK-09 -> `main.rs`
+  description: Output flag

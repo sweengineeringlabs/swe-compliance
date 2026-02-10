@@ -1,0 +1,33 @@
+kind: test_plan
+domain: SRS Scaffold
+section: '4.14'
+specRef: docs/1-requirements/srs_scaffold/srs_scaffold.spec.yaml
+testCases:
+- id: TC-001
+  test: 'FR-822: Scaffold command (Demonstration)'
+  verifies: REQ-001
+  priority: Should
+- id: TC-002
+  test: 'FR-823: SRS domain extraction (Test)'
+  verifies: REQ-002
+  priority: Should
+- id: TC-003
+  test: 'FR-824: Per-domain spec file generation (Test)'
+  verifies: REQ-003
+  priority: Should
+- id: TC-004
+  test: 'FR-825: Manual test execution plan (Test)'
+  verifies: REQ-004
+  priority: Should
+- id: TC-005
+  test: 'FR-826: Automated test execution plan (Test)'
+  verifies: REQ-005
+  priority: Should
+- id: TC-006
+  test: 'FR-827: Scaffold skip/force behavior (Test)'
+  verifies: REQ-006
+  priority: Should
+- id: TC-007
+  test: 'FR-828: Scaffold output directory (Test)'
+  verifies: REQ-007
+  priority: Should

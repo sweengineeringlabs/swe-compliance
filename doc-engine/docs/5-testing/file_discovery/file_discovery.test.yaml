@@ -1,0 +1,17 @@
+kind: test_plan
+domain: File Discovery
+section: '4.2'
+specRef: docs/1-requirements/file_discovery/file_discovery.spec.yaml
+testCases:
+- id: TC-001
+  test: 'FR-200: Recursive scanning (Test)'
+  verifies: REQ-001
+  priority: Must
+- id: TC-002
+  test: 'FR-201: Directory exclusions (Test)'
+  verifies: REQ-002
+  priority: Must
+- id: TC-003
+  test: 'FR-202: Relative paths (Test)'
+  verifies: REQ-003
+  priority: Must

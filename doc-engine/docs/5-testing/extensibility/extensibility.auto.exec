@@ -1,0 +1,17 @@
+# Automated Test Execution: Extensibility
+
+> **TLDR:** CI/automated test tracker for Extensibility — maps each test case to a CI job and build.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](extensibility.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Verifies | CI Job | Build | Status | Last Run |
+|----|------|----------|--------|-------|--------|----------|
+| TC-001 | NFR-400: Declarative rule extensibility (Demonstration) | REQ-001 | | | Pending | |
+| TC-002 | NFR-401: Builtin handler extensibility (Inspection) | REQ-002 | | | Pending | |
+

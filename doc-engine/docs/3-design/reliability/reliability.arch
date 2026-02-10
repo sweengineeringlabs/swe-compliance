@@ -1,0 +1,19 @@
+# Architecture: Reliability
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/reliability/reliability.spec)
+
+## Components
+
+| Component | Traces To | Description |
+|-----------|-----------|-------------|
+| NFR-500 handler | STK-05 | IO errors and missing files shall produce `Skip` results or clear error messages, not panics. |
+| NFR-501 handler | STK-02 | --- |
+
+## Related Documents
+
+- [Feature Spec](../1-requirements/reliability/reliability.spec)
+- [Test Plan](../5-testing/reliability/reliability.test)
+- [Deployment](../6-deployment/reliability/reliability.deploy)
+

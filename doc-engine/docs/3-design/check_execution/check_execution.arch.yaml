@@ -1,0 +1,20 @@
+kind: architecture
+domain: Check Execution
+section: '4.3'
+specRef: docs/1-requirements/check_execution/check_execution.spec.yaml
+components:
+- name: FR-300 handler
+  tracesTo: STK-01, STK-08 -> `core/engine.rs`, `core/builtins/spec.rs`, `core/builtins/traceability.rs`, `core/builtins/requirements.rs`, `rules.toml`
+  description: 'The engine shall support 128 checks:'
+- name: FR-301 handler
+  tracesTo: STK-01 -> `core/engine.rs`
+  description: When `--checks` is provided with a range or comma-separated list, only matching checks shall be executed.
+- name: FR-302 handler
+  tracesTo: STK-07 -> `core/engine.rs`
+  description: When a rule has `project_type` set, it shall only run if the scan's project type matches.
+- name: FR-303 handler
+  tracesTo: STK-05 -> `spi/types.rs`
+  description: 'Each check shall produce one of: **Pass**, **Fail** (with `Violation` records), or **Skip** (with reason string).'
+- name: FR-304 handler
+  tracesTo: STK-05 -> `spi/types.rs`
+  description: 'Each violation shall contain: Check ID (u8), file path (optional), message (string), severity (error/warning/info).'

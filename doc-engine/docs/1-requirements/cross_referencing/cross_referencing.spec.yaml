@@ -1,0 +1,60 @@
+kind: feature_request
+domain: Cross-Referencing
+section: '4.9'
+requirements:
+- id: REQ-001
+  sourceId: FR-720
+  title: Dependency resolution
+  priority: Should
+  status: Approved
+  verification: Test
+  acceptance: 'A `.spec.yaml` with `dependencies: [{ref: "FR-002", file: "auth/signup.spec.yaml"}]` passes if the referenced file exists and contains the referenced ID; fails if it does not'
+- id: REQ-002
+  sourceId: FR-721
+  title: SDLC chain completeness
+  priority: Should
+  status: Approved
+  verification: Test
+  acceptance: A `.spec` with no matching `.test` produces a cross-ref diagnostic. A `.spec.yaml` with no matching `.test.yaml` produces a cross-ref diagnostic. Both formats are checked independently.
+- id: REQ-003
+  sourceId: FR-722
+  title: BRD inventory accuracy
+  priority: Should
+  status: Approved
+  verification: Test
+  acceptance: 'A BRD with `specCount: 3` for domain "auth" but only 2 actual spec files produces a diagnostic; all `specs[].file` paths must resolve'
+- id: REQ-004
+  sourceId: FR-723
+  title: Test traceability
+  priority: Should
+  status: Approved
+  verification: Test
+  acceptance: 'A YAML test case with `verifies: "REQ-001"` passes if the linked spec contains that ID. A markdown `.test` table row with `Verifies` = `DESIGN-001` passes if the linked `.spec` defines that ID.'
+- id: REQ-005
+  sourceId: FR-724
+  title: Architecture traceability
+  priority: Should
+  status: Approved
+  verification: Test
+  acceptance: 'An `.arch.yaml` with `spec: "FR-001"` passes if a matching `.spec.yaml` exists. A markdown `.arch` with a `**Spec:**` header containing a linked spec name passes if the linked `.spec` file exists.'
+- id: REQ-006
+  sourceId: FR-725
+  title: Related documents resolution
+  priority: Should
+  status: Approved
+  verification: Test
+  acceptance: 'A spec with `relatedDocuments: ["../3-design/architecture.md"]` passes if the path resolves; fails if it does not'
+- id: REQ-007
+  sourceId: FR-726
+  title: Cross-reference report
+  priority: Should
+  status: Approved
+  verification: Test
+  acceptance: '`CrossRefReport` contains categorized results (dependency, sdlc_chain, inventory, test_trace, arch_trace, related_docs) with pass/fail per check'
+- id: REQ-008
+  sourceId: FR-727
+  title: Opt-in spec checking
+  priority: Should
+  status: Superseded
+  verification: —
+  acceptance: 'Superseded: IDs 54-68 are now phase artifact `file_exists` checks (FR-815). Spec checks use dedicated builtin handlers with their own IDs.'

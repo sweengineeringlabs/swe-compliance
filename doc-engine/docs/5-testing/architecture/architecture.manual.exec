@@ -1,0 +1,26 @@
+# Manual Test Execution: Architecture
+
+> **TLDR:** Manual test checklist for Architecture — step-by-step procedures with expected outcomes.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](architecture.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Steps | Expected |
+|----|------|-------|----------|
+| TC-001 | NFR-100: SEA compliance (Inspection) | _TODO_ | Code review confirms 5-layer SEA: SPI (no deps) <- API <- Core (private) <- SAF (re-exports) <- CLI |
+| TC-002 | NFR-101: Dependency direction (Inspection) | _TODO_ | No `use core::` in spi/ or api/; no `use api::` in spi/ |
+
+---
+
+## Execution Log
+
+| TC | Tester | Date | Pass/Fail | Notes |
+|----|--------|------|-----------|-------|
+| TC-001 | | | | |
+| TC-002 | | | | |
+

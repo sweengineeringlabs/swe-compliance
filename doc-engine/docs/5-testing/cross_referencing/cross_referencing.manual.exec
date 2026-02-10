@@ -1,0 +1,38 @@
+# Manual Test Execution: Cross-Referencing
+
+> **TLDR:** Manual test checklist for Cross-Referencing — step-by-step procedures with expected outcomes.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](cross_referencing.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Steps | Expected |
+|----|------|-------|----------|
+| TC-001 | FR-720: Dependency resolution (Test) | _TODO_ | A `.spec.yaml` with `dependencies: [{ref: "FR-002", file: "auth/signup.spec.yaml"}]` passes if the referenced file exists and contains the referenced ID; fails if it does not |
+| TC-002 | FR-721: SDLC chain completeness (Test) | _TODO_ | A `.spec` with no matching `.test` produces a cross-ref diagnostic. A `.spec.yaml` with no matching `.test.yaml` produces a cross-ref diagnostic. Both formats are checked independently. |
+| TC-003 | FR-722: BRD inventory accuracy (Test) | _TODO_ | A BRD with `specCount: 3` for domain "auth" but only 2 actual spec files produces a diagnostic; all `specs[].file` paths must resolve |
+| TC-004 | FR-723: Test traceability (Test) | _TODO_ | A YAML test case with `verifies: "REQ-001"` passes if the linked spec contains that ID. A markdown `.test` table row with `Verifies` = `DESIGN-001` passes if the linked `.spec` defines that ID. |
+| TC-005 | FR-724: Architecture traceability (Test) | _TODO_ | An `.arch.yaml` with `spec: "FR-001"` passes if a matching `.spec.yaml` exists. A markdown `.arch` with a `**Spec:**` header containing a linked spec name passes if the linked `.spec` file exists. |
+| TC-006 | FR-725: Related documents resolution (Test) | _TODO_ | A spec with `relatedDocuments: ["../3-design/architecture.md"]` passes if the path resolves; fails if it does not |
+| TC-007 | FR-726: Cross-reference report (Test) | _TODO_ | `CrossRefReport` contains categorized results (dependency, sdlc_chain, inventory, test_trace, arch_trace, related_docs) with pass/fail per check |
+| TC-008 | FR-727: Opt-in spec checking (—) | _TODO_ | Superseded: IDs 54-68 are now phase artifact `file_exists` checks (FR-815). Spec checks use dedicated builtin handlers with their own IDs. |
+
+---
+
+## Execution Log
+
+| TC | Tester | Date | Pass/Fail | Notes |
+|----|--------|------|-----------|-------|
+| TC-001 | | | | |
+| TC-002 | | | | |
+| TC-003 | | | | |
+| TC-004 | | | | |
+| TC-005 | | | | |
+| TC-006 | | | | |
+| TC-007 | | | | |
+| TC-008 | | | | |
+

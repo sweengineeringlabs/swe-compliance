@@ -1,0 +1,13 @@
+kind: test_plan
+domain: Extensibility
+section: '5.4'
+specRef: docs/1-requirements/extensibility/extensibility.spec.yaml
+testCases:
+- id: TC-001
+  test: 'NFR-400: Declarative rule extensibility (Demonstration)'
+  verifies: REQ-001
+  priority: Must
+- id: TC-002
+  test: 'NFR-401: Builtin handler extensibility (Inspection)'
+  verifies: REQ-002
+  priority: Should

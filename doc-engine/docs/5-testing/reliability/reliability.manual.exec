@@ -1,0 +1,26 @@
+# Manual Test Execution: Reliability
+
+> **TLDR:** Manual test checklist for Reliability — step-by-step procedures with expected outcomes.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](reliability.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Steps | Expected |
+|----|------|-------|----------|
+| TC-001 | NFR-500: Graceful error handling (Test) | _TODO_ | Scanning a non-existent path produces exit code 2 and a message, not a panic |
+| TC-002 | NFR-501: Invalid rules detection (Test) | _TODO_ | Malformed TOML produces exit code 2 with a parse error message identifying the line |
+
+---
+
+## Execution Log
+
+| TC | Tester | Date | Pass/Fail | Notes |
+|----|--------|------|-----------|-------|
+| TC-001 | | | | |
+| TC-002 | | | | |
+

@@ -1,0 +1,24 @@
+# Architecture: CLI Interface
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/cli_interface/cli_interface.spec)
+
+## Components
+
+| Component | Traces To | Description |
+|-----------|-----------|-------------|
+| FR-500 handler | STK-01 -> `main.rs` | ``` |
+| FR-501 handler | STK-03 -> `main.rs` | JSON flag |
+| FR-502 handler | STK-01 -> `main.rs` | Supports ranges and comma-separated values. |
+| FR-503 handler | STK-07 -> `main.rs` | Project type flag |
+| FR-504 handler | STK-02 -> `main.rs` | Rules file flag |
+| FR-505 handler | STK-10 -> `main.rs` | Required flag. Each rule in `rules.toml` carries a `scope = "small"|"medium"|"large"` attribute. Rules whose scope exceeds the configured tier are skipped with a descriptive reason. `ProjectScope` derives `Ord` so that `Small < Medium < Large`. |
+| FR-506 handler | STK-09 -> `main.rs` | Output flag |
+
+## Related Documents
+
+- [Feature Spec](../1-requirements/cli_interface/cli_interface.spec)
+- [Test Plan](../5-testing/cli_interface/cli_interface.test)
+- [Deployment](../6-deployment/cli_interface/cli_interface.deploy)
+

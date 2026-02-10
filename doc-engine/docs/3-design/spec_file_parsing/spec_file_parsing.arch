@@ -1,0 +1,24 @@
+# Architecture: Spec File Parsing
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/spec_file_parsing/spec_file_parsing.spec)
+
+## Components
+
+| Component | Traces To | Description |
+|-----------|-----------|-------------|
+| FR-700 handler | STK-08 -> `core/spec/parser.rs` | The engine shall parse spec files in two formats: |
+| FR-701 handler | STK-08 -> `core/spec/parser.rs` | For YAML specs, the `kind` field selects the deserialization target. For markdown specs, the file extension determines the kind (`.spec` -> spec, `.arch` -> architecture, `.test` -> test_plan, `.deploy` -> deployment). |
+| FR-702 handler | STK-08 -> `core/spec/discovery.rs` | The engine shall discover all spec files by extension under the project root: |
+| FR-703 handler | STK-05, STK-08 -> `core/spec/parser.rs`, `spi/spec_types.rs` | Parse errors shall be reported as `SpecDiagnostic` records with file path, location, and descriptive message. |
+| FR-704 handler | STK-08 -> `core/spec/parser.rs` | The parser shall extract structured metadata from markdown spec files using regex patterns: |
+| FR-705 handler | STK-08 -> `core/spec/parser.rs` | The parser shall extract test-to-requirement traceability from markdown `.test` files by parsing tables with `Verifies` columns. |
+| FR-706 handler | STK-08 -> `core/spec/discovery.rs`, `core/spec/cross_ref.rs` | Both formats use **feature stem** matching — the filename without its domain extension (e.g., `compiler_design` from `compiler_design.spec`, `login` from `login.spec.yaml`). Spec IDs (e.g., `RS-030`) live inside file content, not in filenames. |
+
+## Related Documents
+
+- [Feature Spec](../1-requirements/spec_file_parsing/spec_file_parsing.spec)
+- [Test Plan](../5-testing/spec_file_parsing/spec_file_parsing.test)
+- [Deployment](../6-deployment/spec_file_parsing/spec_file_parsing.deploy)
+

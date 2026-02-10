@@ -1,0 +1,46 @@
+kind: feature_request
+domain: Spec Subcommand
+section: '4.12'
+requirements:
+- id: REQ-001
+  sourceId: FR-750
+  title: Spec validate subcommand
+  priority: Should
+  status: Approved
+  verification: Demonstration
+  acceptance: '`doc-engine spec validate <PATH>` validates all spec files under PATH and prints schema diagnostics'
+- id: REQ-002
+  sourceId: FR-751
+  title: Spec cross-ref subcommand
+  priority: Should
+  status: Approved
+  verification: Demonstration
+  acceptance: '`doc-engine spec cross-ref <PATH>` analyzes cross-references and prints a categorized report'
+- id: REQ-003
+  sourceId: FR-752
+  title: Spec generate subcommand
+  priority: Should
+  status: Approved
+  verification: Demonstration
+  acceptance: '`doc-engine spec generate <FILE> --output <DIR>` produces a markdown file from the given YAML spec'
+- id: REQ-004
+  sourceId: FR-753
+  title: Spec subcommand exit codes
+  priority: Should
+  status: Approved
+  verification: Test
+  acceptance: Exit code 0 = clean, 1 = violations found, 2 = error (same semantics as `scan`)
+- id: REQ-005
+  sourceId: FR-754
+  title: Spec JSON output
+  priority: Should
+  status: Approved
+  verification: Test
+  acceptance: '`doc-engine spec validate <PATH> --json` outputs valid JSON deserializable to `SpecValidationReport`; `doc-engine spec cross-ref <PATH> --json` outputs valid JSON deserializable to `CrossRefReport`'
+- id: REQ-006
+  sourceId: FR-755
+  title: Spec text output
+  priority: Should
+  status: Approved
+  verification: Demonstration
+  acceptance: Default (no `--json`) output is human-readable text with file paths, diagnostic messages, and a summary line

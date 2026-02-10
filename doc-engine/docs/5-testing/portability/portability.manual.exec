@@ -1,0 +1,24 @@
+# Manual Test Execution: Portability
+
+> **TLDR:** Manual test checklist for Portability — step-by-step procedures with expected outcomes.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](portability.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Steps | Expected |
+|----|------|-------|----------|
+| TC-001 | NFR-300: Cross-platform (Demonstration) | _TODO_ | `cargo build` succeeds on Linux, macOS, and Windows |
+
+---
+
+## Execution Log
+
+| TC | Tester | Date | Pass/Fail | Notes |
+|----|--------|------|-----------|-------|
+| TC-001 | | | | |
+

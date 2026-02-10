@@ -1,0 +1,22 @@
+# Automated Test Execution: Spec Schema Validation
+
+> **TLDR:** CI/automated test tracker for Spec Schema Validation — maps each test case to a CI job and build.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](spec_schema_validation.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Verifies | CI Job | Build | Status | Last Run |
+|----|------|----------|--------|-------|--------|----------|
+| TC-001 | FR-710: Required fields validation (Test) | REQ-001 | | | Pending | |
+| TC-002 | FR-711: BRD schema validation (Test) | REQ-002 | | | Pending | |
+| TC-003 | FR-712: Feature request schema validation (Test) | REQ-003 | | | Pending | |
+| TC-004 | FR-713: Architecture schema validation (Test) | REQ-004 | | | Pending | |
+| TC-005 | FR-714: Test plan schema validation (Test) | REQ-005 | | | Pending | |
+| TC-006 | FR-715: Deployment schema validation (Test) | REQ-006 | | | Pending | |
+| TC-007 | FR-716: Duplicate ID detection (Test) | REQ-007 | | | Pending | |
+

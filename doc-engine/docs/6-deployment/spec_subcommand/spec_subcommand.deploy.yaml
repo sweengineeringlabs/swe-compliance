@@ -1,0 +1,9 @@
+kind: deployment
+domain: Spec Subcommand
+section: '4.12'
+specRef: docs/1-requirements/spec_subcommand/spec_subcommand.spec.yaml
+environments:
+- name: staging
+  description: Staging environment for Spec Subcommand validation
+- name: production
+  description: Production environment for Spec Subcommand

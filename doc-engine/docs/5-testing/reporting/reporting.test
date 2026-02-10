@@ -1,0 +1,15 @@
+# Test Plan: Reporting
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/reporting/reporting.spec)
+
+## Test Cases
+
+| ID | Test | Verifies | Priority |
+|----|------|----------|----------|
+| TC-001 | FR-400: Text output (default) (Demonstration) | REQ-001 | Must |
+| TC-002 | FR-401: JSON output (Test) | REQ-002 | Must |
+| TC-003 | FR-402: Exit codes (Test) | REQ-003 | Must |
+| TC-004 | FR-403: Report file output (Test) | REQ-004 | Should |
+

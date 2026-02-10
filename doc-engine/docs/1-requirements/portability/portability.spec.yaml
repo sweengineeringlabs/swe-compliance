@@ -1,0 +1,11 @@
+kind: feature_request
+domain: Portability
+section: '5.3'
+requirements:
+- id: REQ-001
+  sourceId: NFR-300
+  title: Cross-platform
+  priority: Should
+  status: Approved
+  verification: Demonstration
+  acceptance: '`cargo build` succeeds on Linux, macOS, and Windows'

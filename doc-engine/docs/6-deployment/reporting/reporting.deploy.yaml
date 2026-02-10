@@ -1,0 +1,9 @@
+kind: deployment
+domain: Reporting
+section: '4.4'
+specRef: docs/1-requirements/reporting/reporting.spec.yaml
+environments:
+- name: staging
+  description: Staging environment for Reporting validation
+- name: production
+  description: Production environment for Reporting

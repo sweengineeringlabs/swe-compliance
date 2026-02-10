@@ -1,0 +1,21 @@
+# Automated Test Execution: Markdown Generation
+
+> **TLDR:** CI/automated test tracker for Markdown Generation — maps each test case to a CI job and build.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](markdown_generation.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Verifies | CI Job | Build | Status | Last Run |
+|----|------|----------|--------|-------|--------|----------|
+| TC-001 | FR-730: Spec-to-markdown generation (Demonstration) | REQ-001 | | | Pending | |
+| TC-002 | FR-731: BRD markdown generation (Demonstration) | REQ-002 | | | Pending | |
+| TC-003 | FR-732: Architecture markdown generation (Demonstration) | REQ-003 | | | Pending | |
+| TC-004 | FR-733: Test plan markdown generation (Demonstration) | REQ-004 | | | Pending | |
+| TC-005 | FR-734: Deployment markdown generation (Demonstration) | REQ-005 | | | Pending | |
+| TC-006 | FR-735: Output path control (Test) | REQ-006 | | | Pending | |
+

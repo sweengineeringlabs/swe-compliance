@@ -1,0 +1,13 @@
+# Test Plan: Performance
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/performance/performance.spec)
+
+## Test Cases
+
+| ID | Test | Verifies | Priority |
+|----|------|----------|----------|
+| TC-001 | NFR-200: Synchronous execution (Inspection) | REQ-001 | Must |
+| TC-002 | NFR-201: Single pass (Analysis) | REQ-002 | Should |
+

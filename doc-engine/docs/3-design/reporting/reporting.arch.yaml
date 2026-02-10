@@ -1,0 +1,17 @@
+kind: architecture
+domain: Reporting
+section: '4.4'
+specRef: docs/1-requirements/reporting/reporting.spec.yaml
+components:
+- name: FR-400 handler
+  tracesTo: STK-05 -> `core/reporter.rs`
+  description: Default output shall be human-readable text grouped by category, showing check ID, description, pass/fail/skip, violations with file paths, and a summary line.
+- name: FR-401 handler
+  tracesTo: STK-03 -> `core/reporter.rs`
+  description: When `--json` is provided, output shall be a JSON `ScanReport`.
+- name: FR-402 handler
+  tracesTo: STK-03 -> `main.rs`
+  description: Exit codes
+- name: FR-403 handler
+  tracesTo: STK-09 -> `main.rs`
+  description: When `--output` / `-o` is provided, the engine shall persist the scan report as JSON to the given file path, regardless of whether `--json` was specified for stdout. Parent directories are created automatically. Stdout output is unaffected. If the file cannot be written, the tool exits with code 2.

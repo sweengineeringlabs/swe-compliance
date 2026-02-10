@@ -1,0 +1,29 @@
+kind: test_plan
+domain: Markdown Generation
+section: '4.10'
+specRef: docs/1-requirements/markdown_generation/markdown_generation.spec.yaml
+testCases:
+- id: TC-001
+  test: 'FR-730: Spec-to-markdown generation (Demonstration)'
+  verifies: REQ-001
+  priority: Should
+- id: TC-002
+  test: 'FR-731: BRD markdown generation (Demonstration)'
+  verifies: REQ-002
+  priority: Should
+- id: TC-003
+  test: 'FR-732: Architecture markdown generation (Demonstration)'
+  verifies: REQ-003
+  priority: Should
+- id: TC-004
+  test: 'FR-733: Test plan markdown generation (Demonstration)'
+  verifies: REQ-004
+  priority: Should
+- id: TC-005
+  test: 'FR-734: Deployment markdown generation (Demonstration)'
+  verifies: REQ-005
+  priority: May
+- id: TC-006
+  test: 'FR-735: Output path control (Test)'
+  verifies: REQ-006
+  priority: Should

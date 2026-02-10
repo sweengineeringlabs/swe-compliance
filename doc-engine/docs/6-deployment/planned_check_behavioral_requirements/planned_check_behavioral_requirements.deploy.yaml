@@ -1,0 +1,9 @@
+kind: deployment
+domain: Planned Check Behavioral Requirements
+section: '4.13'
+specRef: docs/1-requirements/planned_check_behavioral_requirements/planned_check_behavioral_requirements.spec.yaml
+environments:
+- name: staging
+  description: Staging environment for Planned Check Behavioral Requirements validation
+- name: production
+  description: Production environment for Planned Check Behavioral Requirements

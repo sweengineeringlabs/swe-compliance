@@ -1,0 +1,9 @@
+kind: deployment
+domain: Rule Loading
+section: '4.1'
+specRef: docs/1-requirements/rule_loading/rule_loading.spec.yaml
+environments:
+- name: staging
+  description: Staging environment for Rule Loading validation
+- name: production
+  description: Production environment for Rule Loading

@@ -1,0 +1,8 @@
+kind: architecture
+domain: Portability
+section: '5.3'
+specRef: docs/1-requirements/portability/portability.spec.yaml
+components:
+- name: NFR-300 handler
+  tracesTo: STK-01
+  description: Cross-platform

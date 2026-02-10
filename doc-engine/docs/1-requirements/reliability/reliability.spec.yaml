@@ -1,0 +1,18 @@
+kind: feature_request
+domain: Reliability
+section: '5.5'
+requirements:
+- id: REQ-001
+  sourceId: NFR-500
+  title: Graceful error handling
+  priority: Must
+  status: Approved
+  verification: Test
+  acceptance: Scanning a non-existent path produces exit code 2 and a message, not a panic
+- id: REQ-002
+  sourceId: NFR-501
+  title: Invalid rules detection
+  priority: Must
+  status: Approved
+  verification: Test
+  acceptance: Malformed TOML produces exit code 2 with a parse error message identifying the line

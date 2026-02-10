@@ -1,0 +1,93 @@
+kind: test_plan
+domain: Planned Check Behavioral Requirements
+section: '4.13'
+specRef: docs/1-requirements/planned_check_behavioral_requirements/planned_check_behavioral_requirements.spec.yaml
+testCases:
+- id: TC-001
+  test: 'FR-800: Module discovery strategy (Test)'
+  verifies: REQ-001
+  priority: Must
+- id: TC-002
+  test: 'FR-801: W3H detection scope (Test)'
+  verifies: REQ-002
+  priority: Must
+- id: TC-003
+  test: 'FR-802: Module deployment check skip behavior (Test)'
+  verifies: REQ-003
+  priority: Must
+- id: TC-004
+  test: 'FR-803: Feature-prefixed artifact check opt-in (Test)'
+  verifies: REQ-004
+  priority: Must
+- id: TC-005
+  test: 'FR-804: Planning phase artifact verification (Test)'
+  verifies: REQ-005
+  priority: Should
+- id: TC-006
+  test: 'FR-805: SRS 29148 attribute validation (Test)'
+  verifies: REQ-006
+  priority: Should
+- id: TC-007
+  test: 'FR-806: Architecture 42010 attribute validation (Test)'
+  verifies: REQ-007
+  priority: Should
+- id: TC-008
+  test: 'FR-807: Testing 29119-3 attribute validation (Test)'
+  verifies: REQ-008
+  priority: Should
+- id: TC-009
+  test: 'FR-808: Production readiness document existence (Test)'
+  verifies: REQ-009
+  priority: Should
+- id: TC-010
+  test: 'FR-809: Production readiness ISO/IEC 25010:2023 quality sections (Test)'
+  verifies: REQ-010
+  priority: Should
+- id: TC-011
+  test: 'FR-810: Developer guide ISO/IEC/IEEE 26514:2022 sections (Test)'
+  verifies: REQ-011
+  priority: Should
+- id: TC-012
+  test: 'FR-811: Backlog content sections (Test)'
+  verifies: REQ-012
+  priority: Should
+- id: TC-013
+  test: 'FR-812: Production readiness ISO/IEC/IEEE 12207:2017 lifecycle sections (Test)'
+  verifies: REQ-013
+  priority: Should
+- id: TC-014
+  test: 'FR-813: Production readiness supplementary ISO/IEC 25010:2023 quality sections (Test)'
+  verifies: REQ-014
+  priority: Should
+- id: TC-015
+  test: 'FR-814: Production readiness ISO/IEC 25040:2024 evaluation sections (Test)'
+  verifies: REQ-015
+  priority: Should
+- id: TC-016
+  test: 'FR-815: Phase artifact file existence checks (Test)'
+  verifies: REQ-016
+  priority: Must
+- id: TC-017
+  test: 'FR-816: Cross-phase and gap-closure artifact checks (Test)'
+  verifies: REQ-017
+  priority: Must
+- id: TC-018
+  test: 'FR-817: Audit report IEEE 1028 content validation (Test)'
+  verifies: REQ-018
+  priority: Should
+- id: TC-019
+  test: 'FR-818: Test plan ISO/IEC/IEEE 29119-3 content validation (Test)'
+  verifies: REQ-019
+  priority: Should
+- id: TC-020
+  test: 'FR-819: Test design ISO/IEC/IEEE 29119-3 content validation (Test)'
+  verifies: REQ-020
+  priority: Should
+- id: TC-021
+  test: 'FR-820: Test cases ISO/IEC/IEEE 29119-3 content validation (Test)'
+  verifies: REQ-021
+  priority: Should
+- id: TC-022
+  test: 'FR-821: Verification report ISO/IEC/IEEE 29119-3 content validation (Test)'
+  verifies: REQ-022
+  priority: Should

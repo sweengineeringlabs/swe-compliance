@@ -1,0 +1,20 @@
+# Automated Test Execution: Check Execution
+
+> **TLDR:** CI/automated test tracker for Check Execution — maps each test case to a CI job and build.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](check_execution.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Verifies | CI Job | Build | Status | Last Run |
+|----|------|----------|--------|-------|--------|----------|
+| TC-001 | FR-300: All checks (83 base + 15 spec) (Test) | REQ-001 | | | Pending | |
+| TC-002 | FR-301: Check filtering (Test) | REQ-002 | | | Pending | |
+| TC-003 | FR-302: Project type filtering (Test) | REQ-003 | | | Pending | |
+| TC-004 | FR-303: Check result types (Inspection) | REQ-004 | | | Pending | |
+| TC-005 | FR-304: Violation record (Inspection) | REQ-005 | | | Pending | |
+

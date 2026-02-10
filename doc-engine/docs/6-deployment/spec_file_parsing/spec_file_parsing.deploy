@@ -1,0 +1,20 @@
+# Deployment: Spec File Parsing
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/spec_file_parsing/spec_file_parsing.spec)
+
+## Environments
+
+| Environment | Description |
+|-------------|-------------|
+| staging | Staging environment for Spec File Parsing validation |
+| production | Production environment for Spec File Parsing |
+
+## Build
+
+_TODO: Define build steps._
+
+## Rollback
+
+_TODO: Define rollback procedures._

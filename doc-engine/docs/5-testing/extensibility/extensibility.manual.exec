@@ -1,0 +1,26 @@
+# Manual Test Execution: Extensibility
+
+> **TLDR:** Manual test checklist for Extensibility — step-by-step procedures with expected outcomes.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](extensibility.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Steps | Expected |
+|----|------|-------|----------|
+| TC-001 | NFR-400: Declarative rule extensibility (Demonstration) | _TODO_ | Adding a `[[rules]]` entry with `type = "file_exists"` to `rules.toml` and running `--rules` enforces the new rule without recompilation |
+| TC-002 | NFR-401: Builtin handler extensibility (Inspection) | _TODO_ | A new handler can be added in 3 steps: implement function, register in mod.rs, add TOML entry |
+
+---
+
+## Execution Log
+
+| TC | Tester | Date | Pass/Fail | Notes |
+|----|--------|------|-----------|-------|
+| TC-001 | | | | |
+| TC-002 | | | | |
+

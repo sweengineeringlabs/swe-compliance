@@ -1,0 +1,18 @@
+kind: feature_request
+domain: Performance
+section: '5.2'
+requirements:
+- id: REQ-001
+  sourceId: NFR-200
+  title: Synchronous execution
+  priority: Must
+  status: Approved
+  verification: Inspection
+  acceptance: No `tokio`, `async-std`, or other async runtime in dependencies
+- id: REQ-002
+  sourceId: NFR-201
+  title: Single pass
+  priority: Should
+  status: Approved
+  verification: Analysis
+  acceptance: Profiling shows exactly one `walkdir` traversal per scan invocation

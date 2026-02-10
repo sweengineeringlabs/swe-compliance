@@ -1,0 +1,16 @@
+# Automated Test Execution: Portability
+
+> **TLDR:** CI/automated test tracker for Portability — maps each test case to a CI job and build.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](portability.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Verifies | CI Job | Build | Status | Last Run |
+|----|------|----------|--------|-------|--------|----------|
+| TC-001 | NFR-300: Cross-platform (Demonstration) | REQ-001 | | | Pending | |
+

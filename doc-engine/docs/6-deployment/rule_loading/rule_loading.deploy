@@ -1,0 +1,20 @@
+# Deployment: Rule Loading
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/rule_loading/rule_loading.spec)
+
+## Environments
+
+| Environment | Description |
+|-------------|-------------|
+| staging | Staging environment for Rule Loading validation |
+| production | Production environment for Rule Loading |
+
+## Build
+
+_TODO: Define build steps._
+
+## Rollback
+
+_TODO: Define rollback procedures._

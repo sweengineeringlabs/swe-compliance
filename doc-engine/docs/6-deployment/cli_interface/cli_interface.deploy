@@ -1,0 +1,20 @@
+# Deployment: CLI Interface
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/cli_interface/cli_interface.spec)
+
+## Environments
+
+| Environment | Description |
+|-------------|-------------|
+| staging | Staging environment for CLI Interface validation |
+| production | Production environment for CLI Interface |
+
+## Build
+
+_TODO: Define build steps._
+
+## Rollback
+
+_TODO: Define rollback procedures._

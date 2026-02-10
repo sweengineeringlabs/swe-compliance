@@ -1,0 +1,19 @@
+# Architecture: Performance
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/performance/performance.spec)
+
+## Components
+
+| Component | Traces To | Description |
+|-----------|-----------|-------------|
+| NFR-200 handler | STK-06 -> `Cargo.toml` | Synchronous execution |
+| NFR-201 handler | SYS-02 -> `core/scanner.rs` | The scanner shall discover files in a single directory walk. |
+
+## Related Documents
+
+- [Feature Spec](../1-requirements/performance/performance.spec)
+- [Test Plan](../5-testing/performance/performance.test)
+- [Deployment](../6-deployment/performance/performance.deploy)
+

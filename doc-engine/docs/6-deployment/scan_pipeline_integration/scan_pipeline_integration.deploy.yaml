@@ -1,0 +1,9 @@
+kind: deployment
+domain: Scan Pipeline Integration
+section: '4.11'
+specRef: docs/1-requirements/scan_pipeline_integration/scan_pipeline_integration.spec.yaml
+environments:
+- name: staging
+  description: Staging environment for Scan Pipeline Integration validation
+- name: production
+  description: Production environment for Scan Pipeline Integration

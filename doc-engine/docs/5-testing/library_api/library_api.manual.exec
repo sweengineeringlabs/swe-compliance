@@ -1,0 +1,28 @@
+# Manual Test Execution: Library API
+
+> **TLDR:** Manual test checklist for Library API — step-by-step procedures with expected outcomes.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](library_api.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Steps | Expected |
+|----|------|-------|----------|
+| TC-001 | FR-600: Public scan function (—) | _TODO_ | Removed: `scan()` convenience function was deleted when `ProjectScope` became mandatory. Use `scan_with_config()` (FR-601) instead. |
+| TC-002 | FR-601: Configurable scan function (Test) | _TODO_ | `doc_engine::scan_with_config(path, &config)` respects `ScanConfig` fields and returns `Result<ScanReport, ScanError>` |
+| TC-003 | FR-602: Public types (Inspection) | _TODO_ | All listed types are importable from `doc_engine::` |
+
+---
+
+## Execution Log
+
+| TC | Tester | Date | Pass/Fail | Notes |
+|----|--------|------|-----------|-------|
+| TC-001 | | | | |
+| TC-002 | | | | |
+| TC-003 | | | | |
+

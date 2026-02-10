@@ -1,0 +1,71 @@
+kind: architecture
+domain: Planned Check Behavioral Requirements
+section: '4.13'
+specRef: docs/1-requirements/planned_check_behavioral_requirements/planned_check_behavioral_requirements.spec.yaml
+components:
+- name: FR-800 handler
+  tracesTo: BL-03, BL-04, BL-05, BL-06 -> `core/builtins/`
+  description: Module-level checks (BL-03 through BL-06) depend on reliably discovering modules/crates. The engine shall identify modules by scanning for language-specific manifest files under the project root. A shared `ModuleDiscovery` component shall support multiple languages and be reusable across all module-level handlers.
+- name: FR-801 handler
+  tracesTo: BL-03, BL-09 -> `core/builtins/`
+  description: Hub documents and module READMEs have predictable structure suitable for pattern matching. General docs across `docs/3-design/*.md` and `docs/4-development/guide/*.md` use too many heading conventions for reliable automated W3H detection. Limiting scope avoids false positives.
+- name: FR-802 handler
+  tracesTo: BL-06 -> `core/builtins/`
+  description: Library crates consumed as dependencies are not independently deployable and should not be required to have deployment documentation. The check triggers only when a module has opted in by creating the deployment directory.
+- name: FR-803 handler
+  tracesTo: BL-11 -> `core/builtins/`
+  description: 'Not all projects use formal feature request tracking. The check is opt-in: it activates only when the project already contains FR-prefixed artifacts, then validates they follow the underscore convention.'
+- name: FR-804 handler
+  tracesTo: Checks 83-88 -> `rules.toml` (declarative `file_exists`)
+  description: Traditional software engineering planning phases produce artifacts beyond the implementation plan and backlog. Risk registers, estimation records, and quality plans are universally valuable regardless of project size. Schedule, resource plan, and communication plan are primarily relevant to larger open-source projects with multiple contributors and stakeholders; internal/small projects may skip these without penalty.
+- name: FR-805 handler
+  tracesTo: Check 89 -> `core/builtins/requirements.rs`
+  description: The engine shall validate SRS documents for ISO/IEC/IEEE 29148:2018 compliance by checking that each requirement block has the five mandatory attribute table entries.
+- name: FR-806 handler
+  tracesTo: Check 90 -> `core/builtins/requirements.rs`
+  description: The engine shall validate architecture documents at project and module level for ISO/IEC/IEEE 42010:2022 compliance by checking for stakeholder, concern, and viewpoint sections.
+- name: FR-807 handler
+  tracesTo: Check 91 -> `core/builtins/requirements.rs`
+  description: The engine shall validate testing strategy documents at project and module level for ISO/IEC/IEEE 29119-3:2021 compliance by checking for test design, test case, and test procedure sections.
+- name: FR-808 handler
+  tracesTo: Check 92 -> `core/builtins/requirements.rs`
+  description: The engine shall verify that a production readiness review document exists at the project level, per ISO/IEC 25010:2023 quality assessment practices.
+- name: FR-809 handler
+  tracesTo: Check 93 -> `core/builtins/requirements.rs`
+  description: 'The engine shall validate production readiness documents for core ISO/IEC 25010:2023 quality characteristics: security, reliability (runtime safety), maintainability (test coverage), portability (backwards compatibility), and usability (observability).'
+- name: FR-810 handler
+  tracesTo: Check 94 -> `core/builtins/requirements.rs`
+  description: The engine shall validate developer guide documents for ISO/IEC/IEEE 26514:2022 compliance by checking for task analysis (build & test), information structure (project layout), and writing guidelines (extensibility) sections.
+- name: FR-811 handler
+  tracesTo: Check 95 -> `core/builtins/requirements.rs`
+  description: 'The engine shall validate backlog documents for required content sections: active items, completed items with dates, and blockers with impact/owner/status tracking.'
+- name: FR-812 handler
+  tracesTo: Check 96 -> `core/builtins/requirements.rs`
+  description: 'The engine shall validate production readiness documents for ISO/IEC/IEEE 12207:2017 lifecycle process areas: infrastructure management (CI/CD, dependencies), configuration management (package metadata), and transition (release automation).'
+- name: FR-813 handler
+  tracesTo: Check 97 -> `core/builtins/requirements.rs`
+  description: 'The engine shall validate production readiness documents for supplementary ISO/IEC 25010:2023 quality characteristics: security integrity (static analysis), maintainability analysability (API documentation), usability learnability (README & onboarding), and maintainability modularity (documentation lint).'
+- name: FR-814 handler
+  tracesTo: Check 98 -> `core/builtins/requirements.rs`
+  description: 'The engine shall validate production readiness documents for ISO/IEC 25040:2024 evaluation process compliance: evaluation specification (scoring criteria) and evaluation conclusion (sign-off with roles and verdicts).'
+- name: FR-815 handler
+  tracesTo: Checks 54-68, 99-128 -> `rules.toml` (declarative `file_exists` and `builtin`)
+  description: 'The engine shall verify the existence of documentation artifacts mandated by ISO/IEC/IEEE 12207:2017, 15289:2019, 29148:2018, 42010:2022, 29119-3:2021, and 26514:2022 across all 8 SDLC phases:'
+- name: FR-816 handler
+  tracesTo: Checks 118-123 -> `rules.toml` (declarative `file_exists`)
+  description: Cross-phase and gap-closure artifact checks
+- name: FR-817 handler
+  tracesTo: Check 124 -> `core/builtins/requirements.rs`
+  description: Audit report IEEE 1028 content validation
+- name: FR-818 handler
+  tracesTo: Check 125 -> `core/builtins/requirements.rs`
+  description: Test plan ISO/IEC/IEEE 29119-3 content validation
+- name: FR-819 handler
+  tracesTo: Check 126 -> `core/builtins/requirements.rs`
+  description: Test design ISO/IEC/IEEE 29119-3 content validation
+- name: FR-820 handler
+  tracesTo: Check 127 -> `core/builtins/requirements.rs`
+  description: Test cases ISO/IEC/IEEE 29119-3 content validation
+- name: FR-821 handler
+  tracesTo: Check 128 -> `core/builtins/requirements.rs`
+  description: Verification report ISO/IEC/IEEE 29119-3 content validation

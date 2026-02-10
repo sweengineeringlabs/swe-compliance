@@ -1,0 +1,30 @@
+# Manual Test Execution: Reporting
+
+> **TLDR:** Manual test checklist for Reporting — step-by-step procedures with expected outcomes.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](reporting.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Steps | Expected |
+|----|------|-------|----------|
+| TC-001 | FR-400: Text output (default) (Demonstration) | _TODO_ | Running without `--json` prints grouped results with check IDs, descriptions, statuses, violations, and a summary line |
+| TC-002 | FR-401: JSON output (Test) | _TODO_ | `--json` output parses as valid JSON and deserializes to `ScanReport` |
+| TC-003 | FR-402: Exit codes (Test) | _TODO_ | Clean project returns 0; project with violations returns 1; invalid path returns 2 |
+| TC-004 | FR-403: Report file output (Test) | _TODO_ | `--output <path>` writes a JSON audit report to the specified path, creating parent directories as needed; the recommended filename follows ISO/IEC/IEEE 15289:2019: `documentation_audit_report_v{version}.json` |
+
+---
+
+## Execution Log
+
+| TC | Tester | Date | Pass/Fail | Notes |
+|----|--------|------|-----------|-------|
+| TC-001 | | | | |
+| TC-002 | | | | |
+| TC-003 | | | | |
+| TC-004 | | | | |
+

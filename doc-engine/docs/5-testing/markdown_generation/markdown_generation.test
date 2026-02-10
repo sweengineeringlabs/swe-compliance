@@ -1,0 +1,17 @@
+# Test Plan: Markdown Generation
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/markdown_generation/markdown_generation.spec)
+
+## Test Cases
+
+| ID | Test | Verifies | Priority |
+|----|------|----------|----------|
+| TC-001 | FR-730: Spec-to-markdown generation (Demonstration) | REQ-001 | Should |
+| TC-002 | FR-731: BRD markdown generation (Demonstration) | REQ-002 | Should |
+| TC-003 | FR-732: Architecture markdown generation (Demonstration) | REQ-003 | Should |
+| TC-004 | FR-733: Test plan markdown generation (Demonstration) | REQ-004 | Should |
+| TC-005 | FR-734: Deployment markdown generation (Demonstration) | REQ-005 | May |
+| TC-006 | FR-735: Output path control (Test) | REQ-006 | Should |
+

@@ -1,0 +1,25 @@
+kind: test_plan
+domain: Check Execution
+section: '4.3'
+specRef: docs/1-requirements/check_execution/check_execution.spec.yaml
+testCases:
+- id: TC-001
+  test: 'FR-300: All checks (83 base + 15 spec) (Test)'
+  verifies: REQ-001
+  priority: Must
+- id: TC-002
+  test: 'FR-301: Check filtering (Test)'
+  verifies: REQ-002
+  priority: Must
+- id: TC-003
+  test: 'FR-302: Project type filtering (Test)'
+  verifies: REQ-003
+  priority: Must
+- id: TC-004
+  test: 'FR-303: Check result types (Inspection)'
+  verifies: REQ-004
+  priority: Must
+- id: TC-005
+  test: 'FR-304: Violation record (Inspection)'
+  verifies: REQ-005
+  priority: Must

@@ -1,0 +1,23 @@
+kind: architecture
+domain: Markdown Generation
+section: '4.10'
+specRef: docs/1-requirements/markdown_generation/markdown_generation.spec.yaml
+components:
+- name: FR-730 handler
+  tracesTo: STK-08 -> `core/spec/generate.rs`
+  description: The engine shall generate markdown documents from YAML spec files, matching the template-engine template format.
+- name: FR-731 handler
+  tracesTo: STK-08 -> `core/spec/generate.rs`
+  description: BRD markdown generation
+- name: FR-732 handler
+  tracesTo: STK-08 -> `core/spec/generate.rs`
+  description: Architecture markdown generation
+- name: FR-733 handler
+  tracesTo: STK-08 -> `core/spec/generate.rs`
+  description: Test plan markdown generation
+- name: FR-734 handler
+  tracesTo: STK-08 -> `core/spec/generate.rs`
+  description: Deployment markdown generation
+- name: FR-735 handler
+  tracesTo: STK-08 -> `core/spec/generate.rs`
+  description: Output path control

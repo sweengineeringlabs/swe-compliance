@@ -1,0 +1,21 @@
+kind: test_plan
+domain: Reporting
+section: '4.4'
+specRef: docs/1-requirements/reporting/reporting.spec.yaml
+testCases:
+- id: TC-001
+  test: 'FR-400: Text output (default) (Demonstration)'
+  verifies: REQ-001
+  priority: Must
+- id: TC-002
+  test: 'FR-401: JSON output (Test)'
+  verifies: REQ-002
+  priority: Must
+- id: TC-003
+  test: 'FR-402: Exit codes (Test)'
+  verifies: REQ-003
+  priority: Must
+- id: TC-004
+  test: 'FR-403: Report file output (Test)'
+  verifies: REQ-004
+  priority: Should

@@ -1,0 +1,14 @@
+kind: architecture
+domain: Scan Pipeline Integration
+section: '4.11'
+specRef: docs/1-requirements/scan_pipeline_integration/scan_pipeline_integration.spec.yaml
+components:
+- name: FR-740 handler
+  tracesTo: STK-08 -> `core/builtins/spec.rs`, `rules.toml`
+  description: '~~Checks 54-68 shall be integrated into the standard scan pipeline as builtin handlers in `rules.toml`.~~ Superseded: IDs 54-68 were reassigned to phase artifact checks per FR-815.'
+- name: FR-741 handler
+  tracesTo: STK-08 -> `rules.toml`
+  description: '~~All spec checks shall use the `spec` category for grouping in reports.~~ Superseded: IDs 54-68 use per-phase categories per FR-815.'
+- name: FR-742 handler
+  tracesTo: STK-05, STK-08 -> `rules.toml`
+  description: Spec check descriptions

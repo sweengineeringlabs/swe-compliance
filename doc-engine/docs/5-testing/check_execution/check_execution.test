@@ -1,0 +1,16 @@
+# Test Plan: Check Execution
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/check_execution/check_execution.spec)
+
+## Test Cases
+
+| ID | Test | Verifies | Priority |
+|----|------|----------|----------|
+| TC-001 | FR-300: All checks (83 base + 15 spec) (Test) | REQ-001 | Must |
+| TC-002 | FR-301: Check filtering (Test) | REQ-002 | Must |
+| TC-003 | FR-302: Project type filtering (Test) | REQ-003 | Must |
+| TC-004 | FR-303: Check result types (Inspection) | REQ-004 | Must |
+| TC-005 | FR-304: Violation record (Inspection) | REQ-005 | Must |
+

@@ -1,0 +1,11 @@
+kind: architecture
+domain: Architecture
+section: '5.1'
+specRef: docs/1-requirements/architecture/architecture.spec.yaml
+components:
+- name: NFR-100 handler
+  tracesTo: STK-04 -> module structure
+  description: 'The crate shall follow Single-Crate Modular SEA:'
+- name: NFR-101 handler
+  tracesTo: STK-04 -> module structure
+  description: No layer shall depend on a layer above it.

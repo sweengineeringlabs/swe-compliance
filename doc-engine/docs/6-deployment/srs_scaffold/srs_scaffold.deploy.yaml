@@ -1,0 +1,9 @@
+kind: deployment
+domain: SRS Scaffold
+section: '4.14'
+specRef: docs/1-requirements/srs_scaffold/srs_scaffold.spec.yaml
+environments:
+- name: staging
+  description: Staging environment for SRS Scaffold validation
+- name: production
+  description: Production environment for SRS Scaffold

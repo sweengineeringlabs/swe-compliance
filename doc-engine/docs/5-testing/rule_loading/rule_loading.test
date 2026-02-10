@@ -1,0 +1,17 @@
+# Test Plan: Rule Loading
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/rule_loading/rule_loading.spec)
+
+## Test Cases
+
+| ID | Test | Verifies | Priority |
+|----|------|----------|----------|
+| TC-001 | FR-100: Default rules embedded in binary (Test) | REQ-001 | Must |
+| TC-002 | FR-101: External rules file override (Test) | REQ-002 | Must |
+| TC-003 | FR-102: TOML rules schema (Inspection) | REQ-003 | Must |
+| TC-004 | FR-103: Declarative rule types (Test) | REQ-004 | Must |
+| TC-005 | FR-104: Builtin rule types (Test) | REQ-005 | Must |
+| TC-006 | FR-105: Unknown handler error (Test) | REQ-006 | Must |
+

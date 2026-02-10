@@ -1,0 +1,18 @@
+kind: feature_request
+domain: Architecture
+section: '5.1'
+requirements:
+- id: REQ-001
+  sourceId: NFR-100
+  title: SEA compliance
+  priority: Must
+  status: Approved
+  verification: Inspection
+  acceptance: 'Code review confirms 5-layer SEA: SPI (no deps) <- API <- Core (private) <- SAF (re-exports) <- CLI'
+- id: REQ-002
+  sourceId: NFR-101
+  title: Dependency direction
+  priority: Must
+  status: Approved
+  verification: Inspection
+  acceptance: No `use core::` in spi/ or api/; no `use api::` in spi/

@@ -1,0 +1,18 @@
+# Test Plan: Spec Schema Validation
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/spec_schema_validation/spec_schema_validation.spec)
+
+## Test Cases
+
+| ID | Test | Verifies | Priority |
+|----|------|----------|----------|
+| TC-001 | FR-710: Required fields validation (Test) | REQ-001 | Should |
+| TC-002 | FR-711: BRD schema validation (Test) | REQ-002 | Should |
+| TC-003 | FR-712: Feature request schema validation (Test) | REQ-003 | Should |
+| TC-004 | FR-713: Architecture schema validation (Test) | REQ-004 | Should |
+| TC-005 | FR-714: Test plan schema validation (Test) | REQ-005 | Should |
+| TC-006 | FR-715: Deployment schema validation (Test) | REQ-006 | Should |
+| TC-007 | FR-716: Duplicate ID detection (Test) | REQ-007 | Should |
+

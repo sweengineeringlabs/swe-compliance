@@ -1,0 +1,11 @@
+kind: architecture
+domain: Reliability
+section: '5.5'
+specRef: docs/1-requirements/reliability/reliability.spec.yaml
+components:
+- name: NFR-500 handler
+  tracesTo: STK-05
+  description: IO errors and missing files shall produce `Skip` results or clear error messages, not panics.
+- name: NFR-501 handler
+  tracesTo: STK-02
+  description: '---'

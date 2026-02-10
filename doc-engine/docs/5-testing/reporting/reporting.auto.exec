@@ -1,0 +1,19 @@
+# Automated Test Execution: Reporting
+
+> **TLDR:** CI/automated test tracker for Reporting — maps each test case to a CI job and build.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](reporting.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Verifies | CI Job | Build | Status | Last Run |
+|----|------|----------|--------|-------|--------|----------|
+| TC-001 | FR-400: Text output (default) (Demonstration) | REQ-001 | | | Pending | |
+| TC-002 | FR-401: JSON output (Test) | REQ-002 | | | Pending | |
+| TC-003 | FR-402: Exit codes (Test) | REQ-003 | | | Pending | |
+| TC-004 | FR-403: Report file output (Test) | REQ-004 | | | Pending | |
+

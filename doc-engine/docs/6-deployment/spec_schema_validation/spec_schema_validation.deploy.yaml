@@ -1,0 +1,9 @@
+kind: deployment
+domain: Spec Schema Validation
+section: '4.8'
+specRef: docs/1-requirements/spec_schema_validation/spec_schema_validation.spec.yaml
+environments:
+- name: staging
+  description: Staging environment for Spec Schema Validation validation
+- name: production
+  description: Production environment for Spec Schema Validation

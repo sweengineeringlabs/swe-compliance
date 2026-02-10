@@ -1,0 +1,155 @@
+kind: brd
+title: Business Requirements Document
+domains:
+- section: '4.1'
+  domain: Rule Loading
+  slug: rule_loading
+  specCount: 6
+  specFile: docs/1-requirements/rule_loading/rule_loading.spec.yaml
+  archFile: docs/3-design/rule_loading/rule_loading.arch.yaml
+  testFile: docs/5-testing/rule_loading/rule_loading.test.yaml
+  deployFile: docs/6-deployment/rule_loading/rule_loading.deploy.yaml
+- section: '4.2'
+  domain: File Discovery
+  slug: file_discovery
+  specCount: 3
+  specFile: docs/1-requirements/file_discovery/file_discovery.spec.yaml
+  archFile: docs/3-design/file_discovery/file_discovery.arch.yaml
+  testFile: docs/5-testing/file_discovery/file_discovery.test.yaml
+  deployFile: docs/6-deployment/file_discovery/file_discovery.deploy.yaml
+- section: '4.3'
+  domain: Check Execution
+  slug: check_execution
+  specCount: 5
+  specFile: docs/1-requirements/check_execution/check_execution.spec.yaml
+  archFile: docs/3-design/check_execution/check_execution.arch.yaml
+  testFile: docs/5-testing/check_execution/check_execution.test.yaml
+  deployFile: docs/6-deployment/check_execution/check_execution.deploy.yaml
+- section: '4.4'
+  domain: Reporting
+  slug: reporting
+  specCount: 4
+  specFile: docs/1-requirements/reporting/reporting.spec.yaml
+  archFile: docs/3-design/reporting/reporting.arch.yaml
+  testFile: docs/5-testing/reporting/reporting.test.yaml
+  deployFile: docs/6-deployment/reporting/reporting.deploy.yaml
+- section: '4.5'
+  domain: CLI Interface
+  slug: cli_interface
+  specCount: 7
+  specFile: docs/1-requirements/cli_interface/cli_interface.spec.yaml
+  archFile: docs/3-design/cli_interface/cli_interface.arch.yaml
+  testFile: docs/5-testing/cli_interface/cli_interface.test.yaml
+  deployFile: docs/6-deployment/cli_interface/cli_interface.deploy.yaml
+- section: '4.6'
+  domain: Library API
+  slug: library_api
+  specCount: 3
+  specFile: docs/1-requirements/library_api/library_api.spec.yaml
+  archFile: docs/3-design/library_api/library_api.arch.yaml
+  testFile: docs/5-testing/library_api/library_api.test.yaml
+  deployFile: docs/6-deployment/library_api/library_api.deploy.yaml
+- section: '4.7'
+  domain: Spec File Parsing
+  slug: spec_file_parsing
+  specCount: 7
+  specFile: docs/1-requirements/spec_file_parsing/spec_file_parsing.spec.yaml
+  archFile: docs/3-design/spec_file_parsing/spec_file_parsing.arch.yaml
+  testFile: docs/5-testing/spec_file_parsing/spec_file_parsing.test.yaml
+  deployFile: docs/6-deployment/spec_file_parsing/spec_file_parsing.deploy.yaml
+- section: '4.8'
+  domain: Spec Schema Validation
+  slug: spec_schema_validation
+  specCount: 7
+  specFile: docs/1-requirements/spec_schema_validation/spec_schema_validation.spec.yaml
+  archFile: docs/3-design/spec_schema_validation/spec_schema_validation.arch.yaml
+  testFile: docs/5-testing/spec_schema_validation/spec_schema_validation.test.yaml
+  deployFile: docs/6-deployment/spec_schema_validation/spec_schema_validation.deploy.yaml
+- section: '4.9'
+  domain: Cross-Referencing
+  slug: cross_referencing
+  specCount: 8
+  specFile: docs/1-requirements/cross_referencing/cross_referencing.spec.yaml
+  archFile: docs/3-design/cross_referencing/cross_referencing.arch.yaml
+  testFile: docs/5-testing/cross_referencing/cross_referencing.test.yaml
+  deployFile: docs/6-deployment/cross_referencing/cross_referencing.deploy.yaml
+- section: '4.10'
+  domain: Markdown Generation
+  slug: markdown_generation
+  specCount: 6
+  specFile: docs/1-requirements/markdown_generation/markdown_generation.spec.yaml
+  archFile: docs/3-design/markdown_generation/markdown_generation.arch.yaml
+  testFile: docs/5-testing/markdown_generation/markdown_generation.test.yaml
+  deployFile: docs/6-deployment/markdown_generation/markdown_generation.deploy.yaml
+- section: '4.11'
+  domain: Scan Pipeline Integration
+  slug: scan_pipeline_integration
+  specCount: 3
+  specFile: docs/1-requirements/scan_pipeline_integration/scan_pipeline_integration.spec.yaml
+  archFile: docs/3-design/scan_pipeline_integration/scan_pipeline_integration.arch.yaml
+  testFile: docs/5-testing/scan_pipeline_integration/scan_pipeline_integration.test.yaml
+  deployFile: docs/6-deployment/scan_pipeline_integration/scan_pipeline_integration.deploy.yaml
+- section: '4.12'
+  domain: Spec Subcommand
+  slug: spec_subcommand
+  specCount: 6
+  specFile: docs/1-requirements/spec_subcommand/spec_subcommand.spec.yaml
+  archFile: docs/3-design/spec_subcommand/spec_subcommand.arch.yaml
+  testFile: docs/5-testing/spec_subcommand/spec_subcommand.test.yaml
+  deployFile: docs/6-deployment/spec_subcommand/spec_subcommand.deploy.yaml
+- section: '4.13'
+  domain: Planned Check Behavioral Requirements
+  slug: planned_check_behavioral_requirements
+  specCount: 22
+  specFile: docs/1-requirements/planned_check_behavioral_requirements/planned_check_behavioral_requirements.spec.yaml
+  archFile: docs/3-design/planned_check_behavioral_requirements/planned_check_behavioral_requirements.arch.yaml
+  testFile: docs/5-testing/planned_check_behavioral_requirements/planned_check_behavioral_requirements.test.yaml
+  deployFile: docs/6-deployment/planned_check_behavioral_requirements/planned_check_behavioral_requirements.deploy.yaml
+- section: '4.14'
+  domain: SRS Scaffold
+  slug: srs_scaffold
+  specCount: 7
+  specFile: docs/1-requirements/srs_scaffold/srs_scaffold.spec.yaml
+  archFile: docs/3-design/srs_scaffold/srs_scaffold.arch.yaml
+  testFile: docs/5-testing/srs_scaffold/srs_scaffold.test.yaml
+  deployFile: docs/6-deployment/srs_scaffold/srs_scaffold.deploy.yaml
+- section: '5.1'
+  domain: Architecture
+  slug: architecture
+  specCount: 2
+  specFile: docs/1-requirements/architecture/architecture.spec.yaml
+  archFile: docs/3-design/architecture/architecture.arch.yaml
+  testFile: docs/5-testing/architecture/architecture.test.yaml
+  deployFile: docs/6-deployment/architecture/architecture.deploy.yaml
+- section: '5.2'
+  domain: Performance
+  slug: performance
+  specCount: 2
+  specFile: docs/1-requirements/performance/performance.spec.yaml
+  archFile: docs/3-design/performance/performance.arch.yaml
+  testFile: docs/5-testing/performance/performance.test.yaml
+  deployFile: docs/6-deployment/performance/performance.deploy.yaml
+- section: '5.3'
+  domain: Portability
+  slug: portability
+  specCount: 1
+  specFile: docs/1-requirements/portability/portability.spec.yaml
+  archFile: docs/3-design/portability/portability.arch.yaml
+  testFile: docs/5-testing/portability/portability.test.yaml
+  deployFile: docs/6-deployment/portability/portability.deploy.yaml
+- section: '5.4'
+  domain: Extensibility
+  slug: extensibility
+  specCount: 2
+  specFile: docs/1-requirements/extensibility/extensibility.spec.yaml
+  archFile: docs/3-design/extensibility/extensibility.arch.yaml
+  testFile: docs/5-testing/extensibility/extensibility.test.yaml
+  deployFile: docs/6-deployment/extensibility/extensibility.deploy.yaml
+- section: '5.5'
+  domain: Reliability
+  slug: reliability
+  specCount: 2
+  specFile: docs/1-requirements/reliability/reliability.spec.yaml
+  archFile: docs/3-design/reliability/reliability.arch.yaml
+  testFile: docs/5-testing/reliability/reliability.test.yaml
+  deployFile: docs/6-deployment/reliability/reliability.deploy.yaml

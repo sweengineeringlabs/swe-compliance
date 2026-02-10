@@ -1,0 +1,53 @@
+kind: feature_request
+domain: SRS Scaffold
+section: '4.14'
+requirements:
+- id: REQ-001
+  sourceId: FR-822
+  title: Scaffold command
+  priority: Should
+  status: Implemented
+  verification: Demonstration
+  acceptance: '`doc-engine scaffold <SRS_PATH> [--output DIR] [--force]` parses the SRS, extracts domains and requirements, and generates per-domain SDLC spec files; exit code 0 on success, 2 on error'
+- id: REQ-002
+  sourceId: FR-823
+  title: SRS domain extraction
+  priority: Should
+  status: Implemented
+  verification: Test
+  acceptance: 'The parser extracts `### X.Y Title` domain sections and `#### FR-NNN: Title` / `#### NFR-NNN: Title` requirement blocks with their attribute tables (Priority, State, Verification, Traces to, Acceptance); domains with no requirements are excluded'
+- id: REQ-003
+  sourceId: FR-824
+  title: Per-domain spec file generation
+  priority: Should
+  status: Implemented
+  verification: Test
+  acceptance: 'For each domain, generates 10 files: `.spec.yaml`, `.spec`, `.arch.yaml`, `.arch`, `.test.yaml`, `.test`, `.manual.exec`, `.auto.exec`, `.deploy.yaml`, `.deploy`; plus 2 BRD files (`brd.spec.yaml`, `brd.spec`); total = `domains × 10 + 2`'
+- id: REQ-004
+  sourceId: FR-825
+  title: Manual test execution plan
+  priority: Should
+  status: Implemented
+  verification: Test
+  acceptance: Each `.manual.exec` file contains a TLDR, a Test Cases table with TC, Test, Steps (`_TODO_`), and Expected (from acceptance criteria) columns, and an Execution Log table with TC, Tester, Date, Pass/Fail, Notes columns; all TCs are aligned row-for-row with `.test` and `.auto.exec`
+- id: REQ-005
+  sourceId: FR-826
+  title: Automated test execution plan
+  priority: Should
+  status: Implemented
+  verification: Test
+  acceptance: Each `.auto.exec` file contains a TLDR, and a Test Cases table with TC, Test, Verifies, CI Job, Build, Status, Last Run columns; all TCs are aligned row-for-row with `.test` and `.manual.exec`
+- id: REQ-006
+  sourceId: FR-827
+  title: Scaffold skip/force behavior
+  priority: Should
+  status: Implemented
+  verification: Test
+  acceptance: Without `--force`, existing files are skipped (not overwritten) and reported with `~` prefix; with `--force`, all files are overwritten and reported with `+` prefix
+- id: REQ-007
+  sourceId: FR-828
+  title: Scaffold output directory
+  priority: Should
+  status: Implemented
+  verification: Test
+  acceptance: '`--output DIR` specifies the output root directory; parent directories are created automatically; defaults to the current directory if not specified'

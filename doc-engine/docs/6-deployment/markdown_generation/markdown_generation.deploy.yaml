@@ -1,0 +1,9 @@
+kind: deployment
+domain: Markdown Generation
+section: '4.10'
+specRef: docs/1-requirements/markdown_generation/markdown_generation.spec.yaml
+environments:
+- name: staging
+  description: Staging environment for Markdown Generation validation
+- name: production
+  description: Production environment for Markdown Generation

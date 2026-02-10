@@ -1,0 +1,20 @@
+# Deployment: Markdown Generation
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/markdown_generation/markdown_generation.spec)
+
+## Environments
+
+| Environment | Description |
+|-------------|-------------|
+| staging | Staging environment for Markdown Generation validation |
+| production | Production environment for Markdown Generation |
+
+## Build
+
+_TODO: Define build steps._
+
+## Rollback
+
+_TODO: Define rollback procedures._

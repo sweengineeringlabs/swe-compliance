@@ -1,0 +1,9 @@
+kind: deployment
+domain: Cross-Referencing
+section: '4.9'
+specRef: docs/1-requirements/cross_referencing/cross_referencing.spec.yaml
+environments:
+- name: staging
+  description: Staging environment for Cross-Referencing validation
+- name: production
+  description: Production environment for Cross-Referencing

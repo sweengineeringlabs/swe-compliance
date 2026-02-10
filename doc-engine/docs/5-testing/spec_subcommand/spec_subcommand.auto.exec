@@ -1,0 +1,21 @@
+# Automated Test Execution: Spec Subcommand
+
+> **TLDR:** CI/automated test tracker for Spec Subcommand — maps each test case to a CI job and build.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](spec_subcommand.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Verifies | CI Job | Build | Status | Last Run |
+|----|------|----------|--------|-------|--------|----------|
+| TC-001 | FR-750: Spec validate subcommand (Demonstration) | REQ-001 | | | Pending | |
+| TC-002 | FR-751: Spec cross-ref subcommand (Demonstration) | REQ-002 | | | Pending | |
+| TC-003 | FR-752: Spec generate subcommand (Demonstration) | REQ-003 | | | Pending | |
+| TC-004 | FR-753: Spec subcommand exit codes (Test) | REQ-004 | | | Pending | |
+| TC-005 | FR-754: Spec JSON output (Test) | REQ-005 | | | Pending | |
+| TC-006 | FR-755: Spec text output (Demonstration) | REQ-006 | | | Pending | |
+

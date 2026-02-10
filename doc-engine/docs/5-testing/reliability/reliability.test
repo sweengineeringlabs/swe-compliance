@@ -1,0 +1,13 @@
+# Test Plan: Reliability
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/reliability/reliability.spec)
+
+## Test Cases
+
+| ID | Test | Verifies | Priority |
+|----|------|----------|----------|
+| TC-001 | NFR-500: Graceful error handling (Test) | REQ-001 | Must |
+| TC-002 | NFR-501: Invalid rules detection (Test) | REQ-002 | Must |
+

@@ -1,0 +1,11 @@
+kind: architecture
+domain: Performance
+section: '5.2'
+specRef: docs/1-requirements/performance/performance.spec.yaml
+components:
+- name: NFR-200 handler
+  tracesTo: STK-06 -> `Cargo.toml`
+  description: Synchronous execution
+- name: NFR-201 handler
+  tracesTo: SYS-02 -> `core/scanner.rs`
+  description: The scanner shall discover files in a single directory walk.

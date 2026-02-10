@@ -1,0 +1,21 @@
+# Automated Test Execution: Rule Loading
+
+> **TLDR:** CI/automated test tracker for Rule Loading — maps each test case to a CI job and build.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](rule_loading.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Verifies | CI Job | Build | Status | Last Run |
+|----|------|----------|--------|-------|--------|----------|
+| TC-001 | FR-100: Default rules embedded in binary (Test) | REQ-001 | | | Pending | |
+| TC-002 | FR-101: External rules file override (Test) | REQ-002 | | | Pending | |
+| TC-003 | FR-102: TOML rules schema (Inspection) | REQ-003 | | | Pending | |
+| TC-004 | FR-103: Declarative rule types (Test) | REQ-004 | | | Pending | |
+| TC-005 | FR-104: Builtin rule types (Test) | REQ-005 | | | Pending | |
+| TC-006 | FR-105: Unknown handler error (Test) | REQ-006 | | | Pending | |
+

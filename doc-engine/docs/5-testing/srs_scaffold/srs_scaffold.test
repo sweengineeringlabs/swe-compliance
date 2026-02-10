@@ -1,0 +1,18 @@
+# Test Plan: SRS Scaffold
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/srs_scaffold/srs_scaffold.spec)
+
+## Test Cases
+
+| ID | Test | Verifies | Priority |
+|----|------|----------|----------|
+| TC-001 | FR-822: Scaffold command (Demonstration) | REQ-001 | Should |
+| TC-002 | FR-823: SRS domain extraction (Test) | REQ-002 | Should |
+| TC-003 | FR-824: Per-domain spec file generation (Test) | REQ-003 | Should |
+| TC-004 | FR-825: Manual test execution plan (Test) | REQ-004 | Should |
+| TC-005 | FR-826: Automated test execution plan (Test) | REQ-005 | Should |
+| TC-006 | FR-827: Scaffold skip/force behavior (Test) | REQ-006 | Should |
+| TC-007 | FR-828: Scaffold output directory (Test) | REQ-007 | Should |
+

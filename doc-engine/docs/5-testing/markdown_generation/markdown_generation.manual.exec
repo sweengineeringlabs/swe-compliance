@@ -1,0 +1,34 @@
+# Manual Test Execution: Markdown Generation
+
+> **TLDR:** Manual test checklist for Markdown Generation — step-by-step procedures with expected outcomes.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](markdown_generation.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Steps | Expected |
+|----|------|-------|----------|
+| TC-001 | FR-730: Spec-to-markdown generation (Demonstration) | _TODO_ | Given a valid `login.spec.yaml`, the generator produces a markdown file with title, requirements table, dependencies, and related documents sections |
+| TC-002 | FR-731: BRD markdown generation (Demonstration) | _TODO_ | Given a valid `brd.spec.yaml`, the generator produces a markdown document with domain inventory table and links to individual specs |
+| TC-003 | FR-732: Architecture markdown generation (Demonstration) | _TODO_ | Given a valid `.arch.yaml`, the generator produces a markdown document with component descriptions and dependency diagrams |
+| TC-004 | FR-733: Test plan markdown generation (Demonstration) | _TODO_ | Given a valid `.test.yaml`, the generator produces a markdown document with test case table including verifies traceability |
+| TC-005 | FR-734: Deployment markdown generation (Demonstration) | _TODO_ | Given a valid `.deploy.yaml`, the generator produces a markdown document with environment configuration table |
+| TC-006 | FR-735: Output path control (Test) | _TODO_ | `--output <dir>` writes generated markdown to the specified directory; default writes to stdout |
+
+---
+
+## Execution Log
+
+| TC | Tester | Date | Pass/Fail | Notes |
+|----|--------|------|-----------|-------|
+| TC-001 | | | | |
+| TC-002 | | | | |
+| TC-003 | | | | |
+| TC-004 | | | | |
+| TC-005 | | | | |
+| TC-006 | | | | |
+
