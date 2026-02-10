@@ -3,7 +3,7 @@ use std::process;
 
 use clap::{Parser, Subcommand};
 
-use doc_engine::{scan_with_config, format_report_text, format_report_json, ScanConfig, ProjectScope, ProjectType};
+use doc_engine::{scan_with_config, format_report_text, format_report_json, ScanConfig, ProjectScope, ProjectType, scaffold_from_srs, ScaffoldConfig};
 
 #[derive(Parser)]
 #[command(name = "doc-engine", version, about = "Documentation compliance engine")]
@@ -42,6 +42,19 @@ enum Commands {
         /// Save report to file (creates parent directories)
         #[arg(long, short)]
         output: Option<PathBuf>,
+    },
+    /// Generate SDLC spec file scaffold from an SRS document
+    Scaffold {
+        /// Path to the SRS markdown file
+        srs_path: PathBuf,
+
+        /// Output directory (defaults to current directory)
+        #[arg(long, short)]
+        output: Option<PathBuf>,
+
+        /// Overwrite existing files
+        #[arg(long)]
+        force: bool,
     },
 }
 
@@ -197,6 +210,45 @@ fn main() {
                     } else {
                         process::exit(0);
                     }
+                }
+                Err(e) => {
+                    eprintln!("Error: {}", e);
+                    process::exit(2);
+                }
+            }
+        }
+        Commands::Scaffold { srs_path, output, force } => {
+            let srs_resolved = match srs_path.canonicalize() {
+                Ok(p) => p,
+                Err(e) => {
+                    eprintln!("Error: cannot resolve SRS path '{}': {}", srs_path.display(), e);
+                    process::exit(2);
+                }
+            };
+
+            let output_dir = output.unwrap_or_else(|| std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
+
+            let config = ScaffoldConfig {
+                srs_path: srs_resolved,
+                output_dir,
+                force,
+            };
+
+            match scaffold_from_srs(&config) {
+                Ok(result) => {
+                    for path in &result.created {
+                        println!("  + {}", path.display());
+                    }
+                    for path in &result.skipped {
+                        println!("  ~ {}", path.display());
+                    }
+                    println!(
+                        "\nScaffold complete: {} domains, {} requirements, {} files created, {} skipped",
+                        result.domain_count,
+                        result.requirement_count,
+                        result.created.len(),
+                        result.skipped.len(),
+                    );
                 }
                 Err(e) => {
                     eprintln!("Error: {}", e);

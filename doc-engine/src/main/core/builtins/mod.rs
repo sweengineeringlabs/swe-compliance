@@ -78,6 +78,11 @@ pub fn get_handler(name: &str, def: &RuleDef) -> Option<Box<dyn CheckRunner>> {
         "prod_readiness_12207_sections" => Some(Box::new(requirements::ProdReadiness12207Sections { def: def.clone() })),
         "prod_readiness_25010_supp_sections" => Some(Box::new(requirements::ProdReadiness25010SuppSections { def: def.clone() })),
         "prod_readiness_25040_sections" => Some(Box::new(requirements::ProdReadiness25040Sections { def: def.clone() })),
+        "audit_report_1028_sections" => Some(Box::new(requirements::AuditReport1028Sections { def: def.clone() })),
+        "test_plan_29119_sections" => Some(Box::new(requirements::TestPlan29119Sections { def: def.clone() })),
+        "test_design_29119_sections" => Some(Box::new(requirements::TestDesign29119Sections { def: def.clone() })),
+        "test_cases_29119_sections" => Some(Box::new(requirements::TestCases29119Sections { def: def.clone() })),
+        "verification_report_29119_sections" => Some(Box::new(requirements::VerificationReport29119Sections { def: def.clone() })),
 
         _ => None,
     }

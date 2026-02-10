@@ -1,0 +1,70 @@
+use std::path::PathBuf;
+
+/// The SDLC role kind of a requirement.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ReqKind {
+    /// A functional requirement (FR-xxx).
+    Functional,
+    /// A non-functional requirement (NFR-xxx).
+    NonFunctional,
+}
+
+/// A single FR-xxx or NFR-xxx block extracted from the SRS.
+#[derive(Debug, Clone)]
+#[allow(dead_code)]
+pub struct SrsRequirement {
+    /// Requirement identifier, e.g. "FR-100".
+    pub id: String,
+    /// Requirement title, e.g. "Default rules embedded in binary".
+    pub title: String,
+    /// Whether this is functional or non-functional.
+    pub kind: ReqKind,
+    /// MoSCoW priority: Must / Should / May.
+    pub priority: Option<String>,
+    /// Lifecycle state: Proposed / Approved / Implemented / Verified.
+    pub state: Option<String>,
+    /// Verification method: Test / Inspection / Analysis / Demonstration.
+    pub verification: Option<String>,
+    /// Traceability reference to stakeholder requirements or code paths.
+    pub traces_to: Option<String>,
+    /// Acceptance criteria text.
+    pub acceptance: Option<String>,
+    /// Narrative description text after the attribute table.
+    pub description: String,
+}
+
+/// A domain derived from a `### X.Y Title` section heading in the SRS.
+#[derive(Debug, Clone)]
+pub struct SrsDomain {
+    /// Section number, e.g. "4.1".
+    pub section: String,
+    /// Section title, e.g. "Rule Loading".
+    pub title: String,
+    /// Slugified title, e.g. "rule_loading".
+    pub slug: String,
+    /// Requirements found in this section.
+    pub requirements: Vec<SrsRequirement>,
+}
+
+/// Configuration for the scaffold operation.
+pub struct ScaffoldConfig {
+    /// Path to the SRS markdown file.
+    pub srs_path: PathBuf,
+    /// Output directory (spec files are placed under this root).
+    pub output_dir: PathBuf,
+    /// Overwrite existing files when true.
+    pub force: bool,
+}
+
+/// Result of a scaffold operation.
+#[derive(Debug)]
+pub struct ScaffoldResult {
+    /// Files that were created.
+    pub created: Vec<PathBuf>,
+    /// Files that were skipped (already existed and --force not set).
+    pub skipped: Vec<PathBuf>,
+    /// Number of domains processed.
+    pub domain_count: usize,
+    /// Total number of requirements extracted.
+    pub requirement_count: usize,
+}

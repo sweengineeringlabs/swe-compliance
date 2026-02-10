@@ -1,4 +1,4 @@
-# doc-engine rules — 114 documentation compliance checks
+# doc-engine rules — 128 documentation compliance checks
 # Embedded in binary via include_str!("../../rules.toml")
 
 # =============================================================================
@@ -615,7 +615,7 @@ scope = "medium"
 id = 68
 category = "deployment"
 description = "Installation guide exists"
-severity = "info"
+severity = "warning"
 type = "file_exists"
 path = "docs/6-deployment/installation_guide.md"
 scope = "large"
@@ -655,7 +655,7 @@ scope = "large"
 id = 66
 category = "operations"
 description = "Maintenance plan exists"
-severity = "info"
+severity = "warning"
 type = "file_exists"
 path = "docs/7-operations/maintenance_plan.md"
 scope = "large"
@@ -820,7 +820,7 @@ scope = "medium"
 id = 83
 category = "planning"
 description = "docs/2-planning/risk_register.md exists"
-severity = "info"
+severity = "warning"
 type = "file_exists"
 path = "docs/2-planning/risk_register.md"
 scope = "large"
@@ -837,38 +837,35 @@ scope = "large"
 [[rules]]
 id = 85
 category = "planning"
-description = "docs/2-planning/schedule.md exists (open-source)"
+description = "docs/2-planning/schedule.md exists"
 severity = "info"
 type = "file_exists"
 path = "docs/2-planning/schedule.md"
-project_type = "open_source"
 scope = "large"
 
 [[rules]]
 id = 86
 category = "planning"
-description = "docs/2-planning/resource_plan.md exists (open-source)"
+description = "docs/2-planning/resource_plan.md exists"
 severity = "info"
 type = "file_exists"
 path = "docs/2-planning/resource_plan.md"
-project_type = "open_source"
 scope = "large"
 
 [[rules]]
 id = 87
 category = "planning"
-description = "docs/2-planning/communication_plan.md exists (open-source)"
+description = "docs/2-planning/communication_plan.md exists"
 severity = "info"
 type = "file_exists"
 path = "docs/2-planning/communication_plan.md"
-project_type = "open_source"
 scope = "large"
 
 [[rules]]
 id = 88
 category = "planning"
 description = "docs/2-planning/quality_plan.md exists"
-severity = "info"
+severity = "warning"
 type = "file_exists"
 path = "docs/2-planning/quality_plan.md"
 scope = "large"
@@ -993,7 +990,7 @@ scope = "medium"
 id = 100
 category = "testing"
 description = "Test design specification exists"
-severity = "info"
+severity = "warning"
 type = "file_exists"
 path = "docs/5-testing/test_design.md"
 scope = "large"
@@ -1002,7 +999,7 @@ scope = "large"
 id = 101
 category = "testing"
 description = "Test case specification exists"
-severity = "info"
+severity = "warning"
 type = "file_exists"
 path = "docs/5-testing/test_cases.md"
 scope = "large"
@@ -1169,4 +1166,119 @@ description = "Disposal plan exists"
 severity = "warning"
 type = "file_exists"
 path = "docs/7-operations/disposal_plan.md"
+scope = "large"
+
+# =============================================================================
+# Checks 118-123: ISO/IEEE Gap-Closure Artifacts
+# =============================================================================
+
+# Phase 0 — Ideation
+[[rules]]
+id = 118
+category = "ideation"
+description = "Concept of Operations (ConOps) exists"
+severity = "info"
+type = "file_exists"
+path = "docs/0-ideation/conops.md"
+scope = "large"
+
+# Phase 1 — Requirements
+[[rules]]
+id = 119
+category = "requirements"
+description = "Stakeholder requirements specification (StRS) exists"
+severity = "warning"
+type = "file_exists"
+path = "docs/1-requirements/strs.md"
+scope = "large"
+
+[[rules]]
+id = 120
+category = "requirements"
+description = "Traceability matrix exists"
+severity = "warning"
+type = "file_exists"
+path = "docs/1-requirements/traceability_matrix.md"
+scope = "large"
+
+# Cross-phase
+[[rules]]
+id = 121
+category = "traceability"
+description = "Progress/status reports exist"
+severity = "warning"
+type = "file_exists"
+path = "docs/2-planning/progress_reports.md"
+scope = "large"
+
+[[rules]]
+id = 122
+category = "traceability"
+description = "Decision log exists"
+severity = "warning"
+type = "file_exists"
+path = "docs/2-planning/decision_log.md"
+scope = "large"
+
+[[rules]]
+id = 123
+category = "traceability"
+description = "Audit report exists"
+severity = "info"
+type = "file_exists"
+path = "docs/2-planning/audit_report.md"
+scope = "large"
+
+# Check 124: Audit report content (IEEE 1028, FR-817)
+[[rules]]
+id = 124
+category = "traceability"
+description = "Audit report has IEEE 1028 sections"
+severity = "info"
+type = "builtin"
+handler = "audit_report_1028_sections"
+scope = "large"
+
+# =============================================================================
+# Checks 125-128: Testing Content Validation (29119-3 clauses 7-10)
+# =============================================================================
+
+# Check 125: Test plan content (29119-3 clause 7, FR-818)
+[[rules]]
+id = 125
+category = "testing"
+description = "Test plan has 29119-3 sections"
+severity = "info"
+type = "builtin"
+handler = "test_plan_29119_sections"
+scope = "large"
+
+# Check 126: Test design content (29119-3 clause 8, FR-819)
+[[rules]]
+id = 126
+category = "testing"
+description = "Test design has 29119-3 sections"
+severity = "info"
+type = "builtin"
+handler = "test_design_29119_sections"
+scope = "large"
+
+# Check 127: Test cases content (29119-3 clause 9, FR-820)
+[[rules]]
+id = 127
+category = "testing"
+description = "Test cases has 29119-3 sections"
+severity = "info"
+type = "builtin"
+handler = "test_cases_29119_sections"
+scope = "large"
+
+# Check 128: Verification report content (29119-3 clause 10, FR-821)
+[[rules]]
+id = 128
+category = "testing"
+description = "Verification report has 29119-3 sections"
+severity = "info"
+type = "builtin"
+handler = "verification_report_29119_sections"
 scope = "large"

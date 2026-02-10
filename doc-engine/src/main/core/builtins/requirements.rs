@@ -125,6 +125,61 @@ static PR_SIGNOFF_RE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"(?i)(##\s+sign.off|role.*name.*date.*verdict)").unwrap()
 });
 
+// IEEE 1028 audit report section regexes
+static AUDIT_SCOPE_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)(##\s+scope|##\s+audit\s+scope|objective)").unwrap()
+});
+static AUDIT_FINDINGS_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)(##\s+finding|##\s+observation|non.conform)").unwrap()
+});
+static AUDIT_RECOMMENDATIONS_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)(##\s+recommend|corrective.action|##\s+action)").unwrap()
+});
+
+// 29119-3 clause 7: Test plan sections
+static TP_OBJECTIVES_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)(##\s+objective|##\s+scope|##\s+purpose|test.objective)").unwrap()
+});
+static TP_SCHEDULE_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)(##\s+schedule|##\s+milestone|##\s+timeline|test.schedule)").unwrap()
+});
+static TP_ENVIRONMENT_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)(##\s+environment|##\s+resource|##\s+infrastructure|test.environment)").unwrap()
+});
+
+// 29119-3 clause 8: Test design sections
+static TD_CONDITIONS_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)(##\s+test.condition|##\s+condition|##\s+feature|test.condition)").unwrap()
+});
+static TD_COVERAGE_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)(##\s+coverage|##\s+coverage.criteria|coverage.approach|test.coverage)").unwrap()
+});
+static TD_TRACEABILITY_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)(##\s+traceability|##\s+requirement.mapping|traces.to|trace.matrix)").unwrap()
+});
+
+// 29119-3 clause 9: Test case sections
+static TC_ID_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)(##\s+test.case|test.case.id|TC-\d|test.id)").unwrap()
+});
+static TC_STEPS_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)(##\s+step|##\s+pre.condition|##\s+procedure|test.step)").unwrap()
+});
+static TC_EXPECTED_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)(##\s+expected|expected.result|pass.criteria|acceptance.criteria)").unwrap()
+});
+
+// 29119-3 clause 10: Verification report sections
+static VR_SUMMARY_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)(##\s+summary|##\s+result|##\s+overview|test.result)").unwrap()
+});
+static VR_STATUS_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)(##\s+status|##\s+pass|##\s+verdict|pass.*fail)").unwrap()
+});
+static VR_DEFECTS_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)(##\s+defect|##\s+issue|##\s+bug|##\s+finding|defect.summary)").unwrap()
+});
+
 /// Check 89: srs_29148_attributes
 /// Validates that SRS requirement blocks (FR-xxx, NFR-xxx) have the five
 /// mandatory ISO/IEC/IEEE 29148:2018 attribute table entries:
@@ -675,6 +730,262 @@ impl CheckRunner for ProdReadiness25040Sections {
             FileCheckResult::FileAbsent | FileCheckResult::FileEmpty | FileCheckResult::ReadError(_) => {
                 CheckResult::Skip {
                     reason: "docs/6-deployment/production_readiness.md not found".to_string(),
+                }
+            }
+        }
+    }
+}
+
+fn audit_report_1028_categories() -> Vec<(&'static str, &'static Regex)> {
+    vec![
+        ("Scope", &*AUDIT_SCOPE_RE),
+        ("Findings", &*AUDIT_FINDINGS_RE),
+        ("Recommendations", &*AUDIT_RECOMMENDATIONS_RE),
+    ]
+}
+
+/// Check 124: audit_report_1028_sections
+/// Validates that docs/2-planning/audit_report.md has key IEEE 1028
+/// sections: scope, findings, and recommendations.
+pub struct AuditReport1028Sections {
+    pub def: RuleDef,
+}
+
+impl CheckRunner for AuditReport1028Sections {
+    fn id(&self) -> CheckId { CheckId(self.def.id) }
+    fn category(&self) -> &str { &self.def.category }
+    fn description(&self) -> &str { &self.def.description }
+
+    fn run(&self, ctx: &ScanContext) -> CheckResult {
+        let categories = audit_report_1028_categories();
+
+        let project_path = ctx.root.join("docs/2-planning/audit_report.md");
+        match check_file_sections(&project_path, &categories) {
+            FileCheckResult::Missing(missing) => {
+                if missing.is_empty() {
+                    CheckResult::Pass
+                } else {
+                    CheckResult::Fail {
+                        violations: vec![Violation {
+                            check_id: CheckId(self.def.id),
+                            path: Some("docs/2-planning/audit_report.md".into()),
+                            message: format!(
+                                "Audit report missing IEEE 1028 section{}: {}",
+                                if missing.len() > 1 { "s" } else { "" },
+                                missing.join(", ")
+                            ),
+                            severity: self.def.severity.clone(),
+                        }],
+                    }
+                }
+            }
+            FileCheckResult::FileAbsent | FileCheckResult::FileEmpty | FileCheckResult::ReadError(_) => {
+                CheckResult::Skip {
+                    reason: "docs/2-planning/audit_report.md not found".to_string(),
+                }
+            }
+        }
+    }
+}
+
+fn test_plan_29119_categories() -> Vec<(&'static str, &'static Regex)> {
+    vec![
+        ("Objectives/scope", &*TP_OBJECTIVES_RE),
+        ("Schedule/milestones", &*TP_SCHEDULE_RE),
+        ("Environment/resources", &*TP_ENVIRONMENT_RE),
+    ]
+}
+
+/// Check 125: test_plan_29119_sections
+/// Validates that docs/5-testing/test_plan.md has key ISO/IEC/IEEE 29119-3:2021
+/// clause 7 sections: objectives/scope, schedule/milestones, environment/resources.
+pub struct TestPlan29119Sections {
+    pub def: RuleDef,
+}
+
+impl CheckRunner for TestPlan29119Sections {
+    fn id(&self) -> CheckId { CheckId(self.def.id) }
+    fn category(&self) -> &str { &self.def.category }
+    fn description(&self) -> &str { &self.def.description }
+
+    fn run(&self, ctx: &ScanContext) -> CheckResult {
+        let categories = test_plan_29119_categories();
+        let project_path = ctx.root.join("docs/5-testing/test_plan.md");
+        match check_file_sections(&project_path, &categories) {
+            FileCheckResult::Missing(missing) => {
+                if missing.is_empty() {
+                    CheckResult::Pass
+                } else {
+                    CheckResult::Fail {
+                        violations: vec![Violation {
+                            check_id: CheckId(self.def.id),
+                            path: Some("docs/5-testing/test_plan.md".into()),
+                            message: format!(
+                                "Test plan missing 29119-3 section{}: {}",
+                                if missing.len() > 1 { "s" } else { "" },
+                                missing.join(", ")
+                            ),
+                            severity: self.def.severity.clone(),
+                        }],
+                    }
+                }
+            }
+            FileCheckResult::FileAbsent | FileCheckResult::FileEmpty | FileCheckResult::ReadError(_) => {
+                CheckResult::Skip {
+                    reason: "docs/5-testing/test_plan.md not found".to_string(),
+                }
+            }
+        }
+    }
+}
+
+fn test_design_29119_categories() -> Vec<(&'static str, &'static Regex)> {
+    vec![
+        ("Test conditions", &*TD_CONDITIONS_RE),
+        ("Test coverage", &*TD_COVERAGE_RE),
+        ("Traceability", &*TD_TRACEABILITY_RE),
+    ]
+}
+
+/// Check 126: test_design_29119_sections
+/// Validates that docs/5-testing/test_design.md has key ISO/IEC/IEEE 29119-3:2021
+/// clause 8 sections: test conditions, test coverage, traceability.
+pub struct TestDesign29119Sections {
+    pub def: RuleDef,
+}
+
+impl CheckRunner for TestDesign29119Sections {
+    fn id(&self) -> CheckId { CheckId(self.def.id) }
+    fn category(&self) -> &str { &self.def.category }
+    fn description(&self) -> &str { &self.def.description }
+
+    fn run(&self, ctx: &ScanContext) -> CheckResult {
+        let categories = test_design_29119_categories();
+        let project_path = ctx.root.join("docs/5-testing/test_design.md");
+        match check_file_sections(&project_path, &categories) {
+            FileCheckResult::Missing(missing) => {
+                if missing.is_empty() {
+                    CheckResult::Pass
+                } else {
+                    CheckResult::Fail {
+                        violations: vec![Violation {
+                            check_id: CheckId(self.def.id),
+                            path: Some("docs/5-testing/test_design.md".into()),
+                            message: format!(
+                                "Test design missing 29119-3 section{}: {}",
+                                if missing.len() > 1 { "s" } else { "" },
+                                missing.join(", ")
+                            ),
+                            severity: self.def.severity.clone(),
+                        }],
+                    }
+                }
+            }
+            FileCheckResult::FileAbsent | FileCheckResult::FileEmpty | FileCheckResult::ReadError(_) => {
+                CheckResult::Skip {
+                    reason: "docs/5-testing/test_design.md not found".to_string(),
+                }
+            }
+        }
+    }
+}
+
+fn test_cases_29119_categories() -> Vec<(&'static str, &'static Regex)> {
+    vec![
+        ("Test case ID/title", &*TC_ID_RE),
+        ("Pre-conditions/steps", &*TC_STEPS_RE),
+        ("Expected results", &*TC_EXPECTED_RE),
+    ]
+}
+
+/// Check 127: test_cases_29119_sections
+/// Validates that docs/5-testing/test_cases.md has key ISO/IEC/IEEE 29119-3:2021
+/// clause 9 sections: test case ID/title, pre-conditions/steps, expected results.
+pub struct TestCases29119Sections {
+    pub def: RuleDef,
+}
+
+impl CheckRunner for TestCases29119Sections {
+    fn id(&self) -> CheckId { CheckId(self.def.id) }
+    fn category(&self) -> &str { &self.def.category }
+    fn description(&self) -> &str { &self.def.description }
+
+    fn run(&self, ctx: &ScanContext) -> CheckResult {
+        let categories = test_cases_29119_categories();
+        let project_path = ctx.root.join("docs/5-testing/test_cases.md");
+        match check_file_sections(&project_path, &categories) {
+            FileCheckResult::Missing(missing) => {
+                if missing.is_empty() {
+                    CheckResult::Pass
+                } else {
+                    CheckResult::Fail {
+                        violations: vec![Violation {
+                            check_id: CheckId(self.def.id),
+                            path: Some("docs/5-testing/test_cases.md".into()),
+                            message: format!(
+                                "Test cases missing 29119-3 section{}: {}",
+                                if missing.len() > 1 { "s" } else { "" },
+                                missing.join(", ")
+                            ),
+                            severity: self.def.severity.clone(),
+                        }],
+                    }
+                }
+            }
+            FileCheckResult::FileAbsent | FileCheckResult::FileEmpty | FileCheckResult::ReadError(_) => {
+                CheckResult::Skip {
+                    reason: "docs/5-testing/test_cases.md not found".to_string(),
+                }
+            }
+        }
+    }
+}
+
+fn verification_report_29119_categories() -> Vec<(&'static str, &'static Regex)> {
+    vec![
+        ("Summary/results", &*VR_SUMMARY_RE),
+        ("Pass/fail status", &*VR_STATUS_RE),
+        ("Defects/issues", &*VR_DEFECTS_RE),
+    ]
+}
+
+/// Check 128: verification_report_29119_sections
+/// Validates that docs/5-testing/verification_report.md has key ISO/IEC/IEEE 29119-3:2021
+/// clause 10 sections: summary/results, pass/fail status, defects/issues.
+pub struct VerificationReport29119Sections {
+    pub def: RuleDef,
+}
+
+impl CheckRunner for VerificationReport29119Sections {
+    fn id(&self) -> CheckId { CheckId(self.def.id) }
+    fn category(&self) -> &str { &self.def.category }
+    fn description(&self) -> &str { &self.def.description }
+
+    fn run(&self, ctx: &ScanContext) -> CheckResult {
+        let categories = verification_report_29119_categories();
+        let project_path = ctx.root.join("docs/5-testing/verification_report.md");
+        match check_file_sections(&project_path, &categories) {
+            FileCheckResult::Missing(missing) => {
+                if missing.is_empty() {
+                    CheckResult::Pass
+                } else {
+                    CheckResult::Fail {
+                        violations: vec![Violation {
+                            check_id: CheckId(self.def.id),
+                            path: Some("docs/5-testing/verification_report.md".into()),
+                            message: format!(
+                                "Verification report missing 29119-3 section{}: {}",
+                                if missing.len() > 1 { "s" } else { "" },
+                                missing.join(", ")
+                            ),
+                            severity: self.def.severity.clone(),
+                        }],
+                    }
+                }
+            }
+            FileCheckResult::FileAbsent | FileCheckResult::FileEmpty | FileCheckResult::ReadError(_) => {
+                CheckResult::Skip {
+                    reason: "docs/5-testing/verification_report.md not found".to_string(),
                 }
             }
         }
@@ -2187,6 +2498,428 @@ mod tests {
                 assert_eq!(violations.len(), 1);
                 assert!(violations[0].message.contains("Scoring"));
                 assert!(!violations[0].message.contains("Sign-Off"));
+            }
+            other => panic!("Expected Fail, got {:?}", other),
+        }
+    }
+
+    // =========================================================================
+    // Check 124: AuditReport1028Sections
+    // =========================================================================
+
+    fn make_audit_1028_def() -> RuleDef {
+        RuleDef {
+            id: 124,
+            category: "traceability".to_string(),
+            description: "Audit report has IEEE 1028 sections".to_string(),
+            severity: Severity::Info,
+            rule_type: RuleType::Builtin { handler: "audit_report_1028_sections".to_string() },
+            project_type: None,
+            scope: None,
+        }
+    }
+
+    #[test]
+    fn test_audit_1028_skip_no_file() {
+        let tmp = TempDir::new().unwrap();
+
+        let handler = AuditReport1028Sections { def: make_audit_1028_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Skip { .. }));
+    }
+
+    #[test]
+    fn test_audit_1028_skip_empty() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/2-planning/audit_report.md", "  \n");
+
+        let handler = AuditReport1028Sections { def: make_audit_1028_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Skip { .. }));
+    }
+
+    #[test]
+    fn test_audit_1028_pass() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/2-planning/audit_report.md",
+            "# Audit Report\n\n\
+             ## Scope\n\nAudit of documentation completeness.\n\n\
+             ## Findings\n\nNo major non-conformances identified.\n\n\
+             ## Recommendations\n\nContinue current practices.\n");
+
+        let handler = AuditReport1028Sections { def: make_audit_1028_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_audit_1028_fail_missing_all() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/2-planning/audit_report.md",
+            "# Audit Report\n\n**Audience**: Developers\n\nGeneric content only.\n");
+
+        let handler = AuditReport1028Sections { def: make_audit_1028_def() };
+        let ctx = make_ctx(tmp.path());
+        match handler.run(&ctx) {
+            CheckResult::Fail { violations } => {
+                assert_eq!(violations.len(), 1);
+                assert!(violations[0].message.contains("Scope"));
+                assert!(violations[0].message.contains("Findings"));
+                assert!(violations[0].message.contains("Recommendations"));
+            }
+            other => panic!("Expected Fail, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_audit_1028_fail_missing_findings() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/2-planning/audit_report.md",
+            "# Audit Report\n\n\
+             ## Scope\n\nAudit of documentation completeness.\n\n\
+             ## Recommendations\n\nContinue current practices.\n");
+
+        let handler = AuditReport1028Sections { def: make_audit_1028_def() };
+        let ctx = make_ctx(tmp.path());
+        match handler.run(&ctx) {
+            CheckResult::Fail { violations } => {
+                assert_eq!(violations.len(), 1);
+                assert!(violations[0].message.contains("Findings"));
+                assert!(!violations[0].message.contains("Scope"));
+                assert!(!violations[0].message.contains("Recommendations"));
+            }
+            other => panic!("Expected Fail, got {:?}", other),
+        }
+    }
+
+    // =========================================================================
+    // Check 125: TestPlan29119Sections
+    // =========================================================================
+
+    fn make_test_plan_29119_def() -> RuleDef {
+        RuleDef {
+            id: 125,
+            category: "testing".to_string(),
+            description: "Test plan has 29119-3 sections".to_string(),
+            severity: Severity::Info,
+            rule_type: RuleType::Builtin { handler: "test_plan_29119_sections".to_string() },
+            project_type: None,
+            scope: None,
+        }
+    }
+
+    #[test]
+    fn test_test_plan_29119_skip_no_file() {
+        let tmp = TempDir::new().unwrap();
+        let handler = TestPlan29119Sections { def: make_test_plan_29119_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Skip { .. }));
+    }
+
+    #[test]
+    fn test_test_plan_29119_skip_empty() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/5-testing/test_plan.md", "  \n");
+        let handler = TestPlan29119Sections { def: make_test_plan_29119_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Skip { .. }));
+    }
+
+    #[test]
+    fn test_test_plan_29119_pass() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/5-testing/test_plan.md",
+            "# Test Plan\n\n\
+             ## Objectives\n\nValidate all components.\n\n\
+             ## Schedule\n\nSprint 1-3 milestones.\n\n\
+             ## Environment\n\nCI runner with Docker.\n");
+        let handler = TestPlan29119Sections { def: make_test_plan_29119_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_test_plan_29119_fail_missing_all() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/5-testing/test_plan.md",
+            "# Test Plan\n\n**Audience**: Developers\n\nGeneric content only.\n");
+        let handler = TestPlan29119Sections { def: make_test_plan_29119_def() };
+        let ctx = make_ctx(tmp.path());
+        match handler.run(&ctx) {
+            CheckResult::Fail { violations } => {
+                assert_eq!(violations.len(), 1);
+                assert!(violations[0].message.contains("Objectives/scope"));
+                assert!(violations[0].message.contains("Schedule/milestones"));
+                assert!(violations[0].message.contains("Environment/resources"));
+            }
+            other => panic!("Expected Fail, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_test_plan_29119_fail_missing_one() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/5-testing/test_plan.md",
+            "# Test Plan\n\n\
+             ## Objectives\n\nValidate all components.\n\n\
+             ## Environment\n\nCI runner with Docker.\n");
+        let handler = TestPlan29119Sections { def: make_test_plan_29119_def() };
+        let ctx = make_ctx(tmp.path());
+        match handler.run(&ctx) {
+            CheckResult::Fail { violations } => {
+                assert_eq!(violations.len(), 1);
+                assert!(violations[0].message.contains("Schedule/milestones"));
+                assert!(!violations[0].message.contains("Objectives/scope"));
+            }
+            other => panic!("Expected Fail, got {:?}", other),
+        }
+    }
+
+    // =========================================================================
+    // Check 126: TestDesign29119Sections
+    // =========================================================================
+
+    fn make_test_design_29119_def() -> RuleDef {
+        RuleDef {
+            id: 126,
+            category: "testing".to_string(),
+            description: "Test design has 29119-3 sections".to_string(),
+            severity: Severity::Info,
+            rule_type: RuleType::Builtin { handler: "test_design_29119_sections".to_string() },
+            project_type: None,
+            scope: None,
+        }
+    }
+
+    #[test]
+    fn test_test_design_29119_skip_no_file() {
+        let tmp = TempDir::new().unwrap();
+        let handler = TestDesign29119Sections { def: make_test_design_29119_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Skip { .. }));
+    }
+
+    #[test]
+    fn test_test_design_29119_skip_empty() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/5-testing/test_design.md", "  \n");
+        let handler = TestDesign29119Sections { def: make_test_design_29119_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Skip { .. }));
+    }
+
+    #[test]
+    fn test_test_design_29119_pass() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/5-testing/test_design.md",
+            "# Test Design\n\n\
+             ## Test Conditions\n\nAll functional requirements covered.\n\n\
+             ## Coverage\n\n80% line coverage target.\n\n\
+             ## Traceability\n\nTraces to SRS requirements.\n");
+        let handler = TestDesign29119Sections { def: make_test_design_29119_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_test_design_29119_fail_missing_all() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/5-testing/test_design.md",
+            "# Test Design\n\n**Audience**: Developers\n\nGeneric content only.\n");
+        let handler = TestDesign29119Sections { def: make_test_design_29119_def() };
+        let ctx = make_ctx(tmp.path());
+        match handler.run(&ctx) {
+            CheckResult::Fail { violations } => {
+                assert_eq!(violations.len(), 1);
+                assert!(violations[0].message.contains("Test conditions"));
+                assert!(violations[0].message.contains("Test coverage"));
+                assert!(violations[0].message.contains("Traceability"));
+            }
+            other => panic!("Expected Fail, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_test_design_29119_fail_missing_one() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/5-testing/test_design.md",
+            "# Test Design\n\n\
+             ## Test Conditions\n\nAll functional requirements covered.\n\n\
+             ## Traceability\n\nTraces to SRS requirements.\n");
+        let handler = TestDesign29119Sections { def: make_test_design_29119_def() };
+        let ctx = make_ctx(tmp.path());
+        match handler.run(&ctx) {
+            CheckResult::Fail { violations } => {
+                assert_eq!(violations.len(), 1);
+                assert!(violations[0].message.contains("Test coverage"));
+                assert!(!violations[0].message.contains("Test conditions"));
+            }
+            other => panic!("Expected Fail, got {:?}", other),
+        }
+    }
+
+    // =========================================================================
+    // Check 127: TestCases29119Sections
+    // =========================================================================
+
+    fn make_test_cases_29119_def() -> RuleDef {
+        RuleDef {
+            id: 127,
+            category: "testing".to_string(),
+            description: "Test cases has 29119-3 sections".to_string(),
+            severity: Severity::Info,
+            rule_type: RuleType::Builtin { handler: "test_cases_29119_sections".to_string() },
+            project_type: None,
+            scope: None,
+        }
+    }
+
+    #[test]
+    fn test_test_cases_29119_skip_no_file() {
+        let tmp = TempDir::new().unwrap();
+        let handler = TestCases29119Sections { def: make_test_cases_29119_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Skip { .. }));
+    }
+
+    #[test]
+    fn test_test_cases_29119_skip_empty() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/5-testing/test_cases.md", "  \n");
+        let handler = TestCases29119Sections { def: make_test_cases_29119_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Skip { .. }));
+    }
+
+    #[test]
+    fn test_test_cases_29119_pass() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/5-testing/test_cases.md",
+            "# Test Cases\n\n\
+             ## Test Case TC-001: Login\n\nVerify user login flow.\n\n\
+             ## Steps\n\n1. Navigate to login page.\n2. Enter credentials.\n\n\
+             ## Expected Results\n\nUser is redirected to dashboard.\n");
+        let handler = TestCases29119Sections { def: make_test_cases_29119_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_test_cases_29119_fail_missing_all() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/5-testing/test_cases.md",
+            "# Test Cases\n\n**Audience**: Developers\n\nGeneric content only.\n");
+        let handler = TestCases29119Sections { def: make_test_cases_29119_def() };
+        let ctx = make_ctx(tmp.path());
+        match handler.run(&ctx) {
+            CheckResult::Fail { violations } => {
+                assert_eq!(violations.len(), 1);
+                assert!(violations[0].message.contains("Test case ID/title"));
+                assert!(violations[0].message.contains("Pre-conditions/steps"));
+                assert!(violations[0].message.contains("Expected results"));
+            }
+            other => panic!("Expected Fail, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_test_cases_29119_fail_missing_one() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/5-testing/test_cases.md",
+            "# Test Cases\n\n\
+             ## Test Case TC-001: Login\n\nVerify user login flow.\n\n\
+             ## Expected Results\n\nUser is redirected to dashboard.\n");
+        let handler = TestCases29119Sections { def: make_test_cases_29119_def() };
+        let ctx = make_ctx(tmp.path());
+        match handler.run(&ctx) {
+            CheckResult::Fail { violations } => {
+                assert_eq!(violations.len(), 1);
+                assert!(violations[0].message.contains("Pre-conditions/steps"));
+                assert!(!violations[0].message.contains("Test case ID/title"));
+            }
+            other => panic!("Expected Fail, got {:?}", other),
+        }
+    }
+
+    // =========================================================================
+    // Check 128: VerificationReport29119Sections
+    // =========================================================================
+
+    fn make_verification_report_29119_def() -> RuleDef {
+        RuleDef {
+            id: 128,
+            category: "testing".to_string(),
+            description: "Verification report has 29119-3 sections".to_string(),
+            severity: Severity::Info,
+            rule_type: RuleType::Builtin { handler: "verification_report_29119_sections".to_string() },
+            project_type: None,
+            scope: None,
+        }
+    }
+
+    #[test]
+    fn test_verification_report_29119_skip_no_file() {
+        let tmp = TempDir::new().unwrap();
+        let handler = VerificationReport29119Sections { def: make_verification_report_29119_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Skip { .. }));
+    }
+
+    #[test]
+    fn test_verification_report_29119_skip_empty() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/5-testing/verification_report.md", "  \n");
+        let handler = VerificationReport29119Sections { def: make_verification_report_29119_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Skip { .. }));
+    }
+
+    #[test]
+    fn test_verification_report_29119_pass() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/5-testing/verification_report.md",
+            "# Verification Report\n\n\
+             ## Summary\n\nAll test suites executed successfully.\n\n\
+             ## Status\n\n42 pass, 0 fail.\n\n\
+             ## Defects\n\nNo critical defects found.\n");
+        let handler = VerificationReport29119Sections { def: make_verification_report_29119_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_verification_report_29119_fail_missing_all() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/5-testing/verification_report.md",
+            "# Verification Report\n\n**Audience**: Developers\n\nGeneric content only.\n");
+        let handler = VerificationReport29119Sections { def: make_verification_report_29119_def() };
+        let ctx = make_ctx(tmp.path());
+        match handler.run(&ctx) {
+            CheckResult::Fail { violations } => {
+                assert_eq!(violations.len(), 1);
+                assert!(violations[0].message.contains("Summary/results"));
+                assert!(violations[0].message.contains("Pass/fail status"));
+                assert!(violations[0].message.contains("Defects/issues"));
+            }
+            other => panic!("Expected Fail, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_verification_report_29119_fail_missing_one() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/5-testing/verification_report.md",
+            "# Verification Report\n\n\
+             ## Summary\n\nAll test suites executed successfully.\n\n\
+             ## Defects\n\nNo critical defects found.\n");
+        let handler = VerificationReport29119Sections { def: make_verification_report_29119_def() };
+        let ctx = make_ctx(tmp.path());
+        match handler.run(&ctx) {
+            CheckResult::Fail { violations } => {
+                assert_eq!(violations.len(), 1);
+                assert!(violations[0].message.contains("Pass/fail status"));
+                assert!(!violations[0].message.contains("Summary/results"));
+                assert!(!violations[0].message.contains("Defects/issues"));
             }
             other => panic!("Expected Fail, got {:?}", other),
         }

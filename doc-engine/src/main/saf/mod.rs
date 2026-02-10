@@ -21,6 +21,10 @@ pub use crate::core::engine::detect_project_type;
 // Re-export rule_count for test assertions
 pub use crate::core::rules::default_rule_count;
 
+// Re-export scaffold API
+pub use crate::core::scaffold::scaffold_from_srs;
+pub use crate::core::scaffold::types::{ScaffoldConfig, ScaffoldResult};
+
 /// Scan a project directory with custom configuration.
 ///
 /// Runs every enabled compliance check against the files found under `root`

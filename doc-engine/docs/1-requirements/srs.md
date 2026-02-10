@@ -4,7 +4,7 @@
 
 ## TLDR
 
-This SRS defines requirements for doc-engine, a Rust CLI tool that audits project documentation against 117 compliance checks across 18 categories, mapped to 8 ISO/IEC standards. It covers stakeholder needs, functional requirements for rule evaluation and reporting, non-functional requirements for performance and extensibility, and traceability from stakeholder goals to implementation modules.
+This SRS defines requirements for doc-engine, a Rust CLI tool that audits project documentation against 128 compliance checks across 18 categories, mapped to 8 ISO/IEC/IEEE standards, IEEE 1028, and PMBOK. It covers stakeholder needs, functional requirements for rule evaluation and reporting, non-functional requirements for performance and extensibility, and traceability from stakeholder goals to implementation modules.
 
 **Version**: 1.0
 **Date**: 2026-02-07
@@ -16,7 +16,7 @@ This SRS defines requirements for doc-engine, a Rust CLI tool that audits projec
 
 ### 1.1 Purpose
 
-This SRS defines the stakeholder, system, and software requirements for **doc-engine**, a Rust CLI tool and library that audits project documentation against the compliance standard defined by the template-engine documentation framework. The engine supports 117 checks across 18 categories: structure (1-13, 69, 72-73), naming (14-25, 76), root_files (26-32, 70), content (33-39, 75), navigation (40-43, 74), cross_ref (44-47), adr (48-50), traceability (51-53, 82), ideation (54), requirements (55, 89-98), planning (56, 83-88, 109-113), design (57, 107-108), development (58, 103-106), testing (59, 99-102), deployment (60-62, 68, 114-116), operations (63-67, 117), backlog (71), and module (77-81). Phase artifact checks (54-68, 99-117) verify the existence of ISO-mandated documentation per SDLC phase; checks 89-98 validate content against ISO/IEC/IEEE 29148, 42010, 29119-3, 26514, 12207, 25010, and 25040 standards.
+This SRS defines the stakeholder, system, and software requirements for **doc-engine**, a Rust CLI tool and library that audits project documentation against the compliance standard defined by the template-engine documentation framework. The engine supports 128 checks across 18 categories: structure (1-13, 69, 72-73), naming (14-25, 76), root_files (26-32, 70), content (33-39, 75), navigation (40-43, 74), cross_ref (44-47), adr (48-50), traceability (51-53, 82, 121-124), ideation (54, 118), requirements (55, 89-98, 119-120), planning (56, 83-88, 109-113), design (57, 107-108), development (58, 103-106), testing (59, 99-102, 125-128), deployment (60-62, 68, 114-116), operations (63-67, 117), backlog (71), and module (77-81). Phase artifact checks (54-68, 99-128) verify the existence of ISO-mandated documentation per SDLC phase; checks 89-98, 124-128 validate content against ISO/IEC/IEEE 29148, 42010, 29119-3, 26514, 12207, 25010, 25040, and IEEE 1028 standards.
 
 ### 1.2 Scope
 
@@ -62,14 +62,15 @@ doc-engine does **not**:
 
 | Document | Location |
 |----------|----------|
-| ISO/IEC/IEEE 29148:2018 | Requirements engineering standard (checks 55, 89; this document conforms to) |
-| ISO/IEC/IEEE 12207:2017 | Software life cycle processes (checks 9-10, 51-53, 56, 62, 64, 66, 82-88, 92, 96, 103, 109-113, 117) |
-| ISO/IEC/IEEE 15289:2019 | Content of life-cycle information items (checks 1-8, 14-20, 26-39, 48-50, 55, 60-68, 69-76, 99, 102-117); also defines the "Audit Report" information item — canonical filename for doc-engine output: `documentation_audit_report_v{version}.json` |
+| ISO/IEC/IEEE 29148:2018 | Requirements engineering standard (checks 55, 89, 118-120; this document conforms to) |
+| ISO/IEC/IEEE 12207:2017 | Software life cycle processes (checks 9-10, 51-53, 56, 62, 64, 66, 82-88, 92, 96, 103, 109-113, 117, 120-122) |
+| ISO/IEC/IEEE 15289:2019 | Content of life-cycle information items (checks 1-8, 14-20, 26-39, 48-50, 55, 60-68, 69-76, 99, 102-128); also defines the "Audit Report" information item — canonical filename for doc-engine output: `documentation_audit_report_v{version}.json` |
 | ISO/IEC/IEEE 26514:2022 | Design and development of information for users (checks 58, 65, 67, 94, 104, 116) |
-| ISO/IEC/IEEE 29119-3:2021 | Software testing -- Part 3: Test documentation (checks 59, 91, 99-102, 113) |
+| ISO/IEC/IEEE 29119-3:2021 | Software testing -- Part 3: Test documentation (checks 59, 91, 99-102, 113, 125-128) |
 | ISO/IEC/IEEE 42010:2022 | Architecture description (checks 48-50, 57, 90, 107-108) |
 | ISO/IEC 25010:2023 | Product quality model, SQuaRE (checks 93, 97) |
 | ISO/IEC 25040:2024 | Evaluation process, SQuaRE (check 98) |
+| IEEE 1028:2008 | Standard for Software Reviews and Audits (checks 123, 124) |
 | Documentation Framework | `/mnt/c/phd-systems/swe-labs/template-engine/templates/framework.md` |
 | Compliance Checklist | `/mnt/c/phd-systems/swe-labs/template-engine/templates/compliance-checklist.md` |
 | SEA Architecture Reference | `/mnt/c/phd-systems/swe-labs/langboot/rustratify/docs/3-design/architecture.md` |
@@ -85,7 +86,7 @@ doc-engine does **not**:
 | Stakeholder | Role | Needs |
 |-------------|------|-------|
 | Developer | Runs scans during local development | Fast feedback on doc compliance, clear violation messages |
-| Architect | Audits projects, defines standards | Customizable rules, comprehensive coverage of 117 checks across 18 categories |
+| Architect | Audits projects, defines standards | Customizable rules, comprehensive coverage of 128 checks across 18 categories |
 | Documentation maintainer | Tweaks rules without coding | Declarative TOML rules, no recompilation for simple changes |
 | CI system | Automated gate in pipeline | JSON output, deterministic exit codes, non-interactive |
 | Library consumer | Integrates scanning programmatically | Clean public API, well-typed report structures |
@@ -132,7 +133,7 @@ A developer or CI job runs `doc-engine scan . --scope large --json -o docs/7-ope
 
 | ID | Requirement | Source | Priority | Rationale |
 |----|-------------|--------|----------|-----------|
-| STK-01 | The tool shall audit any project directory against 117 documentation compliance checks | Compliance Checklist | Must | Replaces manual bash-based auditing |
+| STK-01 | The tool shall audit any project directory against 128 documentation compliance checks | Compliance Checklist | Must | Replaces manual bash-based auditing |
 | STK-02 | Simple rules shall be modifiable without recompiling | Architect feedback | Must | Non-developers need to customize rules |
 | STK-03 | The tool shall produce machine-readable output for CI integration | CI pipeline needs | Must | Enables automated compliance gating |
 | STK-04 | The tool shall be usable as a Rust library | Library consumer needs | Should | Enables programmatic integration |
@@ -152,7 +153,7 @@ A developer or CI job runs `doc-engine scan . --scope large --json -o docs/7-ope
 ```
 template-engine/templates/
 ├── framework.md              ← defines the standard
-└── compliance-checklist.md   ← defines the original base checks (now extended to 117 total)
+└── compliance-checklist.md   ← defines the original base checks (now extended to 128 total)
          │
          ▼
 doc-engine/rules.toml         ← encodes checks as TOML rules
@@ -216,7 +217,7 @@ Each requirement includes:
 | **State** | Approved |
 | **Verification** | Test |
 | **Traces to** | STK-01, STK-02 -> `core/rules.rs` |
-| **Acceptance** | When no `--rules` flag is provided, the engine loads rules from the embedded default and produces a valid `ScanReport` with 117 check results |
+| **Acceptance** | When no `--rules` flag is provided, the engine loads rules from the embedded default and produces a valid `ScanReport` with 128 check results |
 
 The binary shall embed a default `rules.toml` via `include_str!`. When no `--rules` flag is provided, the embedded rules are used.
 
@@ -246,7 +247,7 @@ Each rule entry shall contain:
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `id` | u8 | Yes | Unique check number (1-117) |
+| `id` | u8 | Yes | Unique check number (1-123) |
 | `category` | string | Yes | Grouping category |
 | `description` | string | Yes | Human-readable description |
 | `severity` | string | Yes | `"error"`, `"warning"`, or `"info"` |
@@ -411,9 +412,9 @@ All discovered file paths shall be relative to the project root.
 | **State** | Approved |
 | **Verification** | Test |
 | **Traces to** | STK-01, STK-08 -> `core/engine.rs`, `core/builtins/spec.rs`, `core/builtins/traceability.rs`, `core/builtins/requirements.rs`, `rules.toml` |
-| **Acceptance** | Default `rules.toml` contains 117 rules; a full scan produces 117 check results |
+| **Acceptance** | Default `rules.toml` contains 128 rules; a full scan produces 128 check results |
 
-The engine shall support 117 checks:
+The engine shall support 128 checks:
 
 | Category | Check IDs | Count |
 |----------|-----------|-------|
@@ -424,18 +425,18 @@ The engine shall support 117 checks:
 | navigation | 40-43, 74 | 5 |
 | cross_ref | 44-47 | 4 |
 | adr | 48-50 | 3 |
-| traceability | 51-53, 82 | 4 |
-| ideation | 54 | 1 |
-| requirements | 55, 89-98 | 11 |
+| traceability | 51-53, 82, 121-124 | 8 |
+| ideation | 54, 118 | 2 |
+| requirements | 55, 89-98, 119-120 | 13 |
 | planning | 56, 83-88, 109-113 | 12 |
 | design | 57, 107-108 | 3 |
 | development | 58, 103-106 | 5 |
-| testing | 59, 99-102 | 5 |
+| testing | 59, 99-102, 125-128 | 9 |
 | deployment | 60-62, 68, 114-116 | 7 |
 | operations | 63-67, 117 | 6 |
 | backlog | 71 | 1 |
 | module | 77-81 | 5 |
-| **Total** | | **117** |
+| **Total** | | **128** |
 
 #### FR-301: Check filtering
 
@@ -1037,7 +1038,7 @@ The engine shall generate markdown documents from YAML spec files, matching the 
 | **State** | Approved |
 | **Verification** | Inspection |
 | **Traces to** | STK-05, STK-08 -> `rules.toml` |
-| **Acceptance** | Each check 54-68 and 99-117 has a unique, descriptive `description` field in `rules.toml` |
+| **Acceptance** | Each check 54-68 and 99-128 has a unique, descriptive `description` field in `rules.toml` |
 
 ### 4.12 Spec Subcommand
 
@@ -1119,7 +1120,7 @@ The `--json` flag on spec subcommands shall produce JSON output matching the rep
 
 ### 4.13 Planned Check Behavioral Requirements
 
-These requirements specify the behavioral constraints for checks identified in the [backlog](../2-planning/backlog.md). They apply to checks 54+ including phase artifact existence checks (54-68, 99-117) and builtin behavioral checks (69+).
+These requirements specify the behavioral constraints for checks identified in the [backlog](../2-planning/backlog.md). They apply to checks 54+ including phase artifact existence checks (54-68, 99-128) and builtin behavioral checks (69+).
 
 #### FR-800: Module discovery strategy
 
@@ -1308,23 +1309,85 @@ The engine shall validate production readiness documents for ISO/IEC 25040:2024 
 | **Priority** | Must |
 | **State** | Approved |
 | **Verification** | Test |
-| **Traces to** | Checks 54-68, 99-117 -> `rules.toml` (declarative `file_exists`) |
+| **Traces to** | Checks 54-68, 99-128 -> `rules.toml` (declarative `file_exists` and `builtin`) |
 | **Acceptance** | The tool shall verify that ISO-mandated documentation artifacts exist for each SDLC phase. Each missing artifact produces a finding at the configured severity. All checks are declarative `file_exists` rules — no Rust code required. |
 
 The engine shall verify the existence of documentation artifacts mandated by ISO/IEC/IEEE 12207:2017, 15289:2019, 29148:2018, 42010:2022, 29119-3:2021, and 26514:2022 across all 8 SDLC phases:
 
 | Phase | Check IDs | Artifacts |
 |-------|-----------|-----------|
-| 0-ideation | 54 | Phase index (README.md) |
-| 1-requirements | 55 | SRS |
+| 0-ideation | 54, 118 | Phase index (README.md), Concept of Operations (ConOps) |
+| 1-requirements | 55, 119-120 | SRS, stakeholder requirements specification (StRS), traceability matrix |
 | 2-planning | 56, 109-113 | Implementation plan, project management plan, configuration management plan, risk management plan, verification plan, test plan |
 | 3-design | 57, 107-108 | Architecture, design description, interface description |
 | 4-development | 58, 103-106 | Setup guide, integration plan, user documentation, API documentation, build procedures |
 | 5-testing | 59, 99-102 | Testing strategy, test plan, test design specification, test case specification, verification report |
 | 6-deployment | 60-62, 68, 114-116 | Phase index, deployment guide, CI/CD pipeline, installation guide, transition plan, release notes, user manual |
 | 7-operations | 63-67, 117 | Phase index, operations manual, troubleshooting guide, maintenance plan, configuration reference, disposal plan |
+| Cross-phase | 121-124 | Progress/status reports, decision log, audit report, audit report IEEE 1028 content |
+| 5-testing (content) | 125-128 | Test plan 29119-3 sections, test design 29119-3 sections, test cases 29119-3 sections, verification report 29119-3 sections |
 
-Severity mapping: mandatory artifacts (per ISO) use `warning`; recommended artifacts use `info`. Scope mapping: core artifacts use `medium`; supplementary artifacts use `large`.
+Severity mapping: mandatory artifacts (per ISO) use `warning`; recommended artifacts use `info`. Checks 66, 68, 83, 88, 100, 101 are `warning` (matching their mandatory ISO status). Scope mapping: core artifacts use `medium`; supplementary artifacts use `large`.
+
+#### FR-816: Cross-phase and gap-closure artifact checks
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Must |
+| **State** | Approved |
+| **Verification** | Test |
+| **Traces to** | Checks 118-123 -> `rules.toml` (declarative `file_exists`) |
+| **Acceptance** | The tool shall verify existence of 6 additional ISO-mandated artifacts: ConOps (29148 Annex B), StRS (29148 Cl. 6.2), traceability matrix (29148 Cl. 5.2.6), progress reports (12207 Cl. 6.3.2), decision log (12207 Cl. 6.3.3), audit report (15289 Cl. 9.2), with IEEE 1028 content validation (check 124). |
+
+#### FR-817: Audit report IEEE 1028 content validation
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Should |
+| **State** | Approved |
+| **Verification** | Test |
+| **Traces to** | Check 124 -> `core/builtins/requirements.rs` |
+| **Acceptance** | Check 124 validates that `docs/2-planning/audit_report.md` contains Scope, Findings, and Recommendations sections per IEEE 1028 clause 4. Missing sections produce per-section violations. Projects without the file produce Skip. |
+
+#### FR-818: Test plan ISO/IEC/IEEE 29119-3 content validation
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Should |
+| **State** | Approved |
+| **Verification** | Test |
+| **Traces to** | Check 125 -> `core/builtins/requirements.rs` |
+| **Acceptance** | Check 125 validates that `docs/5-testing/test_plan.md` contains Objectives/scope, Schedule/milestones, and Environment/resources sections per 29119-3 clause 7. Missing sections produce per-section violations. Projects without the file produce Skip. |
+
+#### FR-819: Test design ISO/IEC/IEEE 29119-3 content validation
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Should |
+| **State** | Approved |
+| **Verification** | Test |
+| **Traces to** | Check 126 -> `core/builtins/requirements.rs` |
+| **Acceptance** | Check 126 validates that `docs/5-testing/test_design.md` contains Test conditions, Test coverage, and Traceability sections per 29119-3 clause 8. Missing sections produce per-section violations. Projects without the file produce Skip. |
+
+#### FR-820: Test cases ISO/IEC/IEEE 29119-3 content validation
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Should |
+| **State** | Approved |
+| **Verification** | Test |
+| **Traces to** | Check 127 -> `core/builtins/requirements.rs` |
+| **Acceptance** | Check 127 validates that `docs/5-testing/test_cases.md` contains Test case ID/title, Pre-conditions/steps, and Expected results sections per 29119-3 clause 9. Missing sections produce per-section violations. Projects without the file produce Skip. |
+
+#### FR-821: Verification report ISO/IEC/IEEE 29119-3 content validation
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Should |
+| **State** | Approved |
+| **Verification** | Test |
+| **Traces to** | Check 128 -> `core/builtins/requirements.rs` |
+| **Acceptance** | Check 128 validates that `docs/5-testing/verification_report.md` contains Summary/results, Pass/fail status, and Defects/issues sections per 29119-3 clause 10. Missing sections produce per-section violations. Projects without the file produce Skip. |
 
 ---
 
@@ -1542,7 +1605,7 @@ IO errors and missing files shall produce `Skip` results or clear error messages
 | FR-730-735 | `core/spec/generate.rs` |
 | FR-740-742 | `core/builtins/spec.rs`, `rules.toml` |
 | FR-750-755 | `main.rs`, `core/reporter.rs` |
-| FR-808-815 | `core/builtins/requirements.rs`, `rules.toml` |
+| FR-808-821 | `core/builtins/requirements.rs`, `rules.toml` |
 | NFR-100-101 | Module structure (spi/, api/, core/, saf/) |
 | NFR-400-401 | `rules.toml`, `core/declarative.rs`, `core/builtins/` |
 | NFR-500-501 | `core/engine.rs`, `core/rules.rs` |
@@ -1551,20 +1614,21 @@ IO errors and missing files shall produce `Skip` results or clear error messages
 
 ## Appendix B: ISO Standards Mapping
 
-This appendix maps doc-engine's 117 compliance checks to their corresponding ISO/IEC standard clauses. It serves as the traceability matrix between the engine's automated checks and the international standards they implement or support.
+This appendix maps doc-engine's 128 compliance checks to their corresponding ISO/IEC standard clauses. It serves as the traceability matrix between the engine's automated checks and the international standards they implement or support.
 
 ### B.1 Standards Referenced
 
 | Standard | Edition | Title | Checks |
 |----------|---------|-------|--------|
-| ISO/IEC/IEEE 12207 | 2017 | Software life cycle processes | 9-10, 51-53, 56, 62, 64, 66, 82-88, 92, 96, 103, 109-113, 117 |
-| ISO/IEC/IEEE 15289 | 2019 | Content of life-cycle information items | 1-8, 14-20, 26-39, 48-50, 55, 60-68, 69-76, 99, 102-117 |
+| ISO/IEC/IEEE 12207 | 2017 | Software life cycle processes | 9-10, 51-53, 56, 62, 64, 66, 82-88, 92, 96, 103, 109-113, 117, 120-122 |
+| ISO/IEC/IEEE 15289 | 2019 | Content of life-cycle information items | 1-8, 14-20, 26-39, 48-50, 55, 60-68, 69-76, 99, 102-128 |
 | ISO/IEC/IEEE 26514 | 2022 | Design and development of information for users | 58, 65, 67, 94, 104, 116 |
-| ISO/IEC/IEEE 29119-3 | 2021 | Software testing -- Part 3: Test documentation | 59, 91, 99-102, 113 |
-| ISO/IEC/IEEE 29148 | 2018 | Life cycle processes -- Requirements engineering | 55, 89 |
+| ISO/IEC/IEEE 29119-3 | 2021 | Software testing -- Part 3: Test documentation | 59, 91, 99-102, 113, 125-128 |
+| ISO/IEC/IEEE 29148 | 2018 | Life cycle processes -- Requirements engineering | 55, 89, 118-120 |
 | ISO/IEC/IEEE 42010 | 2022 | Architecture description | 57, 90, 107-108 |
 | ISO/IEC 25010 | 2023 | Product quality model (SQuaRE) | 93, 97 |
 | ISO/IEC 25040 | 2024 | Evaluation process (SQuaRE) | 98 |
+| IEEE 1028 | 2008 | Standard for Software Reviews and Audits | 123, 124 |
 
 ### B.2 Detailed Mapping
 
@@ -1577,12 +1641,13 @@ The foundational lifecycle standard. doc-engine enforces its process areas throu
 | 6.1 | Agreement processes | -- | Not in scope (contract/supply) |
 | 6.2 | Organizational project-enabling processes | 83, 84, 88 | Risk register, estimation, quality plan |
 | 6.3.1 | Project planning process | 56, 85, 86, 87, 109 | Implementation plan, schedule, resource plan, communication plan, project management plan |
-| 6.3.2 | Project assessment and control | 92, 96 | Production readiness document, CI/CD + dependency + release lifecycle sections |
+| 6.3.2 | Project assessment and control | 92, 96, 121 | Production readiness document, CI/CD + dependency + release lifecycle sections, progress/status reports |
+| 6.3.3 | Decision management | 122 | Decision log |
 | 6.3.4 | Risk management | 111 | Risk management plan |
 | 6.3.5 | Configuration management | 110 | Configuration management plan |
 | 6.4.1 | Stakeholder needs and requirements definition | 55, 89 | SRS exists, SRS with 29148 attribute tables |
 | 6.4.2 | System/software requirements analysis | 82 | Backlog traces to requirements |
-| 6.4.3 | Architecture definition | 90 | Architecture docs have 42010 sections |
+| 6.4.3 | Architecture definition | 90, 120 | Architecture docs have 42010 sections, traceability matrix |
 | 6.4.5 | Design definition | 52, 107, 108 | Design documents reference requirements, design description, interface description |
 | 6.4.6 | Implementation | 69, 103 | Developer guide exists, integration plan |
 | 6.4.7 | Integration | 53 | Planning documents reference architecture |
@@ -1611,7 +1676,7 @@ Defines the content requirements for documentation artifacts produced throughout
 | 6.3 | System/software requirements specification | 89 | SRS with ISO 29148 attributes |
 | 6.5 | Architecture description | 11, 90 | ADR directory + 42010 sections |
 | 6.7 | Design description | 6, 7 | Compliance checklist + architecture reference |
-| 6.10 | Test documentation | 25, 91 | Test file placement + 29119-3 sections |
+| 6.10 | Test documentation | 25, 91, 125-128 | Test file placement + 29119-3 sections + content validation |
 | 6.11 | User documentation | 94 | Developer guide with 26514 sections |
 | 6.12 | Configuration management plan | 19 | .gitignore exists |
 | 6.13 | Project management plan | 83-88 | Planning phase artifacts |
@@ -1622,7 +1687,9 @@ Defines the content requirements for documentation artifacts produced throughout
 | 7.4 | Security considerations | 17, 29 | SECURITY.md exists |
 | 7.5 | License information | 18, 30 | LICENSE file exists |
 | Annex A | Information item outline examples | 72, 73 | Templates directory with template files |
-| 9.2 | Audit report | FR-403 | `--output` persists scan results as `documentation_audit_report_v{version}.json` — the standard information item for compliance audit findings |
+| 9 | Progress/status reports | 121 | Progress/status reports exist |
+| 9 | Decision log | 122 | Decision log exists |
+| 9.2 | Audit report | 123, 124, FR-403 | Audit report exists (123), IEEE 1028 content validation (124); `--output` persists scan results as `documentation_audit_report_v{version}.json` — the standard information item for compliance audit findings |
 
 #### ISO/IEC/IEEE 29148:2018 -- Requirements Engineering
 
@@ -1631,10 +1698,13 @@ Defines the processes and products related to engineering requirements.
 | ISO Clause | Clause Title | Check(s) | Check Description |
 |------------|-------------|----------|-------------------|
 | 5.2.5 | Stakeholder requirements specification | 89 | SRS requirements have attribute tables |
-| 5.2.6 | Requirement attributes | 89 | Priority, State, Verification, Traces-to, Acceptance |
+| 5.2.6 | Requirement attributes | 89, 120 | Priority, State, Verification, Traces-to, Acceptance; traceability matrix |
 | 5.2.8 | Requirements traceability | 52, 82 | Design traces requirements, backlog traces requirements |
 | 6.1 | SRS overview | 89 | SRS document with structured requirements |
+| 6.2 | Stakeholder requirements specification | 119 | StRS exists |
 | 6.6 | Specific requirements format | 89 | FR-NNN pattern with attribute tables |
+| 7 | System requirements specification | 119 | StRS (system/stakeholder level requirements) |
+| Annex B | Concept of Operations (ConOps) | 118 | ConOps document exists |
 
 **Validated attributes per requirement (check 89):**
 
@@ -1674,10 +1744,13 @@ Defines test documentation throughout the testing process.
 
 | ISO Clause | Clause Title | Check(s) | Check Description |
 |------------|-------------|----------|-------------------|
+| 7 | Test plan | 125 | Test plan has objectives/scope, schedule, environment sections |
+| 8 | Test specification | 126 | Test design has conditions, coverage, traceability sections |
 | 8.1 | Test strategy | 91 | Test Strategy section exists |
 | 8.2 | Test plan | 91 | Test Categories section exists |
 | 9.1 | Test specification | 91 | Coverage Targets section exists |
-| 10.1 | Test completion | -- | Not yet implemented |
+| 9.2 | Test cases | 127 | Test cases has ID/title, steps, expected results sections |
+| 10.1 | Test completion | 128 | Verification report has summary, status, defects sections |
 
 **Validated sections per testing strategy (check 91):**
 
@@ -1769,11 +1842,11 @@ Defines the process for evaluating software product quality.
 
 | Standard | Checks Directly Implementing | Coverage |
 |----------|------------------------------|----------|
-| ISO/IEC/IEEE 12207:2017 | 9-10, 51-53, 56, 62, 64, 66, 82-88, 92, 96, 103, 107, 109-114, 117 | Lifecycle structure, planning, traceability, phase artifacts |
-| ISO/IEC/IEEE 15289:2019 | 1-8, 14-20, 26-39, 48-50, 55, 60-68, 69-76, 99, 102-117 | Information item content, format, and phase artifacts |
-| ISO/IEC/IEEE 29148:2018 | 55, 89 | SRS existence, requirements attribute validation |
+| ISO/IEC/IEEE 12207:2017 | 9-10, 51-53, 56, 62, 64, 66, 82-88, 92, 96, 103, 107, 109-114, 117, 120-122 | Lifecycle structure, planning, traceability, phase artifacts |
+| ISO/IEC/IEEE 15289:2019 | 1-8, 14-20, 26-39, 48-50, 55, 60-68, 69-76, 99, 102-128 | Information item content, format, and phase artifacts |
+| ISO/IEC/IEEE 29148:2018 | 55, 89, 118-120 | SRS existence, requirements attribute validation, ConOps, StRS, traceability matrix |
 | ISO/IEC/IEEE 42010:2022 | 48-50, 57, 90, 107-108 | Architecture description, design artifacts |
-| ISO/IEC/IEEE 29119-3:2021 | 59, 91, 99-102, 113 | Test documentation, testing phase artifacts |
+| ISO/IEC/IEEE 29119-3:2021 | 59, 91, 99-102, 113, 125-128 | Test documentation, testing phase artifacts, content validation |
 | ISO/IEC/IEEE 26514:2022 | 58, 65, 67, 94, 104, 116 | User information structure, development/operations artifacts |
 | ISO/IEC 25010:2023 | 93, 97 | Product quality assessment |
 | ISO/IEC 25040:2024 | 98 | Evaluation process |
@@ -1781,14 +1854,15 @@ Defines the process for evaluating software product quality.
 #### Checks by ISO Standard
 
 ```
-12207 (Lifecycle)     █████████████████████████████████ 30 checks
-15289 (Info Items)    ██████████████████████████████████████████████████████████████ 58 checks
-29148 (Requirements)  ███ 2 checks
+12207 (Lifecycle)     ████████████████████████████████████ 33 checks
+15289 (Info Items)    █████████████████████████████████████████████████████████████████████████ 69 checks
+29148 (Requirements)  ██████ 5 checks
 42010 (Architecture)  ██████ 5 checks
-29119-3 (Testing)     ████████ 7 checks
+29119-3 (Testing)     ████████████ 11 checks
 26514 (User Info)     ███████ 6 checks
 25010 (Quality)       ███ 2 checks
 25040 (Evaluation)    ██ 1 check
+1028 (Reviews/Audits) ███ 2 checks
 ```
 
 #### Checks Not Mapped to ISO (Internal Policy)
@@ -1899,3 +1973,14 @@ These checks reflect engineering best practices and organizational conventions t
 | 115 | 26514, 15289 | 26514:8-9, 15289:10 |
 | 116 | 26514 | 26514:5-9 |
 | 117 | 15289, 12207 | 15289:10, 12207:6.4.14 |
+| 118 | 29148, 15289 | 29148:Annex B, 15289:6.2 |
+| 119 | 29148 | 29148:6.2, 29148:7 |
+| 120 | 29148, 12207 | 29148:5.2.6, 12207:6.4.3 |
+| 121 | 15289, 12207 | 15289:9, 12207:6.3.2 |
+| 122 | 15289, 12207 | 15289:9, 12207:6.3.3 |
+| 123 | 15289, 1028 | 15289:9.2, 1028:4 |
+| 124 | 1028, 15289 | 1028:4, 15289:9.2 |
+| 125 | 29119-3, 15289 | 29119-3:7, 15289:10 |
+| 126 | 29119-3, 15289 | 29119-3:8, 15289:10 |
+| 127 | 29119-3, 15289 | 29119-3:9.2, 15289:10 |
+| 128 | 29119-3, 15289 | 29119-3:10.1, 15289:10 |
