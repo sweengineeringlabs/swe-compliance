@@ -1,5 +1,10 @@
 use super::types::SrsDomain;
 
+/// Escape pipe characters for markdown table cells.
+fn escape_pipe(s: &str) -> String {
+    s.replace('|', "\\|")
+}
+
 /// Generate a `.spec` markdown file for a domain.
 pub(crate) fn generate_feature_spec_md(domain: &SrsDomain) -> String {
     let mut out = String::new();
@@ -17,10 +22,10 @@ pub(crate) fn generate_feature_spec_md(domain: &SrsDomain) -> String {
             "| {} | {} | {} | {} | {} | {} |\n",
             req_id,
             req.id,
-            req.title,
+            escape_pipe(&req.title),
             req.priority.as_deref().unwrap_or("Unknown"),
             req.verification.as_deref().unwrap_or("Test"),
-            req.acceptance.as_deref().unwrap_or("—"),
+            escape_pipe(req.acceptance.as_deref().unwrap_or("—")),
         ));
     }
 
@@ -61,7 +66,7 @@ pub(crate) fn generate_arch_spec_md(domain: &SrsDomain) -> String {
             };
             out.push_str(&format!(
                 "| {} handler | {} | {} |\n",
-                req.id, traces, desc,
+                req.id, escape_pipe(traces), escape_pipe(desc),
             ));
         }
     }
@@ -105,7 +110,7 @@ pub(crate) fn generate_test_spec_md(domain: &SrsDomain) -> String {
             "| {} | {}: {} ({}) | {} | {} |\n",
             tc_id,
             req.id,
-            req.title,
+            escape_pipe(&req.title),
             method,
             req_id,
             req.priority.as_deref().unwrap_or("Unknown"),
@@ -144,7 +149,7 @@ pub(crate) fn generate_manual_exec_md(domain: &SrsDomain) -> String {
         let acceptance = req.acceptance.as_deref().unwrap_or("To be defined");
         out.push_str(&format!(
             "| {} | {}: {} ({}) | _TODO_ | {} |\n",
-            tc_id, req.id, req.title, method, acceptance,
+            tc_id, req.id, escape_pipe(&req.title), method, escape_pipe(acceptance),
         ));
     }
 
@@ -194,7 +199,7 @@ pub(crate) fn generate_auto_exec_md(domain: &SrsDomain) -> String {
         let method = req.verification.as_deref().unwrap_or("Test");
         out.push_str(&format!(
             "| {} | {}: {} ({}) | {} | | | Pending | |\n",
-            tc_id, req.id, req.title, method, req_id,
+            tc_id, req.id, escape_pipe(&req.title), method, req_id,
         ));
     }
 
@@ -467,5 +472,50 @@ mod tests {
         // Must NOT contain section-number-based paths
         assert!(!md.contains("[spec](4.1/"));
         assert!(!md.contains("[spec](5.2/"));
+    }
+
+    fn domain_with_pipe_in_acceptance() -> SrsDomain {
+        SrsDomain {
+            section: "4.13".to_string(),
+            title: "Behavioral".to_string(),
+            slug: "behavioral".to_string(),
+            requirements: vec![SrsRequirement {
+                id: "FR-801".to_string(),
+                title: "W3H detection scope".to_string(),
+                kind: ReqKind::Functional,
+                priority: Some("Must".to_string()),
+                state: Some("Proposed".to_string()),
+                verification: Some("Test".to_string()),
+                traces_to: Some("BL-03".to_string()),
+                acceptance: Some("Regex `(?i)^##\\s*(what|why|how)` matches headings.".to_string()),
+                description: String::new(),
+            }],
+        }
+    }
+
+    #[test]
+    fn test_pipe_in_acceptance_escaped_in_manual_exec() {
+        let md = generate_manual_exec_md(&domain_with_pipe_in_acceptance());
+        // The pipe inside the regex must be escaped so the table row stays intact
+        assert!(md.contains("what\\|why\\|how"));
+        // Row must have exactly 4 columns (TC, Test, Steps, Expected)
+        let row = md.lines().find(|l| l.contains("TC-001")).unwrap();
+        // Count unescaped pipes (column delimiters) — should be 5 for 4 columns
+        let unescaped = row.matches('|').count() - row.matches("\\|").count();
+        assert_eq!(unescaped, 5, "table row has wrong column count: {}", row);
+    }
+
+    #[test]
+    fn test_pipe_in_acceptance_escaped_in_feature_spec() {
+        let md = generate_feature_spec_md(&domain_with_pipe_in_acceptance());
+        assert!(md.contains("what\\|why\\|how"));
+    }
+
+    #[test]
+    fn test_pipe_in_title_escaped_in_test_spec() {
+        let mut domain = domain_with_pipe_in_acceptance();
+        domain.requirements[0].title = "Check A|B".to_string();
+        let md = generate_test_spec_md(&domain);
+        assert!(md.contains("Check A\\|B"));
     }
 }

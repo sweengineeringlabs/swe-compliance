@@ -17,7 +17,7 @@
 | TC-003 | FR-702: Spec file discovery (Test) | _TODO_ | Given a project with spec files in `1-requirements/`, `3-design/`, `5-testing/`, and `6-deployment/`, all spec files of both formats are discovered, categorized by extension, and tagged with their format (YAML or markdown) |
 | TC-004 | FR-703: Parse error reporting (Test) | _TODO_ | A YAML file with a syntax error produces a `SpecDiagnostic` containing the file path, line number (if available), and a descriptive error message. A markdown spec missing required metadata headers produces a `SpecDiagnostic`. |
 | TC-005 | FR-704: Markdown spec metadata extraction (Test) | _TODO_ | A markdown `.spec` file with `**Version:** 0.1.0`, `**Status:** Draft`, and `**Related:** RS-001` headers has all three values extracted. A `.test` file with a `**Spec:**` header containing a linked name and path has the spec link extracted. |
-| TC-006 | FR-705: Markdown test table parsing (Test) | _TODO_ | A `.test` file with a markdown table containing ` |
+| TC-006 | FR-705: Markdown test table parsing (Test) | _TODO_ | A `.test` file with a markdown table containing `\| Verifies \|` column has all requirement IDs extracted from that column |
 | TC-007 | FR-706: Feature stem matching (Test) | _TODO_ | Given `compiler_design.spec`, `compiler_design.arch`, `compiler_design.test`, `compiler_design.deploy`, all four files are linked as a single SDLC chain via the shared stem `compiler_design` |
 
 ---

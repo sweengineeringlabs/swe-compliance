@@ -36,11 +36,11 @@ pub fn parse_srs(content: &str) -> Result<Vec<SrsDomain>, ScanError> {
     let fr_heading_re = Regex::new(r"^####\s+((?:FR|NFR)-\d+):\s+(.+)$").unwrap();
     let any_heading_re = Regex::new(r"^#{1,4}\s+").unwrap();
 
-    let priority_re = Regex::new(r"\|\s*\*\*Priority\*\*\s*\|\s*(.+?)\s*\|").unwrap();
-    let state_re = Regex::new(r"\|\s*\*\*State\*\*\s*\|\s*(.+?)\s*\|").unwrap();
-    let verification_re = Regex::new(r"\|\s*\*\*Verification\*\*\s*\|\s*(.+?)\s*\|").unwrap();
-    let traces_re = Regex::new(r"\|\s*\*\*(?:Traces\s+to|Traceability)\*\*\s*\|\s*(.+?)\s*\|").unwrap();
-    let acceptance_re = Regex::new(r"\|\s*\*\*Acceptance\*\*\s*\|\s*(.+?)\s*\|").unwrap();
+    let priority_re = Regex::new(r"\|\s*\*\*Priority\*\*\s*\|\s*(.+)\s*\|").unwrap();
+    let state_re = Regex::new(r"\|\s*\*\*State\*\*\s*\|\s*(.+)\s*\|").unwrap();
+    let verification_re = Regex::new(r"\|\s*\*\*Verification\*\*\s*\|\s*(.+)\s*\|").unwrap();
+    let traces_re = Regex::new(r"\|\s*\*\*(?:Traces\s+to|Traceability)\*\*\s*\|\s*(.+)\s*\|").unwrap();
+    let acceptance_re = Regex::new(r"\|\s*\*\*Acceptance(?:\s+criteria)?\*\*\s*\|\s*(.+)\s*\|").unwrap();
     let table_line_re = Regex::new(r"^\s*\|").unwrap();
 
     let lines: Vec<&str> = content.lines().collect();
@@ -411,5 +411,28 @@ Third desc.
         assert_eq!(domains[0].requirements[0].id, "FR-100");
         assert_eq!(domains[0].requirements[1].id, "FR-101");
         assert_eq!(domains[0].requirements[2].id, "FR-102");
+    }
+
+    #[test]
+    fn test_acceptance_with_pipe_chars() {
+        let srs = "\
+### 4.1 Detection
+
+#### FR-801: W3H detection scope
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Must |
+| **Acceptance** | Regex `(?i)^##\\s*(what|why|how)` matches headings. |
+
+Description.
+";
+        let domains = parse_srs(srs).unwrap();
+        let req = &domains[0].requirements[0];
+        assert_eq!(
+            req.acceptance.as_deref(),
+            Some("Regex `(?i)^##\\s*(what|why|how)` matches headings."),
+            "pipe chars inside acceptance text must be preserved"
+        );
     }
 }
