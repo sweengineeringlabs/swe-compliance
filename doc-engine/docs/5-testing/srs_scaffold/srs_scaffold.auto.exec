@@ -12,13 +12,13 @@
 
 | TC | Test | Verifies | CI Job | Build | Status | Last Run |
 |----|------|----------|--------|-------|--------|----------|
-| TC-001 | FR-822: Scaffold command (Demonstration) | REQ-001 | `cargo test -p doc-engine --test scaffold_e2e_test` | | Pending | |
-| TC-002 | FR-823: SRS domain extraction (Test) | REQ-002 | `cargo test -p doc-engine --test scaffold_int_test` | | Pending | |
-| TC-003 | FR-824: Per-domain spec file generation (Test) | REQ-003 | `cargo test -p doc-engine --test scaffold_int_test` | | Pending | |
-| TC-004 | FR-825: Manual test execution plan (Test) | REQ-004 | `cargo test -p doc-engine --test scaffold_int_test --test scaffold_e2e_test` | | Pending | |
+| TC-001 | FR-822: Scaffold command (Demonstration) | REQ-001 | | | Pending | |
+| TC-002 | FR-823: SRS domain extraction (Test) | REQ-002 | | | Pending | |
+| TC-003 | FR-824: Per-domain spec file generation (Test) | REQ-003 | | | Pending | |
+| TC-004 | FR-825: Manual test execution plan (Test) | REQ-004 | | | Pending | |
 | TC-005 | FR-826: Automated test execution plan (Test) | REQ-005 | | | Pending | |
-| TC-006 | FR-827: Scaffold skip/force behavior (Test) | REQ-006 | `cargo test -p doc-engine --test scaffold_int_test` | | Pending | |
-| TC-007 | FR-828: Scaffold output directory (Test) | REQ-007 | `cargo test -p doc-engine --test scaffold_int_test --test scaffold_e2e_test` | | Pending | |
-| TC-008 | FR-829: Scaffold phase filter (Test) | REQ-008 | `cargo test -p doc-engine --test scaffold_int_test --test scaffold_e2e_test` | | Pending | |
-| TC-009 | FR-830: Scaffold status report (ISO 15289 clause 9) (Test) | REQ-009 | `cargo test -p doc-engine --test scaffold_int_test --test scaffold_e2e_test` | | Pending | |
+| TC-006 | FR-827: Scaffold skip/force behavior (Test) | REQ-006 | | | Pending | |
+| TC-007 | FR-828: Scaffold output directory (Test) | REQ-007 | | | Pending | |
+| TC-008 | FR-829: Scaffold phase filter (Test) | REQ-008 | | | Pending | |
+| TC-009 | FR-830: Scaffold status report (ISO 15289 clause 9) (Test) | REQ-009 | | | Pending | |
 

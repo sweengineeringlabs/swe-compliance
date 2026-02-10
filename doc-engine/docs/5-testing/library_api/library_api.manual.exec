@@ -13,7 +13,7 @@
 | TC | Test | Steps | Expected |
 |----|------|-------|----------|
 | TC-001 | FR-600: Public scan function (Inspection) | Review `saf/mod.rs` | Removed: `scan()` convenience function was deleted when `ProjectScope` became mandatory. Use `scan_with_config()` (FR-601) instead. |
-| TC-002 | FR-601: Configurable scan function (Test) | Run `doc_engine::scan_with_config(path, &config)` | `doc_engine::scan_with_config(path, &config)` respects `ScanConfig` fields and returns `Result<ScanReport, ScanError>` |
+| TC-002 | FR-601: Configurable scan function (Test) | Run `doc_engine::scan_with_config(path, &config)` | Respects `ScanConfig` fields and returns `Result<ScanReport, ScanError>` |
 | TC-003 | FR-602: Public types (Inspection) | Review `saf/mod.rs` | All listed types are importable from `doc_engine::` |
 
 ---

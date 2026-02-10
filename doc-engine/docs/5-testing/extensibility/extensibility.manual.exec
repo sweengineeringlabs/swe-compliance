@@ -12,7 +12,7 @@
 
 | TC | Test | Steps | Expected |
 |----|------|-------|----------|
-| TC-001 | NFR-400: Declarative rule extensibility (Demonstration) | _TODO_ | Adding a `[[rules]]` entry with `type = "file_exists"` to `rules.toml` and running `--rules` enforces the new rule without recompilation |
+| TC-001 | NFR-400: Declarative rule extensibility (Demonstration) | Demonstrate via `rules.toml`, `core/declarative.rs` | Adding a `[[rules]]` entry with `type = "file_exists"` to `rules.toml` and running `--rules` enforces the new rule without recompilation |
 | TC-002 | NFR-401: Builtin handler extensibility (Inspection) | Review `core/builtins/` | A new handler can be added in 3 steps: implement function, register in mod.rs, add TOML entry |
 
 ---

@@ -120,6 +120,11 @@ fn generate_demonstration_steps(req: &SrsRequirement) -> String {
             }
         }
     }
+    if let Some(ref traces) = req.traces_to {
+        if let Some(file) = extract_trace_file(traces) {
+            return format!("Demonstrate via `{}`", file);
+        }
+    }
     "_TODO_".to_string()
 }
 
@@ -984,10 +989,30 @@ mod tests {
     }
 
     #[test]
-    fn test_generate_steps_demonstration_non_command_backtick_is_todo() {
+    fn test_generate_steps_demonstration_non_command_backtick_falls_back_to_trace() {
         let req = SrsRequirement {
             id: "FR-603".to_string(),
             title: "Demo with filename backtick".to_string(),
+            kind: ReqKind::Functional,
+            priority: None,
+            state: None,
+            verification: Some("Demonstration".to_string()),
+            traces_to: Some("STK-08 -> core/spec/generate.rs".to_string()),
+            acceptance: Some("`login.spec.yaml` generates a report".to_string()),
+            description: String::new(),
+        };
+        // Non-command backtick span is rejected, falls back to trace file
+        assert_eq!(
+            generate_steps(&req),
+            "Demonstrate via `core/spec/generate.rs`",
+        );
+    }
+
+    #[test]
+    fn test_generate_steps_demonstration_non_command_no_trace_is_todo() {
+        let req = SrsRequirement {
+            id: "FR-604".to_string(),
+            title: "Demo with filename backtick no trace".to_string(),
             kind: ReqKind::Functional,
             priority: None,
             state: None,
@@ -996,7 +1021,7 @@ mod tests {
             acceptance: Some("`login.spec.yaml` generates a report".to_string()),
             description: String::new(),
         };
-        // Non-command backtick span is rejected, no prose fallback
+        // Non-command backtick span rejected, no trace file → _TODO_
         assert_eq!(generate_steps(&req), "_TODO_");
     }
 

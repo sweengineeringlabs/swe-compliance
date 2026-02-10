@@ -12,11 +12,11 @@
 
 | TC | Test | Steps | Expected |
 |----|------|-------|----------|
-| TC-001 | FR-730: Spec-to-markdown generation (Demonstration) | _TODO_ | Given a valid `login.spec.yaml`, the generator produces a markdown file with title, requirements table, dependencies, and related documents sections |
-| TC-002 | FR-731: BRD markdown generation (Demonstration) | _TODO_ | Given a valid `brd.spec.yaml`, the generator produces a markdown document with domain inventory table and links to individual specs |
-| TC-003 | FR-732: Architecture markdown generation (Demonstration) | _TODO_ | Given a valid `.arch.yaml`, the generator produces a markdown document with component descriptions and dependency diagrams |
-| TC-004 | FR-733: Test plan markdown generation (Demonstration) | _TODO_ | Given a valid `.test.yaml`, the generator produces a markdown document with test case table including verifies traceability |
-| TC-005 | FR-734: Deployment markdown generation (Demonstration) | _TODO_ | Given a valid `.deploy.yaml`, the generator produces a markdown document with environment configuration table |
+| TC-001 | FR-730: Spec-to-markdown generation (Demonstration) | Demonstrate via `core/spec/generate.rs` | Given a valid `login.spec.yaml`, the generator produces a markdown file with title, requirements table, dependencies, and related documents sections |
+| TC-002 | FR-731: BRD markdown generation (Demonstration) | Demonstrate via `core/spec/generate.rs` | Given a valid `brd.spec.yaml`, the generator produces a markdown document with domain inventory table and links to individual specs |
+| TC-003 | FR-732: Architecture markdown generation (Demonstration) | Demonstrate via `core/spec/generate.rs` | Given a valid `.arch.yaml`, the generator produces a markdown document with component descriptions and dependency diagrams |
+| TC-004 | FR-733: Test plan markdown generation (Demonstration) | Demonstrate via `core/spec/generate.rs` | Given a valid `.test.yaml`, the generator produces a markdown document with test case table including verifies traceability |
+| TC-005 | FR-734: Deployment markdown generation (Demonstration) | Demonstrate via `core/spec/generate.rs` | Given a valid `.deploy.yaml`, the generator produces a markdown document with environment configuration table |
 | TC-006 | FR-735: Output path control (Test) | _TODO_ | `--output <dir>` writes generated markdown to the specified directory; default writes to stdout |
 
 ---
