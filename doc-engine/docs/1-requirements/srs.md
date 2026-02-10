@@ -653,7 +653,7 @@ Required flag. Each rule in `rules.toml` carries a `scope = "small"|"medium"|"la
 |-----------|-------|
 | **Priority** | Should |
 | **State** | Superseded by FR-601 |
-| **Verification** | — |
+| **Verification** | Inspection |
 | **Traces to** | STK-04 -> `saf/mod.rs` |
 | **Acceptance** | Removed: `scan()` convenience function was deleted when `ProjectScope` became mandatory. Use `scan_with_config()` (FR-601) instead. |
 
@@ -959,7 +959,7 @@ Cross-reference analysis shall produce a `CrossRefReport` with results categoriz
 |-----------|-------|
 | **Priority** | Should |
 | **State** | Superseded |
-| **Verification** | — |
+| **Verification** | Inspection |
 | **Traces to** | STK-08 -> `core/builtins/spec.rs` |
 | **Acceptance** | Superseded: IDs 54-68 are now phase artifact `file_exists` checks (FR-815). Spec checks use dedicated builtin handlers with their own IDs. |
 
@@ -1037,7 +1037,7 @@ The engine shall generate markdown documents from YAML spec files, matching the 
 |-----------|-------|
 | **Priority** | Should |
 | **State** | Superseded |
-| **Verification** | — |
+| **Verification** | Inspection |
 | **Traces to** | STK-08 -> `core/builtins/spec.rs`, `rules.toml` |
 | **Acceptance** | Superseded: IDs 54-68 are now phase artifact `file_exists` checks (FR-815). Spec checks use dedicated builtin handlers. |
 
@@ -1049,7 +1049,7 @@ The engine shall generate markdown documents from YAML spec files, matching the 
 |-----------|-------|
 | **Priority** | Should |
 | **State** | Superseded |
-| **Verification** | — |
+| **Verification** | Inspection |
 | **Traces to** | STK-08 -> `rules.toml` |
 | **Acceptance** | Superseded: IDs 54-68 now use per-phase categories (ideation, requirements, planning, design, development, testing, deployment, operations). |
 

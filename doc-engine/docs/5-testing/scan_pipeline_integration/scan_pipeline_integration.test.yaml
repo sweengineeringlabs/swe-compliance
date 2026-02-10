@@ -4,11 +4,11 @@ section: '4.11'
 specRef: docs/1-requirements/scan_pipeline_integration/scan_pipeline_integration.spec.yaml
 testCases:
 - id: TC-001
-  test: 'FR-740: Spec checks in scan pipeline (—)'
+  test: 'FR-740: Spec checks in scan pipeline (Inspection)'
   verifies: REQ-001
   priority: Should
 - id: TC-002
-  test: 'FR-741: Spec check category (—)'
+  test: 'FR-741: Spec check category (Inspection)'
   verifies: REQ-002
   priority: Should
 - id: TC-003

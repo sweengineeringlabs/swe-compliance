@@ -32,6 +32,6 @@ testCases:
   verifies: REQ-007
   priority: Should
 - id: TC-008
-  test: 'FR-727: Opt-in spec checking (—)'
+  test: 'FR-727: Opt-in spec checking (Inspection)'
   verifies: REQ-008
   priority: Should

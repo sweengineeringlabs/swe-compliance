@@ -8,7 +8,7 @@
 
 | ID | Test | Verifies | Priority |
 |----|------|----------|----------|
-| TC-001 | FR-600: Public scan function (—) | REQ-001 | Should |
+| TC-001 | FR-600: Public scan function (Inspection) | REQ-001 | Should |
 | TC-002 | FR-601: Configurable scan function (Test) | REQ-002 | Should |
 | TC-003 | FR-602: Public types (Inspection) | REQ-003 | Should |
 

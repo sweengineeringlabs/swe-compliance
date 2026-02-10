@@ -12,7 +12,7 @@
 
 | TC | Test | Verifies | CI Job | Build | Status | Last Run |
 |----|------|----------|--------|-------|--------|----------|
-| TC-001 | FR-740: Spec checks in scan pipeline (—) | REQ-001 | | | Pending | |
-| TC-002 | FR-741: Spec check category (—) | REQ-002 | | | Pending | |
+| TC-001 | FR-740: Spec checks in scan pipeline (Inspection) | REQ-001 | | | Pending | |
+| TC-002 | FR-741: Spec check category (Inspection) | REQ-002 | | | Pending | |
 | TC-003 | FR-742: Spec check descriptions (Inspection) | REQ-003 | | | Pending | |
 

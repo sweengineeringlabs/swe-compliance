@@ -4,7 +4,7 @@ section: '4.6'
 specRef: docs/1-requirements/library_api/library_api.spec.yaml
 testCases:
 - id: TC-001
-  test: 'FR-600: Public scan function (—)'
+  test: 'FR-600: Public scan function (Inspection)'
   verifies: REQ-001
   priority: Should
 - id: TC-002

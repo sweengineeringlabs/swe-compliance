@@ -19,7 +19,7 @@
 | TC-005 | FR-724: Architecture traceability (Test) | _TODO_ | An `.arch.yaml` with `spec: "FR-001"` passes if a matching `.spec.yaml` exists. A markdown `.arch` with a `**Spec:**` header containing a linked spec name passes if the linked `.spec` file exists. |
 | TC-006 | FR-725: Related documents resolution (Test) | _TODO_ | A spec with `relatedDocuments: ["../3-design/architecture.md"]` passes if the path resolves; fails if it does not |
 | TC-007 | FR-726: Cross-reference report (Test) | _TODO_ | `CrossRefReport` contains categorized results (dependency, sdlc_chain, inventory, test_trace, arch_trace, related_docs) with pass/fail per check |
-| TC-008 | FR-727: Opt-in spec checking (—) | _TODO_ | Superseded: IDs 54-68 are now phase artifact `file_exists` checks (FR-815). Spec checks use dedicated builtin handlers with their own IDs. |
+| TC-008 | FR-727: Opt-in spec checking (Inspection) | _TODO_ | Superseded: IDs 54-68 are now phase artifact `file_exists` checks (FR-815). Spec checks use dedicated builtin handlers with their own IDs. |
 
 ---
 
