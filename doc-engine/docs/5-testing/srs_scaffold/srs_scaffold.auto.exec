@@ -19,4 +19,5 @@
 | TC-005 | FR-826: Automated test execution plan (Test) | REQ-005 | | | Pending | |
 | TC-006 | FR-827: Scaffold skip/force behavior (Test) | REQ-006 | | | Pending | |
 | TC-007 | FR-828: Scaffold output directory (Test) | REQ-007 | | | Pending | |
+| TC-008 | FR-829: Scaffold phase filter (Test) | REQ-008 | | | Pending | |
 

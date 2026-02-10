@@ -1,4 +1,5 @@
 use std::path::PathBuf;
+use serde::Serialize;
 
 /// The SDLC role kind of a requirement.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -61,7 +62,7 @@ pub struct ScaffoldConfig {
 }
 
 /// Result of a scaffold operation.
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct ScaffoldResult {
     /// Files that were created.
     pub created: Vec<PathBuf>,

@@ -12,13 +12,14 @@
 
 | TC | Test | Steps | Expected |
 |----|------|-------|----------|
-| TC-001 | FR-822: Scaffold command (Demonstration) | _TODO_ | `doc-engine scaffold <SRS_PATH> [--output DIR] [--force]` parses the SRS, extracts domains and requirements, and generates per-domain SDLC spec files; exit code 0 on success, 2 on error |
+| TC-001 | FR-822: Scaffold command (Demonstration) | _TODO_ | `doc-engine scaffold <SRS_PATH> [--output DIR] [--force] [--phase PHASES]` parses the SRS, extracts domains and requirements, and generates per-domain SDLC spec files; `--phase` accepts comma-separated phase names to filter output; exit code 0 on success, 2 on error |
 | TC-002 | FR-823: SRS domain extraction (Test) | _TODO_ | The parser extracts `### X.Y Title` domain sections and `#### FR-NNN: Title` / `#### NFR-NNN: Title` requirement blocks with their attribute tables (Priority, State, Verification, Traces to, Acceptance); domains with no requirements are excluded |
 | TC-003 | FR-824: Per-domain spec file generation (Test) | _TODO_ | For each domain, generates 10 files: `.spec.yaml`, `.spec`, `.arch.yaml`, `.arch`, `.test.yaml`, `.test`, `.manual.exec`, `.auto.exec`, `.deploy.yaml`, `.deploy`; plus 2 BRD files (`brd.spec.yaml`, `brd.spec`); total = `domains × 10 + 2` |
 | TC-004 | FR-825: Manual test execution plan (Test) | _TODO_ | Each `.manual.exec` file contains a TLDR, a Test Cases table with TC, Test, Steps (`_TODO_`), and Expected (from acceptance criteria) columns, and an Execution Log table with TC, Tester, Date, Pass/Fail, Notes columns; all TCs are aligned row-for-row with `.test` and `.auto.exec` |
 | TC-005 | FR-826: Automated test execution plan (Test) | _TODO_ | Each `.auto.exec` file contains a TLDR, and a Test Cases table with TC, Test, Verifies, CI Job, Build, Status, Last Run columns; all TCs are aligned row-for-row with `.test` and `.manual.exec` |
 | TC-006 | FR-827: Scaffold skip/force behavior (Test) | _TODO_ | Without `--force`, existing files are skipped (not overwritten) and reported with `~` prefix; with `--force`, all files are overwritten and reported with `+` prefix |
 | TC-007 | FR-828: Scaffold output directory (Test) | _TODO_ | `--output DIR` specifies the output root directory; parent directories are created automatically; defaults to the current directory if not specified |
+| TC-008 | FR-829: Scaffold phase filter (Test) | _TODO_ | `--phase` accepts a comma-separated list of SDLC phases (`requirements`, `design`, `testing`, `deployment`); only files for the specified phases are generated; BRD files are included only when `requirements` is selected; omitting `--phase` generates all phases; invalid phase names exit with code 2 and a descriptive error; phase names are case-insensitive |
 
 ---
 
@@ -33,4 +34,5 @@
 | TC-005 | | | | |
 | TC-006 | | | | |
 | TC-007 | | | | |
+| TC-008 | | | | |
 

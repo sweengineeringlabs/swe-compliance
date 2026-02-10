@@ -31,3 +31,7 @@ testCases:
   test: 'FR-828: Scaffold output directory (Test)'
   verifies: REQ-007
   priority: Should
+- id: TC-008
+  test: 'FR-829: Scaffold phase filter (Test)'
+  verifies: REQ-008
+  priority: Should

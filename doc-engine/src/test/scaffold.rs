@@ -2605,3 +2605,99 @@ fn test_cli_scaffold_phase_large_srs() {
         // 5 domains × 2 deploy files = 10
         .stdout(predicate::str::contains("10 files created"));
 }
+
+// ===========================================================================
+// --report flag
+// ===========================================================================
+
+#[test]
+fn test_cli_scaffold_report_flag() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let srs_path = tmp.path().join("srs.md");
+    fs::write(&srs_path, FIXTURE_SRS).unwrap();
+
+    let output_dir = tmp.path().join("output");
+    let report_path = tmp.path().join("report.json");
+
+    cmd()
+        .arg("scaffold")
+        .arg(&srs_path)
+        .arg("--output")
+        .arg(&output_dir)
+        .arg("--report")
+        .arg(&report_path)
+        .assert()
+        .success()
+        .stderr(predicate::str::contains("Report saved to"));
+
+    assert!(report_path.exists(), "Report file should be created");
+    let content = fs::read_to_string(&report_path).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&content)
+        .expect("Report should be valid JSON");
+    assert!(parsed.is_object());
+}
+
+#[test]
+fn test_cli_scaffold_report_content() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let srs_path = tmp.path().join("srs.md");
+    fs::write(&srs_path, FIXTURE_SRS).unwrap();
+
+    let output_dir = tmp.path().join("output");
+    let report_path = tmp.path().join("report.json");
+
+    cmd()
+        .arg("scaffold")
+        .arg(&srs_path)
+        .arg("--output")
+        .arg(&output_dir)
+        .arg("--report")
+        .arg(&report_path)
+        .assert()
+        .success();
+
+    let content = fs::read_to_string(&report_path).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&content).unwrap();
+
+    assert_eq!(parsed["domain_count"], 2);
+    assert_eq!(parsed["requirement_count"], 3);
+    assert!(parsed["created"].is_array());
+    assert!(parsed["skipped"].is_array());
+    assert_eq!(parsed["created"].as_array().unwrap().len(), 22);
+    assert_eq!(parsed["skipped"].as_array().unwrap().len(), 0);
+}
+
+#[test]
+fn test_cli_scaffold_report_creates_parent_dirs() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let srs_path = tmp.path().join("srs.md");
+    fs::write(&srs_path, FIXTURE_SRS).unwrap();
+
+    let output_dir = tmp.path().join("output");
+    let report_path = tmp.path().join("nested/deep/report.json");
+
+    cmd()
+        .arg("scaffold")
+        .arg(&srs_path)
+        .arg("--output")
+        .arg(&output_dir)
+        .arg("--report")
+        .arg(&report_path)
+        .assert()
+        .success();
+
+    assert!(report_path.exists(), "Report file should be created in nested dir");
+    let content = fs::read_to_string(&report_path).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&content).unwrap();
+    assert_eq!(parsed["domain_count"], 2);
+}
+
+#[test]
+fn test_cli_scaffold_report_in_help() {
+    cmd()
+        .arg("scaffold")
+        .arg("--help")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("--report"));
+}

@@ -59,6 +59,10 @@ enum Commands {
         /// Generate only specific SDLC phases (comma-separated: requirements,design,testing,deployment)
         #[arg(long)]
         phase: Option<String>,
+
+        /// Save scaffold report as JSON
+        #[arg(long)]
+        report: Option<PathBuf>,
     },
 }
 
@@ -221,7 +225,7 @@ fn main() {
                 }
             }
         }
-        Commands::Scaffold { srs_path, output, force, phase } => {
+        Commands::Scaffold { srs_path, output, force, phase, report } => {
             let srs_resolved = match srs_path.canonicalize() {
                 Ok(p) => p,
                 Err(e) => {
@@ -269,6 +273,26 @@ fn main() {
                         result.created.len(),
                         result.skipped.len(),
                     );
+
+                    if let Some(ref report_path) = report {
+                        let json = serde_json::to_string_pretty(&result).unwrap_or_else(|e| {
+                            eprintln!("Error: JSON serialization failed: {}", e);
+                            process::exit(2);
+                        });
+                        if let Some(parent) = report_path.parent() {
+                            if !parent.exists() {
+                                if let Err(e) = std::fs::create_dir_all(parent) {
+                                    eprintln!("Error: cannot create directory '{}': {}", parent.display(), e);
+                                    process::exit(2);
+                                }
+                            }
+                        }
+                        if let Err(e) = std::fs::write(report_path, &json) {
+                            eprintln!("Error: cannot write report to '{}': {}", report_path.display(), e);
+                            process::exit(2);
+                        }
+                        eprintln!("Report saved to {}", report_path.display());
+                    }
                 }
                 Err(e) => {
                     eprintln!("Error: {}", e);
