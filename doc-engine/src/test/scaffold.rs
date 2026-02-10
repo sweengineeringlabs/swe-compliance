@@ -193,6 +193,91 @@ Must follow Stratified Encapsulation Architecture.
 Dependencies flow inward only.
 ";
 
+/// Fixture that exercises all 4 verification methods with backtick commands,
+/// file traces, and prose — designed to test auto-populated steps.
+const STEPS_FIXTURE_SRS: &str = "\
+### 4.1 CLI Interface
+
+#### FR-500: Scan command
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Must |
+| **State** | Approved |
+| **Verification** | Test |
+| **Acceptance** | `doc-engine scan <PATH>` outputs a compliance report |
+
+The CLI scan command.
+
+#### FR-501: JSON flag
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Should |
+| **State** | Approved |
+| **Verification** | Test |
+| **Acceptance** | `doc-engine scan <PATH> --json` outputs valid JSON |
+
+JSON output flag.
+
+#### FR-502: Help text
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Must |
+| **State** | Approved |
+| **Verification** | Demonstration |
+| **Acceptance** | `doc-engine --help` shows usage |
+
+Help text display.
+
+#### FR-503: Verbose mode
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Could |
+| **State** | Proposed |
+| **Verification** | Demonstration |
+| **Acceptance** | Verbose flag increases output detail |
+
+Verbose output.
+
+### 5.1 Architecture
+
+#### NFR-100: SEA compliance
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Must |
+| **State** | Approved |
+| **Verification** | Inspection |
+| **Traces to** | SYS-01 -> saf/mod.rs |
+| **Acceptance** | No upward dependencies |
+
+Module graph follows SEA.
+
+#### NFR-101: Single pass performance
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Must |
+| **State** | Approved |
+| **Verification** | Analysis |
+| **Acceptance** | Profiling shows exactly one walkdir traversal |
+
+Single directory traversal.
+
+#### NFR-102: Complexity bound
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Should |
+| **State** | Approved |
+| **Verification** | Analysis |
+
+Algorithm complexity analysis.
+";
+
 /// Fixture with mixed FR/NFR in a single domain, some missing attributes.
 const MIXED_ATTRS_SRS: &str = "\
 ### 4.1 CLI Interface
@@ -3294,4 +3379,208 @@ fn test_scaffold_result_json_with_phase_filter() {
         .iter().map(|v| v.as_str().unwrap()).collect();
     assert_eq!(phases, vec!["testing", "design"]);
     assert_eq!(val["force"], true);
+}
+
+// ===========================================================================
+// Manual exec: auto-populated test steps
+// ===========================================================================
+
+#[test]
+fn test_manual_exec_steps_test_method_with_backtick() {
+    let (_tmp, output_dir, config) = scaffold_to_tmp(STEPS_FIXTURE_SRS);
+    scaffold_from_srs(&config).unwrap();
+
+    let manual = fs::read_to_string(
+        output_dir.join("docs/5-testing/cli_interface/cli_interface.manual.exec"),
+    ).unwrap();
+
+    // FR-500: Test with backtick command → "Run `doc-engine scan <PATH>`"
+    let tc001 = manual.lines().find(|l| l.contains("TC-001")).unwrap();
+    assert!(
+        tc001.contains("Run `doc-engine scan <PATH>`"),
+        "TC-001 should have auto-populated Test step, got: {}", tc001,
+    );
+
+    // FR-501: Test with backtick command → "Run `doc-engine scan <PATH> --json`"
+    let tc002 = manual.lines().find(|l| l.contains("TC-002")).unwrap();
+    assert!(
+        tc002.contains("Run `doc-engine scan <PATH> --json`"),
+        "TC-002 should have auto-populated Test step, got: {}", tc002,
+    );
+}
+
+#[test]
+fn test_manual_exec_steps_demonstration_method() {
+    let (_tmp, output_dir, config) = scaffold_to_tmp(STEPS_FIXTURE_SRS);
+    scaffold_from_srs(&config).unwrap();
+
+    let manual = fs::read_to_string(
+        output_dir.join("docs/5-testing/cli_interface/cli_interface.manual.exec"),
+    ).unwrap();
+
+    // FR-502: Demonstration with backtick → "Execute `doc-engine --help` and observe output"
+    let tc003 = manual.lines().find(|l| l.contains("TC-003")).unwrap();
+    assert!(
+        tc003.contains("Execute `doc-engine --help` and observe output"),
+        "TC-003 should have Demonstration step with command, got: {}", tc003,
+    );
+
+    // FR-503: Demonstration without backtick → "Execute and verify: Verbose flag increases output detail"
+    let tc004 = manual.lines().find(|l| l.contains("TC-004")).unwrap();
+    assert!(
+        tc004.contains("Execute and verify: Verbose flag increases output detail"),
+        "TC-004 should have Demonstration prose fallback, got: {}", tc004,
+    );
+}
+
+#[test]
+fn test_manual_exec_steps_inspection_method() {
+    let (_tmp, output_dir, config) = scaffold_to_tmp(STEPS_FIXTURE_SRS);
+    scaffold_from_srs(&config).unwrap();
+
+    let manual = fs::read_to_string(
+        output_dir.join("docs/5-testing/architecture/architecture.manual.exec"),
+    ).unwrap();
+
+    // NFR-100: Inspection with traces_to file → "Review `saf/mod.rs`"
+    let tc001 = manual.lines().find(|l| l.contains("TC-001")).unwrap();
+    assert!(
+        tc001.contains("Review `saf/mod.rs`"),
+        "TC-001 should have Inspection step with file, got: {}", tc001,
+    );
+}
+
+#[test]
+fn test_manual_exec_steps_analysis_method() {
+    let (_tmp, output_dir, config) = scaffold_to_tmp(STEPS_FIXTURE_SRS);
+    scaffold_from_srs(&config).unwrap();
+
+    let manual = fs::read_to_string(
+        output_dir.join("docs/5-testing/architecture/architecture.manual.exec"),
+    ).unwrap();
+
+    // NFR-101: Analysis with acceptance → "Analyze: Profiling shows exactly one walkdir traversal"
+    let tc002 = manual.lines().find(|l| l.contains("TC-002")).unwrap();
+    assert!(
+        tc002.contains("Analyze: Profiling shows exactly one walkdir traversal"),
+        "TC-002 should have Analysis step, got: {}", tc002,
+    );
+
+    // NFR-102: Analysis with no acceptance but has description → uses description
+    let tc003 = manual.lines().find(|l| l.contains("TC-003")).unwrap();
+    assert!(
+        tc003.contains("Analyze: Algorithm complexity analysis."),
+        "TC-003 should use description fallback, got: {}", tc003,
+    );
+}
+
+#[test]
+fn test_manual_exec_steps_large_fixture_inspection_trace() {
+    let (_tmp, output_dir, config) = scaffold_to_tmp(LARGE_FIXTURE_SRS);
+    scaffold_from_srs(&config).unwrap();
+
+    // rule_loading domain: FR-102 is Inspection with traces_to "STK-02 -> api/types.rs"
+    let manual = fs::read_to_string(
+        output_dir.join("docs/5-testing/rule_loading/rule_loading.manual.exec"),
+    ).unwrap();
+
+    let tc003 = manual.lines().find(|l| l.contains("TC-003")).unwrap();
+    assert!(
+        tc003.contains("Review `api/types.rs`"),
+        "FR-102 Inspection should reference api/types.rs, got: {}", tc003,
+    );
+}
+
+#[test]
+fn test_manual_exec_steps_large_fixture_demonstration_prose() {
+    let (_tmp, output_dir, config) = scaffold_to_tmp(LARGE_FIXTURE_SRS);
+    scaffold_from_srs(&config).unwrap();
+
+    // reporting domain: FR-400 is Demonstration, acceptance has no backtick
+    let manual = fs::read_to_string(
+        output_dir.join("docs/5-testing/reporting/reporting.manual.exec"),
+    ).unwrap();
+
+    let tc001 = manual.lines().find(|l| l.contains("TC-001")).unwrap();
+    assert!(
+        tc001.contains("Execute and verify: Grouped results with summary line"),
+        "FR-400 Demonstration should use prose fallback, got: {}", tc001,
+    );
+}
+
+#[test]
+fn test_manual_exec_steps_large_fixture_inspection_no_file() {
+    let (_tmp, output_dir, config) = scaffold_to_tmp(LARGE_FIXTURE_SRS);
+    scaffold_from_srs(&config).unwrap();
+
+    // architecture domain: NFR-100 is Inspection, traces_to "SYS-01" (no arrow)
+    let manual = fs::read_to_string(
+        output_dir.join("docs/5-testing/architecture/architecture.manual.exec"),
+    ).unwrap();
+
+    let tc001 = manual.lines().find(|l| l.contains("TC-001")).unwrap();
+    assert!(
+        tc001.contains("Inspect: Module graph matches SEA layers"),
+        "NFR-100 Inspection without file should use acceptance fallback, got: {}", tc001,
+    );
+}
+
+#[test]
+fn test_manual_exec_steps_todo_fallback_no_backtick() {
+    let (_tmp, output_dir, config) = scaffold_to_tmp(FIXTURE_SRS);
+    scaffold_from_srs(&config).unwrap();
+
+    // FIXTURE_SRS: all Test method, no backtick commands in acceptance → _TODO_
+    let manual = fs::read_to_string(
+        output_dir.join("docs/5-testing/rule_loading/rule_loading.manual.exec"),
+    ).unwrap();
+
+    let tc001 = manual.lines().find(|l| l.contains("TC-001")).unwrap();
+    assert!(
+        tc001.contains("_TODO_"),
+        "Test without backtick command should fall back to _TODO_, got: {}", tc001,
+    );
+}
+
+#[test]
+fn test_manual_exec_steps_table_columns_intact() {
+    let (_tmp, output_dir, config) = scaffold_to_tmp(STEPS_FIXTURE_SRS);
+    scaffold_from_srs(&config).unwrap();
+
+    let manual = fs::read_to_string(
+        output_dir.join("docs/5-testing/cli_interface/cli_interface.manual.exec"),
+    ).unwrap();
+
+    // Every TC row in the Test Cases table must have exactly 5 unescaped pipes
+    // (4 columns: TC, Test, Steps, Expected). Filter to rows containing FR- or NFR-
+    // to skip the Execution Log table rows which have different column counts.
+    for line in manual.lines().filter(|l| l.contains("TC-0") && (l.contains("FR-") || l.contains("NFR-"))) {
+        let unescaped = line.matches('|').count() - line.matches("\\|").count();
+        assert_eq!(
+            unescaped, 5,
+            "Table row has wrong column count ({}): {}", unescaped, line,
+        );
+    }
+}
+
+#[test]
+fn test_cli_scaffold_manual_exec_steps_populated() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let srs_path = tmp.path().join("srs.md");
+    fs::write(&srs_path, STEPS_FIXTURE_SRS).unwrap();
+
+    cmd()
+        .args(["scaffold", srs_path.to_str().unwrap()])
+        .args(["--output", tmp.path().join("output").to_str().unwrap()])
+        .assert()
+        .success();
+
+    let manual = fs::read_to_string(
+        tmp.path().join("output/docs/5-testing/cli_interface/cli_interface.manual.exec"),
+    ).unwrap();
+
+    // Verify CLI-produced output has auto-populated steps
+    assert!(manual.contains("Run `doc-engine scan <PATH>`"));
+    assert!(manual.contains("Execute `doc-engine --help` and observe output"));
+    assert!(manual.contains("Execute and verify: Verbose flag increases output detail"));
 }

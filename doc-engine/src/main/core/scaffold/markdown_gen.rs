@@ -1,8 +1,138 @@
-use super::types::SrsDomain;
+use super::types::{SrsDomain, SrsRequirement};
 
 /// Escape pipe characters for markdown table cells.
 fn escape_pipe(s: &str) -> String {
     s.replace('|', "\\|")
+}
+
+/// Extract the first single-backtick code span from text.
+///
+/// Skips double/triple backtick fences. Returns the content between the
+/// first matched pair of single backticks, or `None` if no span is found.
+fn extract_backtick_command(text: &str) -> Option<&str> {
+    let bytes = text.as_bytes();
+    let len = bytes.len();
+    let mut i = 0;
+    while i < len {
+        if bytes[i] == b'`' {
+            // Count consecutive backticks
+            let start = i;
+            while i < len && bytes[i] == b'`' {
+                i += 1;
+            }
+            let tick_count = i - start;
+            if tick_count != 1 {
+                // Skip double/triple backtick sequences — advance past their closing fence
+                continue;
+            }
+            // Single backtick: find the closing one
+            let content_start = i;
+            while i < len && bytes[i] != b'`' {
+                i += 1;
+            }
+            if i < len {
+                // Found closing backtick
+                let span = &text[content_start..i];
+                i += 1; // skip closing backtick
+                if !span.is_empty() {
+                    return Some(span);
+                }
+            }
+        } else {
+            i += 1;
+        }
+    }
+    None
+}
+
+/// Extract the first file path after `->` in a traces_to string.
+///
+/// Handles formats like:
+/// - `"STK-01 -> core/rules.rs"` → `Some("core/rules.rs")`
+/// - `"STK-02 -> api/types.rs (RuleDef)"` → `Some("api/types.rs")`
+/// - `"STK-01 -> \`core/rules.rs\`"` → `Some("core/rules.rs")`
+/// - `"SYS-01"` (no arrow) → `None`
+fn extract_trace_file(traces_to: &str) -> Option<&str> {
+    let arrow_pos = traces_to.find("->")?;
+    let after_arrow = traces_to[arrow_pos + 2..].trim();
+    if after_arrow.is_empty() {
+        return None;
+    }
+    // Strip leading/trailing backticks
+    let after_arrow = after_arrow.trim_matches('`');
+    // Strip parenthetical suffix: "api/types.rs (RuleDef)" → "api/types.rs"
+    let path = if let Some(paren_pos) = after_arrow.find('(') {
+        after_arrow[..paren_pos].trim()
+    } else {
+        after_arrow.trim()
+    };
+    if path.is_empty() { None } else { Some(path) }
+}
+
+/// Generate a step description for a Test-verified requirement.
+fn generate_test_steps(req: &SrsRequirement) -> String {
+    if let Some(ref acceptance) = req.acceptance {
+        if let Some(cmd) = extract_backtick_command(acceptance) {
+            return format!("Run `{}`", cmd);
+        }
+    }
+    "_TODO_".to_string()
+}
+
+/// Generate a step description for a Demonstration-verified requirement.
+fn generate_demonstration_steps(req: &SrsRequirement) -> String {
+    if let Some(ref acceptance) = req.acceptance {
+        if let Some(cmd) = extract_backtick_command(acceptance) {
+            return format!("Execute `{}` and observe output", cmd);
+        }
+        if !acceptance.is_empty() {
+            return format!("Execute and verify: {}", acceptance);
+        }
+    }
+    "_TODO_".to_string()
+}
+
+/// Generate a step description for an Inspection-verified requirement.
+fn generate_inspection_steps(req: &SrsRequirement) -> String {
+    if let Some(ref traces) = req.traces_to {
+        if let Some(file) = extract_trace_file(traces) {
+            return format!("Review `{}`", file);
+        }
+    }
+    if let Some(ref acceptance) = req.acceptance {
+        if !acceptance.is_empty() {
+            return format!("Inspect: {}", acceptance);
+        }
+    }
+    "_TODO_".to_string()
+}
+
+/// Generate a step description for an Analysis-verified requirement.
+fn generate_analysis_steps(req: &SrsRequirement) -> String {
+    if let Some(ref acceptance) = req.acceptance {
+        if !acceptance.is_empty() {
+            return format!("Analyze: {}", acceptance);
+        }
+    }
+    if !req.description.is_empty() {
+        if let Some(first_line) = req.description.lines().next() {
+            if !first_line.is_empty() {
+                return format!("Analyze: {}", first_line);
+            }
+        }
+    }
+    "_TODO_".to_string()
+}
+
+/// Dispatch to the appropriate step generator based on verification method.
+fn generate_steps(req: &SrsRequirement) -> String {
+    match req.verification.as_deref().unwrap_or("Test") {
+        "Test" => generate_test_steps(req),
+        "Demonstration" => generate_demonstration_steps(req),
+        "Inspection" => generate_inspection_steps(req),
+        "Analysis" => generate_analysis_steps(req),
+        _ => generate_test_steps(req),
+    }
 }
 
 /// Generate a `.spec` markdown file for a domain.
@@ -147,9 +277,10 @@ pub(crate) fn generate_manual_exec_md(domain: &SrsDomain) -> String {
         let tc_id = format!("TC-{:03}", idx + 1);
         let method = req.verification.as_deref().unwrap_or("Test");
         let acceptance = req.acceptance.as_deref().unwrap_or("To be defined");
+        let steps = escape_pipe(&generate_steps(req));
         out.push_str(&format!(
-            "| {} | {}: {} ({}) | _TODO_ | {} |\n",
-            tc_id, req.id, escape_pipe(&req.title), method, escape_pipe(acceptance),
+            "| {} | {}: {} ({}) | {} | {} |\n",
+            tc_id, req.id, escape_pipe(&req.title), method, steps, escape_pipe(acceptance),
         ));
     }
 
@@ -517,5 +648,419 @@ mod tests {
         domain.requirements[0].title = "Check A|B".to_string();
         let md = generate_test_spec_md(&domain);
         assert!(md.contains("Check A\\|B"));
+    }
+
+    // ---- extract_backtick_command tests ----
+
+    #[test]
+    fn test_extract_backtick_command_basic() {
+        assert_eq!(
+            extract_backtick_command("`doc-engine scan .`"),
+            Some("doc-engine scan ."),
+        );
+    }
+
+    #[test]
+    fn test_extract_backtick_command_no_backticks() {
+        assert_eq!(extract_backtick_command("plain text"), None);
+    }
+
+    #[test]
+    fn test_extract_backtick_command_skips_double_backticks() {
+        assert_eq!(
+            extract_backtick_command("``code block`` then `real`"),
+            Some("real"),
+        );
+    }
+
+    #[test]
+    fn test_extract_backtick_command_first_match() {
+        assert_eq!(
+            extract_backtick_command("`first` and `second`"),
+            Some("first"),
+        );
+    }
+
+    #[test]
+    fn test_extract_backtick_command_empty_span() {
+        // Empty backtick span `` should be skipped (treated as double backtick)
+        assert_eq!(extract_backtick_command("`` `real`"), Some("real"));
+    }
+
+    // ---- extract_trace_file tests ----
+
+    #[test]
+    fn test_extract_trace_file_basic() {
+        assert_eq!(
+            extract_trace_file("STK-01 -> core/rules.rs"),
+            Some("core/rules.rs"),
+        );
+    }
+
+    #[test]
+    fn test_extract_trace_file_with_parenthetical() {
+        assert_eq!(
+            extract_trace_file("STK-02 -> api/types.rs (RuleDef)"),
+            Some("api/types.rs"),
+        );
+    }
+
+    #[test]
+    fn test_extract_trace_file_no_arrow() {
+        assert_eq!(extract_trace_file("SYS-01"), None);
+    }
+
+    #[test]
+    fn test_extract_trace_file_with_backticks() {
+        assert_eq!(
+            extract_trace_file("STK-03 -> `saf/mod.rs`"),
+            Some("saf/mod.rs"),
+        );
+    }
+
+    // ---- generate_steps: Test method ----
+
+    #[test]
+    fn test_generate_steps_test_with_backtick_command() {
+        let req = SrsRequirement {
+            id: "FR-501".to_string(),
+            title: "JSON flag".to_string(),
+            kind: ReqKind::Functional,
+            priority: Some("Should".to_string()),
+            state: Some("Approved".to_string()),
+            verification: Some("Test".to_string()),
+            traces_to: None,
+            acceptance: Some("`doc-engine scan <PATH> --json` outputs valid JSON".to_string()),
+            description: String::new(),
+        };
+        assert_eq!(generate_steps(&req), "Run `doc-engine scan <PATH> --json`");
+    }
+
+    #[test]
+    fn test_generate_steps_test_no_backtick_fallback() {
+        let req = SrsRequirement {
+            id: "FR-502".to_string(),
+            title: "Plain test".to_string(),
+            kind: ReqKind::Functional,
+            priority: None,
+            state: None,
+            verification: Some("Test".to_string()),
+            traces_to: None,
+            acceptance: Some("Output is correct".to_string()),
+            description: String::new(),
+        };
+        assert_eq!(generate_steps(&req), "_TODO_");
+    }
+
+    #[test]
+    fn test_generate_steps_test_no_acceptance() {
+        let req = SrsRequirement {
+            id: "FR-503".to_string(),
+            title: "No data".to_string(),
+            kind: ReqKind::Functional,
+            priority: None,
+            state: None,
+            verification: Some("Test".to_string()),
+            traces_to: None,
+            acceptance: None,
+            description: String::new(),
+        };
+        assert_eq!(generate_steps(&req), "_TODO_");
+    }
+
+    // ---- generate_steps: Demonstration method ----
+
+    #[test]
+    fn test_generate_steps_demonstration_with_backtick() {
+        let req = SrsRequirement {
+            id: "FR-600".to_string(),
+            title: "Demo cmd".to_string(),
+            kind: ReqKind::Functional,
+            priority: None,
+            state: None,
+            verification: Some("Demonstration".to_string()),
+            traces_to: None,
+            acceptance: Some("`cargo run -- help` shows usage".to_string()),
+            description: String::new(),
+        };
+        assert_eq!(
+            generate_steps(&req),
+            "Execute `cargo run -- help` and observe output",
+        );
+    }
+
+    #[test]
+    fn test_generate_steps_demonstration_prose_fallback() {
+        let req = SrsRequirement {
+            id: "FR-601".to_string(),
+            title: "Demo prose".to_string(),
+            kind: ReqKind::Functional,
+            priority: None,
+            state: None,
+            verification: Some("Demonstration".to_string()),
+            traces_to: None,
+            acceptance: Some("CLI scans directory".to_string()),
+            description: String::new(),
+        };
+        assert_eq!(
+            generate_steps(&req),
+            "Execute and verify: CLI scans directory",
+        );
+    }
+
+    #[test]
+    fn test_generate_steps_demonstration_no_data() {
+        let req = SrsRequirement {
+            id: "FR-602".to_string(),
+            title: "Demo empty".to_string(),
+            kind: ReqKind::Functional,
+            priority: None,
+            state: None,
+            verification: Some("Demonstration".to_string()),
+            traces_to: None,
+            acceptance: None,
+            description: String::new(),
+        };
+        assert_eq!(generate_steps(&req), "_TODO_");
+    }
+
+    // ---- generate_steps: Inspection method ----
+
+    #[test]
+    fn test_generate_steps_inspection_with_trace_file() {
+        let req = SrsRequirement {
+            id: "NFR-100".to_string(),
+            title: "SEA compliance".to_string(),
+            kind: ReqKind::NonFunctional,
+            priority: None,
+            state: None,
+            verification: Some("Inspection".to_string()),
+            traces_to: Some("STK-01 -> saf/mod.rs".to_string()),
+            acceptance: Some("No upward dependencies".to_string()),
+            description: String::new(),
+        };
+        assert_eq!(generate_steps(&req), "Review `saf/mod.rs`");
+    }
+
+    #[test]
+    fn test_generate_steps_inspection_acceptance_fallback() {
+        let req = SrsRequirement {
+            id: "NFR-101".to_string(),
+            title: "Inspect prose".to_string(),
+            kind: ReqKind::NonFunctional,
+            priority: None,
+            state: None,
+            verification: Some("Inspection".to_string()),
+            traces_to: Some("SYS-01".to_string()), // no arrow → no file
+            acceptance: Some("Module boundaries respected".to_string()),
+            description: String::new(),
+        };
+        assert_eq!(
+            generate_steps(&req),
+            "Inspect: Module boundaries respected",
+        );
+    }
+
+    #[test]
+    fn test_generate_steps_inspection_no_data() {
+        let req = SrsRequirement {
+            id: "NFR-102".to_string(),
+            title: "Inspect empty".to_string(),
+            kind: ReqKind::NonFunctional,
+            priority: None,
+            state: None,
+            verification: Some("Inspection".to_string()),
+            traces_to: None,
+            acceptance: None,
+            description: String::new(),
+        };
+        assert_eq!(generate_steps(&req), "_TODO_");
+    }
+
+    // ---- generate_steps: Analysis method ----
+
+    #[test]
+    fn test_generate_steps_analysis_with_acceptance() {
+        let req = SrsRequirement {
+            id: "NFR-200".to_string(),
+            title: "Single pass".to_string(),
+            kind: ReqKind::NonFunctional,
+            priority: None,
+            state: None,
+            verification: Some("Analysis".to_string()),
+            traces_to: None,
+            acceptance: Some("Profiling shows exactly one walkdir traversal".to_string()),
+            description: String::new(),
+        };
+        assert_eq!(
+            generate_steps(&req),
+            "Analyze: Profiling shows exactly one walkdir traversal",
+        );
+    }
+
+    #[test]
+    fn test_generate_steps_analysis_description_fallback() {
+        let req = SrsRequirement {
+            id: "NFR-201".to_string(),
+            title: "Analyze desc".to_string(),
+            kind: ReqKind::NonFunctional,
+            priority: None,
+            state: None,
+            verification: Some("Analysis".to_string()),
+            traces_to: None,
+            acceptance: None,
+            description: "Complexity must be O(n).".to_string(),
+        };
+        assert_eq!(
+            generate_steps(&req),
+            "Analyze: Complexity must be O(n).",
+        );
+    }
+
+    #[test]
+    fn test_generate_steps_analysis_no_data() {
+        let req = SrsRequirement {
+            id: "NFR-202".to_string(),
+            title: "Analyze empty".to_string(),
+            kind: ReqKind::NonFunctional,
+            priority: None,
+            state: None,
+            verification: Some("Analysis".to_string()),
+            traces_to: None,
+            acceptance: None,
+            description: String::new(),
+        };
+        assert_eq!(generate_steps(&req), "_TODO_");
+    }
+
+    // ---- generate_steps: default (no verification) ----
+
+    #[test]
+    fn test_generate_steps_default_uses_test() {
+        let req = SrsRequirement {
+            id: "FR-999".to_string(),
+            title: "No method".to_string(),
+            kind: ReqKind::Functional,
+            priority: None,
+            state: None,
+            verification: None,
+            traces_to: None,
+            acceptance: Some("`cargo test` passes".to_string()),
+            description: String::new(),
+        };
+        assert_eq!(generate_steps(&req), "Run `cargo test`");
+    }
+
+    // ---- Integration tests ----
+
+    #[test]
+    fn test_manual_exec_all_four_methods() {
+        let domain = SrsDomain {
+            section: "4.5".to_string(),
+            title: "Mixed Methods".to_string(),
+            slug: "mixed_methods".to_string(),
+            requirements: vec![
+                SrsRequirement {
+                    id: "FR-001".to_string(),
+                    title: "Test method".to_string(),
+                    kind: ReqKind::Functional,
+                    priority: None,
+                    state: None,
+                    verification: Some("Test".to_string()),
+                    traces_to: None,
+                    acceptance: Some("`cargo test` passes".to_string()),
+                    description: String::new(),
+                },
+                SrsRequirement {
+                    id: "FR-002".to_string(),
+                    title: "Demo method".to_string(),
+                    kind: ReqKind::Functional,
+                    priority: None,
+                    state: None,
+                    verification: Some("Demonstration".to_string()),
+                    traces_to: None,
+                    acceptance: Some("`cargo run` shows help".to_string()),
+                    description: String::new(),
+                },
+                SrsRequirement {
+                    id: "NFR-003".to_string(),
+                    title: "Inspect method".to_string(),
+                    kind: ReqKind::NonFunctional,
+                    priority: None,
+                    state: None,
+                    verification: Some("Inspection".to_string()),
+                    traces_to: Some("STK-01 -> src/lib.rs".to_string()),
+                    acceptance: None,
+                    description: String::new(),
+                },
+                SrsRequirement {
+                    id: "NFR-004".to_string(),
+                    title: "Analyze method".to_string(),
+                    kind: ReqKind::NonFunctional,
+                    priority: None,
+                    state: None,
+                    verification: Some("Analysis".to_string()),
+                    traces_to: None,
+                    acceptance: Some("O(n) complexity".to_string()),
+                    description: String::new(),
+                },
+            ],
+        };
+        let md = generate_manual_exec_md(&domain);
+        assert!(md.contains("Run `cargo test`"), "Test step missing");
+        assert!(
+            md.contains("Execute `cargo run` and observe output"),
+            "Demonstration step missing",
+        );
+        assert!(md.contains("Review `src/lib.rs`"), "Inspection step missing");
+        assert!(
+            md.contains("Analyze: O(n) complexity"),
+            "Analysis step missing",
+        );
+    }
+
+    #[test]
+    fn test_manual_exec_pipe_in_steps_escaped() {
+        let domain = SrsDomain {
+            section: "4.6".to_string(),
+            title: "Pipe Steps".to_string(),
+            slug: "pipe_steps".to_string(),
+            requirements: vec![SrsRequirement {
+                id: "FR-900".to_string(),
+                title: "Piped cmd".to_string(),
+                kind: ReqKind::Functional,
+                priority: None,
+                state: None,
+                verification: Some("Test".to_string()),
+                traces_to: None,
+                acceptance: Some("`echo a | grep a` succeeds".to_string()),
+                description: String::new(),
+            }],
+        };
+        let md = generate_manual_exec_md(&domain);
+        // The pipe in the command must be escaped in the table
+        assert!(md.contains("Run `echo a \\| grep a`"));
+    }
+
+    #[test]
+    fn test_manual_exec_todo_fallback_when_no_data() {
+        let domain = SrsDomain {
+            section: "4.7".to_string(),
+            title: "Fallback".to_string(),
+            slug: "fallback".to_string(),
+            requirements: vec![SrsRequirement {
+                id: "FR-000".to_string(),
+                title: "Empty req".to_string(),
+                kind: ReqKind::Functional,
+                priority: None,
+                state: None,
+                verification: Some("Test".to_string()),
+                traces_to: None,
+                acceptance: None,
+                description: String::new(),
+            }],
+        };
+        let md = generate_manual_exec_md(&domain);
+        assert!(md.contains("_TODO_"));
     }
 }
