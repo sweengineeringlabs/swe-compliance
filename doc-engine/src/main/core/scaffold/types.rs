@@ -20,7 +20,7 @@ pub struct SrsRequirement {
     pub title: String,
     /// Whether this is functional or non-functional.
     pub kind: ReqKind,
-    /// MoSCoW priority: Must / Should / May.
+    /// MoSCoW priority: Must / Should / Could / Won't.
     pub priority: Option<String>,
     /// Lifecycle state: Proposed / Approved / Implemented / Verified.
     pub state: Option<String>,

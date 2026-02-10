@@ -375,7 +375,7 @@ pub enum SpecKind { Brd, FeatureRequest, Architecture, TestPlan, Deployment }
 pub enum SpecStatus { Draft, Proposed, Approved, Implemented, Verified, Deprecated }
 
 /// Priority (MoSCoW)
-pub enum Priority { Must, Should, May, Wont }
+pub enum Priority { Must, Should, Could, Wont }
 
 /// A discovered spec file with its format and kind
 pub struct DiscoveredSpec {

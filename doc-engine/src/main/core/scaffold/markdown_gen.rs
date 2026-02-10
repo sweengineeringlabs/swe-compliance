@@ -372,7 +372,7 @@ mod tests {
                     id: "FR-502".to_string(),
                     title: "Verbose mode".to_string(),
                     kind: ReqKind::Functional,
-                    priority: Some("May".to_string()),
+                    priority: Some("Could".to_string()),
                     state: Some("Approved".to_string()),
                     verification: Some("Inspection".to_string()),
                     traces_to: None,

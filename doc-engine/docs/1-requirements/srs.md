@@ -214,7 +214,7 @@ Each requirement includes:
 | Attribute | Description |
 |-----------|-------------|
 | **ID** | Unique identifier (FR-nnn for functional, NFR-nnn for non-functional) |
-| **Priority** | Must / Should / May (MoSCoW) |
+| **Priority** | Must / Should / Could / Won't (MoSCoW) |
 | **State** | Proposed / Approved / Implemented / Verified |
 | **Verification** | Test / Inspection / Analysis / Demonstration |
 | **Traces to** | Stakeholder requirement (STK-nn), architecture component |
@@ -1013,7 +1013,7 @@ The engine shall generate markdown documents from YAML spec files, matching the 
 
 | Attribute | Value |
 |-----------|-------|
-| **Priority** | May |
+| **Priority** | Could |
 | **State** | Approved |
 | **Verification** | Demonstration |
 | **Traces to** | STK-08 -> `core/spec/generate.rs` |

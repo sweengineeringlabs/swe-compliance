@@ -22,7 +22,7 @@ testCases:
 - id: TC-005
   test: 'FR-734: Deployment markdown generation (Demonstration)'
   verifies: REQ-005
-  priority: May
+  priority: Could
 - id: TC-006
   test: 'FR-735: Output path control (Test)'
   verifies: REQ-006

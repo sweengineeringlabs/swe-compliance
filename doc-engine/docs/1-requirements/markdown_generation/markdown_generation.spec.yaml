@@ -33,7 +33,7 @@ requirements:
 - id: REQ-005
   sourceId: FR-734
   title: Deployment markdown generation
-  priority: May
+  priority: Could
   status: Approved
   verification: Demonstration
   acceptance: Given a valid `.deploy.yaml`, the generator produces a markdown document with environment configuration table

@@ -12,6 +12,6 @@
 | TC-002 | FR-731: BRD markdown generation (Demonstration) | REQ-002 | Should |
 | TC-003 | FR-732: Architecture markdown generation (Demonstration) | REQ-003 | Should |
 | TC-004 | FR-733: Test plan markdown generation (Demonstration) | REQ-004 | Should |
-| TC-005 | FR-734: Deployment markdown generation (Demonstration) | REQ-005 | May |
+| TC-005 | FR-734: Deployment markdown generation (Demonstration) | REQ-005 | Could |
 | TC-006 | FR-735: Output path control (Test) | REQ-006 | Should |
 

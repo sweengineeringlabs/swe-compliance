@@ -402,7 +402,7 @@ Second desc.
 
 | Attribute | Value |
 |-----------|-------|
-| **Priority** | May |
+| **Priority** | Could |
 
 Third desc.
 ";

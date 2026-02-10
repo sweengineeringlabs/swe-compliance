@@ -12,7 +12,7 @@
 | REQ-002 | FR-731 | BRD markdown generation | Should | Demonstration | Given a valid `brd.spec.yaml`, the generator produces a markdown document with domain inventory table and links to individual specs |
 | REQ-003 | FR-732 | Architecture markdown generation | Should | Demonstration | Given a valid `.arch.yaml`, the generator produces a markdown document with component descriptions and dependency diagrams |
 | REQ-004 | FR-733 | Test plan markdown generation | Should | Demonstration | Given a valid `.test.yaml`, the generator produces a markdown document with test case table including verifies traceability |
-| REQ-005 | FR-734 | Deployment markdown generation | May | Demonstration | Given a valid `.deploy.yaml`, the generator produces a markdown document with environment configuration table |
+| REQ-005 | FR-734 | Deployment markdown generation | Could | Demonstration | Given a valid `.deploy.yaml`, the generator produces a markdown document with environment configuration table |
 | REQ-006 | FR-735 | Output path control | Should | Test | `--output <dir>` writes generated markdown to the specified directory; default writes to stdout |
 
 ## Acceptance Criteria
