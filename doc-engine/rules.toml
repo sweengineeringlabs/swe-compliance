@@ -1,4 +1,4 @@
-# doc-engine rules — 80 documentation compliance checks
+# doc-engine rules — 114 documentation compliance checks
 # Embedded in binary via include_str!("../../rules.toml")
 
 # =============================================================================
@@ -523,6 +523,153 @@ handler = "plan_traces_design"
 scope = "medium"
 
 # =============================================================================
+# Checks 54-59: Phase Artifact Existence
+# =============================================================================
+
+[[rules]]
+id = 54
+category = "ideation"
+description = "Ideation phase index exists"
+severity = "info"
+type = "file_exists"
+path = "docs/0-ideation/README.md"
+scope = "medium"
+
+[[rules]]
+id = 55
+category = "requirements"
+description = "SRS exists"
+severity = "error"
+type = "file_exists"
+path = "docs/1-requirements/srs.md"
+scope = "medium"
+
+[[rules]]
+id = 56
+category = "planning"
+description = "Implementation plan exists"
+severity = "warning"
+type = "file_exists"
+path = "docs/2-planning/implementation_plan.md"
+scope = "medium"
+
+[[rules]]
+id = 57
+category = "design"
+description = "Architecture document exists"
+severity = "warning"
+type = "file_exists"
+path = "docs/3-design/architecture.md"
+scope = "small"
+
+[[rules]]
+id = 58
+category = "development"
+description = "Setup guide exists"
+severity = "info"
+type = "file_exists"
+path = "docs/4-development/setup_guide.md"
+scope = "medium"
+
+[[rules]]
+id = 59
+category = "testing"
+description = "Testing strategy exists"
+severity = "warning"
+type = "file_exists"
+path = "docs/5-testing/testing_strategy.md"
+scope = "medium"
+
+# =============================================================================
+# Checks 60-62, 68: Deployment
+# =============================================================================
+
+[[rules]]
+id = 60
+category = "deployment"
+description = "Deployment phase index exists"
+severity = "warning"
+type = "file_exists"
+path = "docs/6-deployment/README.md"
+scope = "medium"
+
+[[rules]]
+id = 61
+category = "deployment"
+description = "Deployment guide exists"
+severity = "info"
+type = "file_exists"
+path = "docs/6-deployment/deployment_guide.md"
+scope = "large"
+
+[[rules]]
+id = 62
+category = "deployment"
+description = "CI/CD pipeline documentation exists"
+severity = "warning"
+type = "file_exists"
+path = "docs/6-deployment/ci_cd.md"
+scope = "medium"
+
+[[rules]]
+id = 68
+category = "deployment"
+description = "Installation guide exists"
+severity = "info"
+type = "file_exists"
+path = "docs/6-deployment/installation_guide.md"
+scope = "large"
+
+# =============================================================================
+# Checks 63-67: Operations
+# =============================================================================
+
+[[rules]]
+id = 63
+category = "operations"
+description = "Operations phase index exists"
+severity = "warning"
+type = "file_exists"
+path = "docs/7-operations/README.md"
+scope = "medium"
+
+[[rules]]
+id = 64
+category = "operations"
+description = "Operations manual exists"
+severity = "warning"
+type = "file_exists"
+path = "docs/7-operations/operations_manual.md"
+scope = "large"
+
+[[rules]]
+id = 65
+category = "operations"
+description = "Troubleshooting guide exists"
+severity = "info"
+type = "file_exists"
+path = "docs/7-operations/troubleshooting.md"
+scope = "large"
+
+[[rules]]
+id = 66
+category = "operations"
+description = "Maintenance plan exists"
+severity = "info"
+type = "file_exists"
+path = "docs/7-operations/maintenance_plan.md"
+scope = "large"
+
+[[rules]]
+id = 67
+category = "operations"
+description = "Configuration reference exists"
+severity = "warning"
+type = "file_exists"
+path = "docs/7-operations/configuration.md"
+scope = "medium"
+
+# =============================================================================
 # Checks 69-72: Structure, Backlog, Root Files (BL-01, BL-02, BL-07, BL-08)
 # =============================================================================
 
@@ -827,4 +974,199 @@ description = "Production readiness has ISO/IEC 25040:2024 evaluation sections"
 severity = "info"
 type = "builtin"
 handler = "prod_readiness_25040_sections"
+scope = "large"
+
+# =============================================================================
+# Checks 99-102: Testing Phase Artifacts (29119-3, 15289, 12207)
+# =============================================================================
+
+[[rules]]
+id = 99
+category = "testing"
+description = "Test plan exists"
+severity = "warning"
+type = "file_exists"
+path = "docs/5-testing/test_plan.md"
+scope = "medium"
+
+[[rules]]
+id = 100
+category = "testing"
+description = "Test design specification exists"
+severity = "info"
+type = "file_exists"
+path = "docs/5-testing/test_design.md"
+scope = "large"
+
+[[rules]]
+id = 101
+category = "testing"
+description = "Test case specification exists"
+severity = "info"
+type = "file_exists"
+path = "docs/5-testing/test_cases.md"
+scope = "large"
+
+[[rules]]
+id = 102
+category = "testing"
+description = "Verification report exists"
+severity = "warning"
+type = "file_exists"
+path = "docs/5-testing/verification_report.md"
+scope = "large"
+
+# =============================================================================
+# Checks 103-106: Development Phase Artifacts (15289, 26514, 12207)
+# =============================================================================
+
+[[rules]]
+id = 103
+category = "development"
+description = "Integration plan exists"
+severity = "warning"
+type = "file_exists"
+path = "docs/4-development/integration_plan.md"
+scope = "large"
+
+[[rules]]
+id = 104
+category = "development"
+description = "User documentation exists"
+severity = "warning"
+type = "file_exists"
+path = "docs/4-development/user_documentation.md"
+scope = "large"
+
+[[rules]]
+id = 105
+category = "development"
+description = "API documentation exists"
+severity = "info"
+type = "file_exists"
+path = "docs/4-development/api_documentation.md"
+scope = "medium"
+
+[[rules]]
+id = 106
+category = "development"
+description = "Build procedures exists"
+severity = "info"
+type = "file_exists"
+path = "docs/4-development/build_procedures.md"
+scope = "medium"
+
+# =============================================================================
+# Checks 107-108: Design Phase Artifacts (42010, 15289, 12207)
+# =============================================================================
+
+[[rules]]
+id = 107
+category = "design"
+description = "Design description exists"
+severity = "warning"
+type = "file_exists"
+path = "docs/3-design/design_description.md"
+scope = "large"
+
+[[rules]]
+id = 108
+category = "design"
+description = "Interface description exists"
+severity = "info"
+type = "file_exists"
+path = "docs/3-design/interface_description.md"
+scope = "large"
+
+# =============================================================================
+# Checks 109-113: Planning Phase Artifacts (15289, 12207, 29119-3)
+# =============================================================================
+
+[[rules]]
+id = 109
+category = "planning"
+description = "Project management plan exists"
+severity = "warning"
+type = "file_exists"
+path = "docs/2-planning/project_management_plan.md"
+scope = "large"
+
+[[rules]]
+id = 110
+category = "planning"
+description = "Configuration management plan exists"
+severity = "warning"
+type = "file_exists"
+path = "docs/2-planning/configuration_management_plan.md"
+scope = "large"
+
+[[rules]]
+id = 111
+category = "planning"
+description = "Risk management plan exists"
+severity = "warning"
+type = "file_exists"
+path = "docs/2-planning/risk_management_plan.md"
+scope = "large"
+
+[[rules]]
+id = 112
+category = "planning"
+description = "Verification plan exists"
+severity = "warning"
+type = "file_exists"
+path = "docs/2-planning/verification_plan.md"
+scope = "large"
+
+[[rules]]
+id = 113
+category = "planning"
+description = "Test plan (project-level) exists"
+severity = "warning"
+type = "file_exists"
+path = "docs/2-planning/test_plan.md"
+scope = "large"
+
+# =============================================================================
+# Checks 114-116: Deployment Phase Artifacts (15289, 26514, 12207)
+# =============================================================================
+
+[[rules]]
+id = 114
+category = "deployment"
+description = "Transition plan exists"
+severity = "warning"
+type = "file_exists"
+path = "docs/6-deployment/transition_plan.md"
+scope = "large"
+
+[[rules]]
+id = 115
+category = "deployment"
+description = "Release notes exists"
+severity = "info"
+type = "file_exists"
+path = "docs/6-deployment/release_notes.md"
+scope = "medium"
+
+[[rules]]
+id = 116
+category = "deployment"
+description = "User manual exists"
+severity = "warning"
+type = "file_exists"
+path = "docs/6-deployment/user_manual.md"
+scope = "large"
+
+# =============================================================================
+# Check 117: Operations Phase Artifact (15289, 12207)
+# =============================================================================
+
+[[rules]]
+id = 117
+category = "operations"
+description = "Disposal plan exists"
+severity = "warning"
+type = "file_exists"
+path = "docs/7-operations/disposal_plan.md"
 scope = "large"

@@ -24,14 +24,14 @@ pub fn create_minimal_project() -> TempDir {
 
     // docs/ structure
     write_file(root, "docs/README.md",
-        "# Hub\n\n**Audience**: All\n\n## Who\nTeam\n## What\nProduct\n## Why\nReason\n## How\nProcess\n\n- [0-overview](0-overview/)\n- [1-requirements](1-requirements/)\n- [2-planning](2-planning/)\n- [3-design](3-design/)\n- [4-development](4-development/)\n- [5-testing](5-testing/)\n"
+        "# Hub\n\n**Audience**: All\n\n## Who\nTeam\n## What\nProduct\n## Why\nReason\n## How\nProcess\n\n- [0-ideation](0-ideation/)\n- [1-requirements](1-requirements/)\n- [2-planning](2-planning/)\n- [3-design](3-design/)\n- [4-development](4-development/)\n- [5-testing](5-testing/)\n- [6-deployment](6-deployment/)\n- [7-operations](7-operations/)\n"
     );
     write_file(root, "docs/glossary.md",
         "# Glossary\n\n**Audience**: All\n\n**API** - Application Programming Interface\n**CLI** - Command Line Interface\n**SDK** - Software Development Kit\n"
     );
 
     // Phase directories
-    for phase in &["0-overview", "1-requirements", "2-planning", "3-design", "4-development", "5-testing"] {
+    for phase in &["0-ideation", "1-requirements", "2-planning", "3-design", "4-development", "5-testing", "6-deployment", "7-operations"] {
         let dir = format!("docs/{}", phase);
         write_file(root, &format!("{}/README.md", dir),
             &format!("# {}\n\n**Audience**: Developers\n", phase));
@@ -43,6 +43,16 @@ pub fn create_minimal_project() -> TempDir {
          ## Test Strategy\nRequirements-based testing approach.\n\n\
          ## Test Categories\nUnit, integration, and E2E tests.\n\n\
          ## Coverage Targets\n80% line coverage target.\n");
+
+    // Testing phase artifacts (checks 99-102)
+    write_file(root, "docs/5-testing/test_plan.md",
+        "# Test Plan\n\n**Audience**: Developers\n\nLevel-specific test planning.\n");
+    write_file(root, "docs/5-testing/test_design.md",
+        "# Test Design Specification\n\n**Audience**: Developers\n\nTest design approach.\n");
+    write_file(root, "docs/5-testing/test_cases.md",
+        "# Test Case Specification\n\n**Audience**: Developers\n\nTest case definitions.\n");
+    write_file(root, "docs/5-testing/verification_report.md",
+        "# Verification Report\n\n**Audience**: Developers\n\nVerification and validation results.\n");
 
     // Traceability artifacts (checks 51-53) + 29148 attributes (check 89)
     write_file(root, "docs/1-requirements/srs.md",
@@ -72,6 +82,12 @@ pub fn create_minimal_project() -> TempDir {
     write_file(root, "docs/3-design/architecture.md",
         "# Architecture\n\n**Audience**: Developers\n\n## Who\nStakeholders: developers, architects.\n\n## What\nSystem architecture.\n\n## Why\nDesign rationale and concerns.\n\n## How\nComponent design.\n\nSee requirements.md for FR-001.\n");
 
+    // Design phase artifacts (checks 107-108)
+    write_file(root, "docs/3-design/design_description.md",
+        "# Design Description\n\n**Audience**: Developers\n\nDetailed design of system components.\n\nSee srs.md for FR-001.\n");
+    write_file(root, "docs/3-design/interface_description.md",
+        "# Interface Description\n\n**Audience**: Developers\n\nSystem interface specifications.\n\nSee srs.md for FR-001.\n");
+
     // developer_guide.md for check 69 + W3H for check 74 + 26514 sections for check 94
     write_file(root, "docs/4-development/developer_guide.md",
         "# Developer Guide\n\n**Audience**: Developers\n\n\
@@ -81,6 +97,20 @@ pub fn create_minimal_project() -> TempDir {
          ### Build & Test\nRun `cargo build` and `cargo test`.\n\n\
          ### Project Structure\nSee src/ for code layout.\n\n\
          ### Adding New Features\nExtend the codebase.\n");
+
+    // Development phase artifacts (checks 103-106)
+    write_file(root, "docs/4-development/integration_plan.md",
+        "# Integration Plan\n\n**Audience**: Developers\n\nComponent integration strategy.\n");
+    write_file(root, "docs/4-development/user_documentation.md",
+        "# User Documentation\n\n**Audience**: Users\n\nEnd-user documentation.\n");
+    write_file(root, "docs/4-development/api_documentation.md",
+        "# API Documentation\n\n**Audience**: Developers\n\nAPI reference.\n");
+    write_file(root, "docs/4-development/build_procedures.md",
+        "# Build Procedures\n\n**Audience**: Developers\n\nBuild and packaging steps.\n");
+
+    // Setup guide for check 58
+    write_file(root, "docs/4-development/setup_guide.md",
+        "# Setup Guide\n\n**Audience**: Developers\n\nHow to set up the development environment.\n");
 
     // backlog.md for check 71 (in 2-planning/); references architecture for check 53;
     // references requirements for check 82; backlog sections for check 95
@@ -93,6 +123,18 @@ pub fn create_minimal_project() -> TempDir {
          ## Blockers\n\n| Blocker | Impact | Owner | Status |\n\
          |---------|--------|-------|--------|\n\
          | None | — | — | — |\n");
+
+    // Planning phase artifacts (checks 109-113); each references architecture for check 53
+    write_file(root, "docs/2-planning/project_management_plan.md",
+        "# Project Management Plan\n\n**Audience**: Developers\n\nProject management approach.\n\nSee architecture.md for system context.\n");
+    write_file(root, "docs/2-planning/configuration_management_plan.md",
+        "# Configuration Management Plan\n\n**Audience**: Developers\n\nConfiguration management approach.\n\nSee architecture.md for system context.\n");
+    write_file(root, "docs/2-planning/risk_management_plan.md",
+        "# Risk Management Plan\n\n**Audience**: Developers\n\nRisk management approach.\n\nSee architecture.md for system context.\n");
+    write_file(root, "docs/2-planning/verification_plan.md",
+        "# Verification Plan\n\n**Audience**: Developers\n\nVerification approach.\n\nSee architecture.md for system context.\n");
+    write_file(root, "docs/2-planning/test_plan.md",
+        "# Test Plan\n\n**Audience**: Developers\n\nProject-level test planning.\n\nSee architecture.md for system context.\n");
 
     // Planning phase artifacts (checks 83-88); each references architecture for check 53
     write_file(root, "docs/2-planning/risk_register.md",
@@ -142,6 +184,36 @@ pub fn create_minimal_project() -> TempDir {
          | PASS | Meets criteria | WARN | Gaps | FAIL | Risk |\n\n\
          ## Sign-Off\n\n| Role | Name | Date | Verdict |\n\
          |------|------|------|---------|");
+
+    // Deployment artifacts (checks 114-116)
+    write_file(root, "docs/6-deployment/transition_plan.md",
+        "# Transition Plan\n\n**Audience**: Developers\n\nSystem transition approach.\n");
+    write_file(root, "docs/6-deployment/release_notes.md",
+        "# Release Notes\n\n**Audience**: Users\n\nRelease history.\n");
+    write_file(root, "docs/6-deployment/user_manual.md",
+        "# User Manual\n\n**Audience**: Users\n\nEnd-user operating instructions.\n");
+
+    // Deployment artifacts (checks 61, 62, 68)
+    write_file(root, "docs/6-deployment/deployment_guide.md",
+        "# Deployment Guide\n\n**Audience**: Developers\n\nHow to deploy the system.\n");
+    write_file(root, "docs/6-deployment/ci_cd.md",
+        "# CI/CD Pipeline\n\n**Audience**: Developers\n\nContinuous integration and delivery.\n");
+    write_file(root, "docs/6-deployment/installation_guide.md",
+        "# Installation Guide\n\n**Audience**: Developers\n\nHow to install the system.\n");
+
+    // Operations artifacts (checks 64-67)
+    write_file(root, "docs/7-operations/operations_manual.md",
+        "# Operations Manual\n\n**Audience**: Developers\n\nDay-to-day operations.\n");
+    write_file(root, "docs/7-operations/troubleshooting.md",
+        "# Troubleshooting Guide\n\n**Audience**: Developers\n\nCommon issues and resolutions.\n");
+    write_file(root, "docs/7-operations/maintenance_plan.md",
+        "# Maintenance Plan\n\n**Audience**: Developers\n\nOngoing maintenance procedures.\n");
+    write_file(root, "docs/7-operations/configuration.md",
+        "# Configuration Reference\n\n**Audience**: Developers\n\nConfiguration options.\n");
+
+    // Operations artifact (check 117)
+    write_file(root, "docs/7-operations/disposal_plan.md",
+        "# Disposal Plan\n\n**Audience**: Developers\n\nSystem retirement procedures.\n");
 
     // ADR directory
     write_file(root, "docs/3-design/adr/README.md",
