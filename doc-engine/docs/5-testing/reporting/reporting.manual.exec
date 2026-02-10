@@ -16,6 +16,7 @@
 | TC-002 | FR-401: JSON output (Test) | _TODO_ | `--json` output parses as valid JSON and deserializes to `ScanReport` |
 | TC-003 | FR-402: Exit codes (Test) | _TODO_ | Clean project returns 0; project with violations returns 1; invalid path returns 2 |
 | TC-004 | FR-403: Report file output (Test) | _TODO_ | `--output <path>` writes a JSON audit report to the specified path, creating parent directories as needed; the recommended filename follows ISO/IEC/IEEE 15289:2019: `documentation_audit_report_v{version}.json` |
+| TC-005 | FR-831: Audit status report (ISO 15289 clause 9.2) (Test) | _TODO_ | `--output <path>` persists a JSON audit status report conforming to ISO/IEC/IEEE 15289:2019 clause 9.2; the report contains: standard, clause, tool, tool_version, timestamp (ISO 8601 UTC), project_root (absolute path), project_type, project_scope, results, summary |
 
 ---
 
@@ -27,4 +28,5 @@
 | TC-002 | | | | |
 | TC-003 | | | | |
 | TC-004 | | | | |
+| TC-005 | | | | |
 

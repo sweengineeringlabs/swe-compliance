@@ -6,7 +6,7 @@ pub(crate) mod markdown_gen;
 use std::fs;
 use std::path::PathBuf;
 
-use crate::spi::types::ScanError;
+use crate::spi::types::{ScanError, iso8601_now};
 use types::{ScaffoldConfig, ScaffoldResult};
 
 /// Generate SDLC spec file scaffold from an SRS document.
@@ -32,10 +32,18 @@ pub fn scaffold_from_srs(config: &ScaffoldConfig) -> Result<ScaffoldResult, Scan
     }
 
     let mut result = ScaffoldResult {
-        created: Vec::new(),
-        skipped: Vec::new(),
+        standard: "ISO/IEC/IEEE 15289:2019".to_string(),
+        clause: "9".to_string(),
+        tool: "doc-engine".to_string(),
+        tool_version: env!("CARGO_PKG_VERSION").to_string(),
+        timestamp: iso8601_now(),
+        srs_source: config.srs_path.display().to_string(),
+        phases: config.phases.clone(),
+        force: config.force,
         domain_count: domains.len(),
         requirement_count: domains.iter().map(|d| d.requirements.len()).sum(),
+        created: Vec::new(),
+        skipped: Vec::new(),
     };
 
     let include_phase = |phase: &str| -> bool {

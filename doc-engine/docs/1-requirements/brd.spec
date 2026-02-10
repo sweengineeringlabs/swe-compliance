@@ -10,7 +10,7 @@
 | 4.1 | rule_loading | 6 | [spec](rule_loading/rule_loading.spec) | [arch](../../3-design/rule_loading/rule_loading.arch) | [test](../../5-testing/rule_loading/rule_loading.test) | [deploy](../../6-deployment/rule_loading/rule_loading.deploy) |
 | 4.2 | file_discovery | 3 | [spec](file_discovery/file_discovery.spec) | [arch](../../3-design/file_discovery/file_discovery.arch) | [test](../../5-testing/file_discovery/file_discovery.test) | [deploy](../../6-deployment/file_discovery/file_discovery.deploy) |
 | 4.3 | check_execution | 5 | [spec](check_execution/check_execution.spec) | [arch](../../3-design/check_execution/check_execution.arch) | [test](../../5-testing/check_execution/check_execution.test) | [deploy](../../6-deployment/check_execution/check_execution.deploy) |
-| 4.4 | reporting | 4 | [spec](reporting/reporting.spec) | [arch](../../3-design/reporting/reporting.arch) | [test](../../5-testing/reporting/reporting.test) | [deploy](../../6-deployment/reporting/reporting.deploy) |
+| 4.4 | reporting | 5 | [spec](reporting/reporting.spec) | [arch](../../3-design/reporting/reporting.arch) | [test](../../5-testing/reporting/reporting.test) | [deploy](../../6-deployment/reporting/reporting.deploy) |
 | 4.5 | cli_interface | 7 | [spec](cli_interface/cli_interface.spec) | [arch](../../3-design/cli_interface/cli_interface.arch) | [test](../../5-testing/cli_interface/cli_interface.test) | [deploy](../../6-deployment/cli_interface/cli_interface.deploy) |
 | 4.6 | library_api | 3 | [spec](library_api/library_api.spec) | [arch](../../3-design/library_api/library_api.arch) | [test](../../5-testing/library_api/library_api.test) | [deploy](../../6-deployment/library_api/library_api.deploy) |
 | 4.7 | spec_file_parsing | 7 | [spec](spec_file_parsing/spec_file_parsing.spec) | [arch](../../3-design/spec_file_parsing/spec_file_parsing.arch) | [test](../../5-testing/spec_file_parsing/spec_file_parsing.test) | [deploy](../../6-deployment/spec_file_parsing/spec_file_parsing.deploy) |
@@ -20,7 +20,7 @@
 | 4.11 | scan_pipeline_integration | 3 | [spec](scan_pipeline_integration/scan_pipeline_integration.spec) | [arch](../../3-design/scan_pipeline_integration/scan_pipeline_integration.arch) | [test](../../5-testing/scan_pipeline_integration/scan_pipeline_integration.test) | [deploy](../../6-deployment/scan_pipeline_integration/scan_pipeline_integration.deploy) |
 | 4.12 | spec_subcommand | 6 | [spec](spec_subcommand/spec_subcommand.spec) | [arch](../../3-design/spec_subcommand/spec_subcommand.arch) | [test](../../5-testing/spec_subcommand/spec_subcommand.test) | [deploy](../../6-deployment/spec_subcommand/spec_subcommand.deploy) |
 | 4.13 | planned_check_behavioral_requirements | 22 | [spec](planned_check_behavioral_requirements/planned_check_behavioral_requirements.spec) | [arch](../../3-design/planned_check_behavioral_requirements/planned_check_behavioral_requirements.arch) | [test](../../5-testing/planned_check_behavioral_requirements/planned_check_behavioral_requirements.test) | [deploy](../../6-deployment/planned_check_behavioral_requirements/planned_check_behavioral_requirements.deploy) |
-| 4.14 | srs_scaffold | 7 | [spec](srs_scaffold/srs_scaffold.spec) | [arch](../../3-design/srs_scaffold/srs_scaffold.arch) | [test](../../5-testing/srs_scaffold/srs_scaffold.test) | [deploy](../../6-deployment/srs_scaffold/srs_scaffold.deploy) |
+| 4.14 | srs_scaffold | 9 | [spec](srs_scaffold/srs_scaffold.spec) | [arch](../../3-design/srs_scaffold/srs_scaffold.arch) | [test](../../5-testing/srs_scaffold/srs_scaffold.test) | [deploy](../../6-deployment/srs_scaffold/srs_scaffold.deploy) |
 | 5.1 | architecture | 2 | [spec](architecture/architecture.spec) | [arch](../../3-design/architecture/architecture.arch) | [test](../../5-testing/architecture/architecture.test) | [deploy](../../6-deployment/architecture/architecture.deploy) |
 | 5.2 | performance | 2 | [spec](performance/performance.spec) | [arch](../../3-design/performance/performance.arch) | [test](../../5-testing/performance/performance.test) | [deploy](../../6-deployment/performance/performance.deploy) |
 | 5.3 | portability | 1 | [spec](portability/portability.spec) | [arch](../../3-design/portability/portability.arch) | [test](../../5-testing/portability/portability.test) | [deploy](../../6-deployment/portability/portability.deploy) |
@@ -55,7 +55,7 @@
 
 ### 4.4 Reporting (reporting)
 
-- **Requirements:** 4
+- **Requirements:** 5
 - **Spec:** `docs/1-requirements/reporting/reporting.spec.yaml`
 - **Architecture:** `docs/3-design/reporting/reporting.arch.yaml`
 - **Test Plan:** `docs/5-testing/reporting/reporting.test.yaml`
@@ -135,7 +135,7 @@
 
 ### 4.14 SRS Scaffold (srs_scaffold)
 
-- **Requirements:** 7
+- **Requirements:** 9
 - **Spec:** `docs/1-requirements/srs_scaffold/srs_scaffold.spec.yaml`
 - **Architecture:** `docs/3-design/srs_scaffold/srs_scaffold.arch.yaml`
 - **Test Plan:** `docs/5-testing/srs_scaffold/srs_scaffold.test.yaml`

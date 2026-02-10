@@ -20,6 +20,58 @@ fn test_scan_minimal_project() {
     );
 }
 
+// ===========================================================================
+// ISO/IEC/IEEE 15289:2019 clause 9.2 metadata on ScanReport
+// ===========================================================================
+
+#[test]
+fn test_scan_report_iso15289_metadata() {
+    let tmp = common::create_minimal_project();
+    let config = ScanConfig {
+        project_type: Some(ProjectType::OpenSource),
+        project_scope: ProjectScope::Large,
+        checks: Some(vec![1]),
+        rules_path: None,
+    };
+    let report = scan_with_config(tmp.path(), &config).unwrap();
+
+    assert_eq!(report.standard, "ISO/IEC/IEEE 15289:2019");
+    assert_eq!(report.clause, "9.2");
+    assert_eq!(report.tool, "doc-engine");
+    assert_eq!(report.tool_version, env!("CARGO_PKG_VERSION"));
+    // Timestamp format: YYYY-MM-DDTHH:MM:SSZ
+    assert_eq!(report.timestamp.len(), 20);
+    assert!(report.timestamp.ends_with('Z'));
+    assert_eq!(&report.timestamp[10..11], "T");
+    // project_root is populated (canonicalized path)
+    assert!(!report.project_root.is_empty());
+    assert!(
+        std::path::Path::new(&report.project_root).is_absolute(),
+        "project_root should be absolute: {}",
+        report.project_root
+    );
+}
+
+#[test]
+fn test_scan_report_project_root_matches_input() {
+    let tmp = common::create_minimal_project();
+    let config = ScanConfig {
+        project_type: Some(ProjectType::OpenSource),
+        project_scope: ProjectScope::Large,
+        checks: Some(vec![1]),
+        rules_path: None,
+    };
+    let report = scan_with_config(tmp.path(), &config).unwrap();
+    // project_root should contain the temp dir path
+    assert!(
+        report.project_root.contains(&tmp.path().to_string_lossy().to_string())
+            || tmp.path().to_string_lossy().contains(&report.project_root),
+        "project_root '{}' should relate to input path '{}'",
+        report.project_root,
+        tmp.path().display()
+    );
+}
+
 #[test]
 fn test_scan_empty_dir() {
     let tmp = tempfile::TempDir::new().unwrap();

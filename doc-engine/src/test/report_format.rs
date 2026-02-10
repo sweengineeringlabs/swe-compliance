@@ -63,6 +63,13 @@ fn test_json_has_results_and_summary() {
     assert!(val.get("summary").is_some());
     assert!(val["results"].is_array());
     assert!(val["summary"].is_object());
+    // ISO/IEC/IEEE 15289:2019 clause 9.2 metadata
+    assert_eq!(val["standard"], "ISO/IEC/IEEE 15289:2019");
+    assert_eq!(val["clause"], "9.2");
+    assert_eq!(val["tool"], "doc-engine");
+    assert!(val["tool_version"].is_string());
+    assert!(val["timestamp"].is_string());
+    assert!(val["project_root"].is_string());
 }
 
 #[test]
@@ -82,4 +89,11 @@ fn test_json_roundtrip() {
     assert_eq!(deserialized.summary.passed, report.summary.passed);
     assert_eq!(deserialized.summary.failed, report.summary.failed);
     assert_eq!(deserialized.summary.skipped, report.summary.skipped);
+    // ISO metadata survives roundtrip
+    assert_eq!(deserialized.standard, report.standard);
+    assert_eq!(deserialized.clause, report.clause);
+    assert_eq!(deserialized.tool, report.tool);
+    assert_eq!(deserialized.tool_version, report.tool_version);
+    assert_eq!(deserialized.timestamp, report.timestamp);
+    assert_eq!(deserialized.project_root, report.project_root);
 }

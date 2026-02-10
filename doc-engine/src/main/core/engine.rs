@@ -4,7 +4,7 @@ use std::path::Path;
 use crate::api::traits::ComplianceEngine;
 use crate::api::types::{ScanConfig, ScanReport, ScanSummary, CheckEntry};
 use crate::spi::traits::FileScanner;
-use crate::spi::types::{CheckResult, ProjectType, ScanContext, ScanError};
+use crate::spi::types::{CheckResult, ProjectType, ScanContext, ScanError, iso8601_now};
 use super::rules::{self, DEFAULT_RULES};
 use super::scanner::FileSystemScanner;
 
@@ -168,6 +168,12 @@ impl ComplianceEngine for DocComplianceEngine {
 
         // 8. Return ScanReport
         Ok(ScanReport {
+            standard: "ISO/IEC/IEEE 15289:2019".to_string(),
+            clause: "9.2".to_string(),
+            tool: "doc-engine".to_string(),
+            tool_version: env!("CARGO_PKG_VERSION").to_string(),
+            timestamp: iso8601_now(),
+            project_root: root.display().to_string(),
             results,
             summary: ScanSummary { total, passed, failed, skipped },
             project_type: resolved_pt,

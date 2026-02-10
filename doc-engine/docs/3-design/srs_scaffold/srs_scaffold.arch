@@ -14,7 +14,9 @@
 | FR-825 handler | STK-11 -> `core/scaffold/markdown_gen.rs` | Manual test execution plan |
 | FR-826 handler | STK-11 -> `core/scaffold/markdown_gen.rs` | Automated test execution plan |
 | FR-827 handler | STK-11 -> `core/scaffold/mod.rs` | Scaffold skip/force behavior |
-| FR-828 handler | STK-11 -> `main.rs` | --- |
+| FR-828 handler | STK-11 -> `main.rs` | Scaffold output directory |
+| FR-829 handler | STK-11 -> `main.rs`, `core/scaffold/mod.rs`, `core/scaffold/types.rs` | Scaffold phase filter |
+| FR-830 handler | STK-11 -> `main.rs`, `core/scaffold/types.rs` | When `--report <path>` is provided, the scaffold command shall serialize a `ScaffoldStatusReport` as pretty-printed JSON. The report wraps `ScaffoldResult` fields (promoted to top level) with ISO 15289:2019 clause 9 identification metadata: standard identifier, clause reference, tool name, tool version (from `Cargo.toml`), ISO 8601 UTC timestamp, canonicalized SRS source path, phase filter, and force flag. Parent directories are created automatically. No new dependencies are introduced — the timestamp uses Howard Hinnant's `civil_from_days` algorithm on `std::time::SystemTime`. |
 
 ## Related Documents
 

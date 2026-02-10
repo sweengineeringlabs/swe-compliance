@@ -28,7 +28,7 @@ domains:
 - section: '4.4'
   domain: Reporting
   slug: reporting
-  specCount: 4
+  specCount: 5
   specFile: docs/1-requirements/reporting/reporting.spec.yaml
   archFile: docs/3-design/reporting/reporting.arch.yaml
   testFile: docs/5-testing/reporting/reporting.test.yaml
@@ -108,7 +108,7 @@ domains:
 - section: '4.14'
   domain: SRS Scaffold
   slug: srs_scaffold
-  specCount: 7
+  specCount: 9
   specFile: docs/1-requirements/srs_scaffold/srs_scaffold.spec.yaml
   archFile: docs/3-design/srs_scaffold/srs_scaffold.arch.yaml
   testFile: docs/5-testing/srs_scaffold/srs_scaffold.test.yaml

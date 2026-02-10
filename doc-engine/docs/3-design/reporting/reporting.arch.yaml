@@ -15,3 +15,6 @@ components:
 - name: FR-403 handler
   tracesTo: STK-09 -> `main.rs`
   description: When `--output` / `-o` is provided, the engine shall persist the scan report as JSON to the given file path, regardless of whether `--json` was specified for stdout. Parent directories are created automatically. Stdout output is unaffected. If the file cannot be written, the tool exits with code 2.
+- name: FR-831 handler
+  tracesTo: STK-09 -> `main.rs`, `core/reporter.rs`
+  description: 'When `--output <path>` is provided, the scan command shall serialize an `AuditStatusReport` as pretty-printed JSON. The report wraps `ScanReport` fields (promoted to top level) with ISO 15289:2019 clause 9.2 identification metadata: standard identifier, clause reference, tool name, tool version (from `Cargo.toml`), ISO 8601 UTC timestamp, and canonicalized project root path. The `--json` stdout output is unaffected and continues to emit the bare `ScanReport`. No new dependencies are introduced.'

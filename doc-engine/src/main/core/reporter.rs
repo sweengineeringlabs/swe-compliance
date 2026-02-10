@@ -95,6 +95,12 @@ mod tests {
         let failed = entries.iter().filter(|e| matches!(e.result, CheckResult::Fail { .. })).count() as u8;
         let skipped = entries.iter().filter(|e| matches!(e.result, CheckResult::Skip { .. })).count() as u8;
         ScanReport {
+            standard: "ISO/IEC/IEEE 15289:2019".to_string(),
+            clause: "9.2".to_string(),
+            tool: "doc-engine".to_string(),
+            tool_version: "0.1.0".to_string(),
+            timestamp: "2026-01-01T00:00:00Z".to_string(),
+            project_root: "/tmp/test".to_string(),
             results: entries,
             summary: ScanSummary { total, passed, failed, skipped },
             project_type: ProjectType::OpenSource,

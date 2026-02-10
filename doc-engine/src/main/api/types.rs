@@ -44,9 +44,21 @@ pub struct ScanSummary {
     pub skipped: u8,
 }
 
-/// Complete scan report.
+/// Complete scan report (ISO/IEC/IEEE 15289:2019 clause 9.2).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ScanReport {
+    /// ISO standard identifier.
+    pub standard: String,
+    /// Clause reference within the standard.
+    pub clause: String,
+    /// Tool name that produced this report.
+    pub tool: String,
+    /// Semantic version of the tool.
+    pub tool_version: String,
+    /// ISO 8601 UTC timestamp of report generation.
+    pub timestamp: String,
+    /// Canonicalized absolute path to the scanned project root.
+    pub project_root: String,
     /// Per-check results in execution order.
     pub results: Vec<CheckEntry>,
     /// Aggregate pass/fail/skip counts.

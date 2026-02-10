@@ -23,4 +23,10 @@ components:
   description: Scaffold skip/force behavior
 - name: FR-828 handler
   tracesTo: STK-11 -> `main.rs`
-  description: '---'
+  description: Scaffold output directory
+- name: FR-829 handler
+  tracesTo: STK-11 -> `main.rs`, `core/scaffold/mod.rs`, `core/scaffold/types.rs`
+  description: Scaffold phase filter
+- name: FR-830 handler
+  tracesTo: STK-11 -> `main.rs`, `core/scaffold/types.rs`
+  description: 'When `--report <path>` is provided, the scaffold command shall serialize a `ScaffoldStatusReport` as pretty-printed JSON. The report wraps `ScaffoldResult` fields (promoted to top level) with ISO 15289:2019 clause 9 identification metadata: standard identifier, clause reference, tool name, tool version (from `Cargo.toml`), ISO 8601 UTC timestamp, canonicalized SRS source path, phase filter, and force flag. Parent directories are created automatically. No new dependencies are introduced — the timestamp uses Howard Hinnant''s `civil_from_days` algorithm on `std::time::SystemTime`.'

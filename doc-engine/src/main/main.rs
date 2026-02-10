@@ -196,8 +196,10 @@ fn main() {
 
                     // Save to file if --output is specified
                     if let Some(ref out_path) = output {
-                        // Always save as JSON for machine-readable persistence
-                        let json_report = format_report_json(&report);
+                        let json_report = serde_json::to_string_pretty(&report).unwrap_or_else(|e| {
+                            eprintln!("Error: JSON serialization failed: {}", e);
+                            process::exit(2);
+                        });
                         if let Some(parent) = out_path.parent() {
                             if !parent.exists() {
                                 if let Err(e) = std::fs::create_dir_all(parent) {

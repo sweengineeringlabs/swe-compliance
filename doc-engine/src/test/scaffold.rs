@@ -263,6 +263,17 @@ fn test_scaffold_e2e_file_tree() {
     assert_eq!(result.domain_count, 2);
     assert_eq!(result.requirement_count, 3);
 
+    // ISO/IEC/IEEE 15289:2019 clause 9 metadata
+    assert_eq!(result.standard, "ISO/IEC/IEEE 15289:2019");
+    assert_eq!(result.clause, "9");
+    assert_eq!(result.tool, "doc-engine");
+    assert_eq!(result.tool_version, env!("CARGO_PKG_VERSION"));
+    assert_eq!(result.timestamp.len(), 20);
+    assert!(result.timestamp.ends_with('Z'));
+    assert!(!result.srs_source.is_empty());
+    assert!(result.phases.is_empty()); // no phase filter
+    assert!(!result.force); // default
+
     // All 4 phase directories per domain
     for slug in &["rule_loading", "file_discovery"] {
         assert!(output_dir.join(format!("docs/1-requirements/{}/{}.spec.yaml", slug, slug)).exists());
@@ -291,6 +302,9 @@ fn test_scaffold_e2e_large_multi_domain() {
     // 5 domains × 10 files + 2 BRD = 52
     assert_eq!(result.created.len(), 52);
     assert!(result.skipped.is_empty());
+    // ISO metadata populated
+    assert_eq!(result.standard, "ISO/IEC/IEEE 15289:2019");
+    assert_eq!(result.tool, "doc-engine");
 
     // Verify each domain directory
     for slug in &["rule_loading", "file_discovery", "check_execution", "reporting", "architecture"] {
@@ -790,6 +804,7 @@ fn test_skip_existing_preserves_content() {
     let r2 = scaffold_from_srs(&config).unwrap();
     assert_eq!(r2.skipped.len(), 22);
     assert!(r2.created.is_empty());
+    assert!(!r2.force); // force=false reflected in result
 
     // User modification preserved
     let content = fs::read_to_string(&spec_path).unwrap();
@@ -821,6 +836,7 @@ fn test_force_overwrite_updates_content() {
     let r2 = scaffold_from_srs(&config).unwrap();
     assert_eq!(r2.created.len(), 22);
     assert!(r2.skipped.is_empty());
+    assert!(r2.force); // force=true reflected in result
 
     // User modification overwritten with fresh content
     let content = fs::read_to_string(&spec_path).unwrap();
@@ -1749,6 +1765,8 @@ fn test_phase_filter_single_testing() {
     assert_eq!(result.created.len(), 8);
     assert_eq!(result.domain_count, 2);
     assert_eq!(result.requirement_count, 3);
+    // Phase filter reflected in result
+    assert_eq!(result.phases, vec!["testing"]);
 
     for slug in &["rule_loading", "file_discovery"] {
         assert!(output_dir.join(format!("docs/5-testing/{}/{}.test.yaml", slug, slug)).exists());
@@ -2194,6 +2212,13 @@ fn test_phase_filter_metadata_unchanged() {
 
         assert_eq!(result.domain_count, 5, "domain_count changed with phases {:?}", phases);
         assert_eq!(result.requirement_count, 10, "requirement_count changed with phases {:?}", phases);
+        // ISO metadata stable across all phase filters
+        assert_eq!(result.standard, "ISO/IEC/IEEE 15289:2019");
+        assert_eq!(result.clause, "9");
+        assert_eq!(result.tool, "doc-engine");
+        assert_eq!(result.tool_version, env!("CARGO_PKG_VERSION"));
+        assert_eq!(result.timestamp.len(), 20);
+        assert_eq!(result.phases, phases);
     }
 }
 
@@ -2665,6 +2690,15 @@ fn test_cli_scaffold_report_content() {
     assert!(parsed["skipped"].is_array());
     assert_eq!(parsed["created"].as_array().unwrap().len(), 22);
     assert_eq!(parsed["skipped"].as_array().unwrap().len(), 0);
+    // ISO 15289 metadata fields present
+    assert_eq!(parsed["standard"], "ISO/IEC/IEEE 15289:2019");
+    assert_eq!(parsed["clause"], "9");
+    assert_eq!(parsed["tool"], "doc-engine");
+    assert!(parsed["tool_version"].is_string());
+    assert!(parsed["timestamp"].is_string());
+    assert!(parsed["srs_source"].is_string());
+    assert!(parsed["phases"].is_array());
+    assert!(parsed["force"].is_boolean());
 }
 
 #[test]
@@ -3033,4 +3067,231 @@ fn test_cli_scaffold_no_report_without_flag() {
         .stderr(predicate::str::contains("Report saved to").not());
 
     assert!(!report_path.exists(), "Report file should not be created without --report");
+}
+
+// ===========================================================================
+// ISO/IEC/IEEE 15289:2019 clause 9 metadata tests
+// ===========================================================================
+
+#[test]
+fn test_cli_scaffold_report_iso15289_metadata() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let srs_path = tmp.path().join("srs.md");
+    fs::write(&srs_path, FIXTURE_SRS).unwrap();
+
+    let output_dir = tmp.path().join("output");
+    let report_path = tmp.path().join("report.json");
+
+    cmd()
+        .arg("scaffold")
+        .arg(&srs_path)
+        .arg("--output")
+        .arg(&output_dir)
+        .arg("--report")
+        .arg(&report_path)
+        .assert()
+        .success();
+
+    let content = fs::read_to_string(&report_path).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&content).unwrap();
+
+    assert_eq!(parsed["standard"], "ISO/IEC/IEEE 15289:2019");
+    assert_eq!(parsed["clause"], "9");
+    assert_eq!(parsed["tool"], "doc-engine");
+    assert_eq!(parsed["tool_version"], "0.1.0");
+    // Timestamp format: YYYY-MM-DDTHH:MM:SSZ
+    let ts = parsed["timestamp"].as_str().unwrap();
+    assert_eq!(ts.len(), 20, "ISO 8601 UTC timestamp must be 20 chars: {}", ts);
+    assert!(ts.ends_with('Z'), "timestamp must end with Z: {}", ts);
+    assert_eq!(&ts[4..5], "-");
+    assert_eq!(&ts[7..8], "-");
+    assert_eq!(&ts[10..11], "T");
+}
+
+#[test]
+fn test_cli_scaffold_report_srs_source_is_absolute() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let srs_path = tmp.path().join("srs.md");
+    fs::write(&srs_path, FIXTURE_SRS).unwrap();
+
+    let output_dir = tmp.path().join("output");
+    let report_path = tmp.path().join("report.json");
+
+    cmd()
+        .arg("scaffold")
+        .arg(&srs_path)
+        .arg("--output")
+        .arg(&output_dir)
+        .arg("--report")
+        .arg(&report_path)
+        .assert()
+        .success();
+
+    let content = fs::read_to_string(&report_path).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&content).unwrap();
+
+    let srs_source = parsed["srs_source"].as_str().unwrap();
+    assert!(
+        std::path::Path::new(srs_source).is_absolute(),
+        "srs_source should be an absolute path: {}",
+        srs_source
+    );
+}
+
+#[test]
+fn test_cli_scaffold_report_phases_empty_when_no_filter() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let srs_path = tmp.path().join("srs.md");
+    fs::write(&srs_path, FIXTURE_SRS).unwrap();
+
+    let output_dir = tmp.path().join("output");
+    let report_path = tmp.path().join("report.json");
+
+    cmd()
+        .arg("scaffold")
+        .arg(&srs_path)
+        .arg("--output")
+        .arg(&output_dir)
+        .arg("--report")
+        .arg(&report_path)
+        .assert()
+        .success();
+
+    let content = fs::read_to_string(&report_path).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&content).unwrap();
+
+    let phases = parsed["phases"].as_array().unwrap();
+    assert!(phases.is_empty(), "phases should be empty when no --phase filter: {:?}", phases);
+}
+
+#[test]
+fn test_cli_scaffold_report_phases_populated_with_filter() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let srs_path = tmp.path().join("srs.md");
+    fs::write(&srs_path, FIXTURE_SRS).unwrap();
+
+    let output_dir = tmp.path().join("output");
+    let report_path = tmp.path().join("report.json");
+
+    cmd()
+        .arg("scaffold")
+        .arg(&srs_path)
+        .arg("--output")
+        .arg(&output_dir)
+        .arg("--phase")
+        .arg("testing")
+        .arg("--report")
+        .arg(&report_path)
+        .assert()
+        .success();
+
+    let content = fs::read_to_string(&report_path).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&content).unwrap();
+
+    let phases: Vec<&str> = parsed["phases"].as_array().unwrap()
+        .iter().map(|v| v.as_str().unwrap()).collect();
+    assert_eq!(phases, vec!["testing"]);
+}
+
+#[test]
+fn test_cli_scaffold_report_force_true() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let srs_path = tmp.path().join("srs.md");
+    fs::write(&srs_path, FIXTURE_SRS).unwrap();
+
+    let output_dir = tmp.path().join("output");
+    let report_path = tmp.path().join("report.json");
+
+    cmd()
+        .arg("scaffold")
+        .arg(&srs_path)
+        .arg("--output")
+        .arg(&output_dir)
+        .arg("--force")
+        .arg("--report")
+        .arg(&report_path)
+        .assert()
+        .success();
+
+    let content = fs::read_to_string(&report_path).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&content).unwrap();
+
+    assert_eq!(parsed["force"], true);
+}
+
+#[test]
+fn test_cli_scaffold_report_force_false() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let srs_path = tmp.path().join("srs.md");
+    fs::write(&srs_path, FIXTURE_SRS).unwrap();
+
+    let output_dir = tmp.path().join("output");
+    let report_path = tmp.path().join("report.json");
+
+    cmd()
+        .arg("scaffold")
+        .arg(&srs_path)
+        .arg("--output")
+        .arg(&output_dir)
+        .arg("--report")
+        .arg(&report_path)
+        .assert()
+        .success();
+
+    let content = fs::read_to_string(&report_path).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&content).unwrap();
+
+    assert_eq!(parsed["force"], false);
+}
+
+// ===========================================================================
+// Library-level: ScaffoldResult JSON serialization
+// ===========================================================================
+
+#[test]
+fn test_scaffold_result_json_serialization() {
+    let (_tmp, _output_dir, config) = scaffold_to_tmp(FIXTURE_SRS);
+    let result = scaffold_from_srs(&config).unwrap();
+
+    // ScaffoldResult serializes directly to JSON (no wrapper)
+    let json = serde_json::to_string_pretty(&result).unwrap();
+    let val: serde_json::Value = serde_json::from_str(&json).unwrap();
+
+    // ISO/IEC/IEEE 15289:2019 clause 9 metadata at top level
+    assert_eq!(val["standard"], "ISO/IEC/IEEE 15289:2019");
+    assert_eq!(val["clause"], "9");
+    assert_eq!(val["tool"], "doc-engine");
+    assert!(val["tool_version"].is_string());
+    assert!(val["timestamp"].is_string());
+    assert!(val["srs_source"].is_string());
+    assert!(val["phases"].is_array());
+    assert!(val["force"].is_boolean());
+    // Result fields at same level (flat)
+    assert_eq!(val["domain_count"], 2);
+    assert_eq!(val["requirement_count"], 3);
+    assert!(val["created"].is_array());
+    assert!(val["skipped"].is_array());
+}
+
+#[test]
+fn test_scaffold_result_json_with_phase_filter() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let srs_path = tmp.path().join("srs.md");
+    fs::write(&srs_path, FIXTURE_SRS).unwrap();
+
+    let config = ScaffoldConfig {
+        srs_path,
+        output_dir: tmp.path().join("output"),
+        force: true,
+        phases: vec!["testing".to_string(), "design".to_string()],
+    };
+    let result = scaffold_from_srs(&config).unwrap();
+    let json = serde_json::to_string_pretty(&result).unwrap();
+    let val: serde_json::Value = serde_json::from_str(&json).unwrap();
+
+    // Phases and force reflected in JSON
+    let phases: Vec<&str> = val["phases"].as_array().unwrap()
+        .iter().map(|v| v.as_str().unwrap()).collect();
+    assert_eq!(phases, vec!["testing", "design"]);
+    assert_eq!(val["force"], true);
 }

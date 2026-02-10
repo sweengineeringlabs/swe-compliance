@@ -1,5 +1,5 @@
 use std::path::PathBuf;
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 
 /// The SDLC role kind of a requirement.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -61,15 +61,31 @@ pub struct ScaffoldConfig {
     pub phases: Vec<String>,
 }
 
-/// Result of a scaffold operation.
-#[derive(Debug, Serialize)]
+/// Result of a scaffold operation (ISO/IEC/IEEE 15289:2019 clause 9).
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ScaffoldResult {
-    /// Files that were created.
-    pub created: Vec<PathBuf>,
-    /// Files that were skipped (already existed and --force not set).
-    pub skipped: Vec<PathBuf>,
+    /// ISO standard identifier.
+    pub standard: String,
+    /// Clause reference within the standard.
+    pub clause: String,
+    /// Tool name that produced this report.
+    pub tool: String,
+    /// Semantic version of the tool.
+    pub tool_version: String,
+    /// ISO 8601 UTC timestamp of report generation.
+    pub timestamp: String,
+    /// Canonicalized absolute path to the SRS source file.
+    pub srs_source: String,
+    /// Phase filter applied (empty = all phases).
+    pub phases: Vec<String>,
+    /// Whether `--force` was set during scaffold.
+    pub force: bool,
     /// Number of domains processed.
     pub domain_count: usize,
     /// Total number of requirements extracted.
     pub requirement_count: usize,
+    /// Files that were created.
+    pub created: Vec<PathBuf>,
+    /// Files that were skipped (already existed and --force not set).
+    pub skipped: Vec<PathBuf>,
 }

@@ -19,3 +19,7 @@ testCases:
   test: 'FR-403: Report file output (Test)'
   verifies: REQ-004
   priority: Should
+- id: TC-005
+  test: 'FR-831: Audit status report (ISO 15289 clause 9.2) (Test)'
+  verifies: REQ-005
+  priority: Should

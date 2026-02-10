@@ -35,3 +35,7 @@ testCases:
   test: 'FR-829: Scaffold phase filter (Test)'
   verifies: REQ-008
   priority: Should
+- id: TC-009
+  test: 'FR-830: Scaffold status report (ISO 15289 clause 9) (Test)'
+  verifies: REQ-009
+  priority: Should

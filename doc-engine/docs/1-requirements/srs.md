@@ -45,6 +45,7 @@ doc-engine does **not**:
 | **W3H** | WHO-WHAT-WHY-HOW — documentation structure pattern from template-engine |
 | **SDLC** | Software Development Life Cycle — phases 0-7 mapped to directory names |
 | **Documentation audit report** | Per ISO/IEC/IEEE 15289:2019, the standard information item produced by a documentation compliance audit; canonical filename: `documentation_audit_report_v{version}.json` |
+| **Audit status report** | A JSON information item conforming to ISO/IEC/IEEE 15289:2019 clause 9.2 (audit reports); persisted via `--output <path>` and containing identification metadata (standard, clause, tool, version, timestamp), scope (project_root, project_type, project_scope), and results (per-check entries with summary) |
 | **Project scope** | Tier that determines which rule subset applies: Small (core essentials), Medium (security, ADRs, traceability), Large (complete SDLC with ISO compliance) |
 | **ADR** | Architecture Decision Record — numbered decision documents in `docs/3-design/adr/` |
 | **Declarative rule** | A check defined entirely in TOML, executed by the generic DeclarativeCheck runner |
@@ -62,6 +63,7 @@ doc-engine does **not**:
 | **Manual execution plan** | A `.manual.exec` markdown file listing all test cases with Steps, Expected, Tester, Date, Pass/Fail, and Notes columns — an actionable checklist for human testers |
 | **Automated execution plan** | An `.auto.exec` markdown file listing all test cases with Verifies, CI Job, Build, Status, and Last Run columns — a CI/automated test tracker |
 | **Phase filter** | A `--phase` CLI flag that restricts scaffold output to specific SDLC phases (`requirements`, `design`, `testing`, `deployment`); when omitted, all phases are generated |
+| **Scaffold status report** | A JSON information item conforming to ISO/IEC/IEEE 15289:2019 clause 9 (progress/status reports); persisted via `--report <path>` and containing identification metadata (standard, clause, tool, version, timestamp), scope (srs_source, phases, force), and results (domain_count, requirement_count, created, skipped) |
 
 ### 1.4 References
 
@@ -550,6 +552,18 @@ When `--json` is provided, output shall be a JSON `ScanReport`.
 | **Acceptance** | `--output <path>` writes a JSON audit report to the specified path, creating parent directories as needed; the recommended filename follows ISO/IEC/IEEE 15289:2019: `documentation_audit_report_v{version}.json` |
 
 When `--output` / `-o` is provided, the engine shall persist the scan report as JSON to the given file path, regardless of whether `--json` was specified for stdout. Parent directories are created automatically. Stdout output is unaffected. If the file cannot be written, the tool exits with code 2.
+
+#### FR-831: Audit status report (ISO 15289 clause 9.2)
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Should |
+| **State** | Implemented |
+| **Verification** | Test |
+| **Traces to** | STK-09 -> `main.rs`, `core/reporter.rs` |
+| **Acceptance** | `--output <path>` persists a JSON audit status report conforming to ISO/IEC/IEEE 15289:2019 clause 9.2; the report contains: standard, clause, tool, tool_version, timestamp (ISO 8601 UTC), project_root (absolute path), project_type, project_scope, results, summary |
+
+When `--output <path>` is provided, the scan command shall serialize an `AuditStatusReport` as pretty-printed JSON. The report wraps `ScanReport` fields (promoted to top level) with ISO 15289:2019 clause 9.2 identification metadata: standard identifier, clause reference, tool name, tool version (from `Cargo.toml`), ISO 8601 UTC timestamp, and canonicalized project root path. The `--json` stdout output is unaffected and continues to emit the bare `ScanReport`. No new dependencies are introduced.
 
 ### 4.5 CLI Interface
 
@@ -1501,6 +1515,18 @@ Generated files per domain:
 | **Traces to** | STK-11 -> `main.rs`, `core/scaffold/mod.rs`, `core/scaffold/types.rs` |
 | **Acceptance** | `--phase` accepts a comma-separated list of SDLC phases (`requirements`, `design`, `testing`, `deployment`); only files for the specified phases are generated; BRD files are included only when `requirements` is selected; omitting `--phase` generates all phases; invalid phase names exit with code 2 and a descriptive error; phase names are case-insensitive |
 
+#### FR-830: Scaffold status report (ISO 15289 clause 9)
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Should |
+| **State** | Implemented |
+| **Verification** | Test |
+| **Traces to** | STK-11 -> `main.rs`, `core/scaffold/types.rs` |
+| **Acceptance** | `--report <path>` persists a JSON scaffold status report conforming to ISO/IEC/IEEE 15289:2019 clause 9; the report contains: standard, clause, tool, tool_version, timestamp (ISO 8601 UTC), srs_source (absolute path), phases, force, domain_count, requirement_count, created, skipped |
+
+When `--report <path>` is provided, the scaffold command shall serialize a `ScaffoldStatusReport` as pretty-printed JSON. The report wraps `ScaffoldResult` fields (promoted to top level) with ISO 15289:2019 clause 9 identification metadata: standard identifier, clause reference, tool name, tool version (from `Cargo.toml`), ISO 8601 UTC timestamp, canonicalized SRS source path, phase filter, and force flag. Parent directories are created automatically. No new dependencies are introduced — the timestamp uses Howard Hinnant's `civil_from_days` algorithm on `std::time::SystemTime`.
+
 ---
 
 ## 5. Non-Functional Requirements
@@ -1697,9 +1723,9 @@ IO errors and missing files shall produce `Skip` results or clear error messages
 | STK-06 | FR-201, NFR-200 |
 | STK-07 | FR-302, FR-503 |
 | STK-08 | FR-700-706, FR-710-716, FR-720-727, FR-730-735, FR-740-742, FR-750-755 |
-| STK-09 | FR-403, FR-506 |
+| STK-09 | FR-403, FR-506, FR-831 |
 | STK-10 | FR-505 |
-| STK-11 | FR-822, FR-823, FR-824, FR-825, FR-826, FR-827, FR-828, FR-829 |
+| STK-11 | FR-822, FR-823, FR-824, FR-825, FR-826, FR-827, FR-828, FR-829, FR-830 |
 
 ### Software -> Architecture
 
@@ -1710,7 +1736,7 @@ IO errors and missing files shall produce `Skip` results or clear error messages
 | FR-104, FR-105 | `core/builtins/mod.rs` |
 | FR-200-202 | `core/scanner.rs` |
 | FR-300-304 | `core/engine.rs`, `spi/types.rs` |
-| FR-400-403 | `core/reporter.rs`, `main.rs` |
+| FR-400-403, FR-831 | `core/reporter.rs`, `main.rs` |
 | FR-500-506 | `main.rs` |
 | FR-600-602 | `saf/mod.rs` |
 | FR-700-706 | `core/spec/parser.rs`, `core/spec/discovery.rs`, `spi/spec_types.rs` |
@@ -1720,7 +1746,7 @@ IO errors and missing files shall produce `Skip` results or clear error messages
 | FR-740-742 | `core/builtins/spec.rs`, `rules.toml` |
 | FR-750-755 | `main.rs`, `core/reporter.rs` |
 | FR-808-821 | `core/builtins/requirements.rs`, `rules.toml` |
-| FR-822-829 | `core/scaffold/mod.rs`, `core/scaffold/types.rs`, `core/scaffold/parser.rs`, `core/scaffold/yaml_gen.rs`, `core/scaffold/markdown_gen.rs`, `main.rs` |
+| FR-822-830 | `core/scaffold/mod.rs`, `core/scaffold/types.rs`, `core/scaffold/parser.rs`, `core/scaffold/yaml_gen.rs`, `core/scaffold/markdown_gen.rs`, `main.rs` |
 | NFR-100-101 | Module structure (spi/, api/, core/, saf/) |
 | NFR-400-401 | `rules.toml`, `core/declarative.rs`, `core/builtins/` |
 | NFR-500-501 | `core/engine.rs`, `core/rules.rs` |
@@ -1802,9 +1828,9 @@ Defines the content requirements for documentation artifacts produced throughout
 | 7.4 | Security considerations | 17, 29 | SECURITY.md exists |
 | 7.5 | License information | 18, 30 | LICENSE file exists |
 | Annex A | Information item outline examples | 72, 73 | Templates directory with template files |
-| 9 | Progress/status reports | 121 | Progress/status reports exist |
+| 9 | Progress/status reports | 121, FR-830 | Progress/status reports exist; scaffold status report conforms to clause 9 |
 | 9 | Decision log | 122 | Decision log exists |
-| 9.2 | Audit report | 123, 124, FR-403 | Audit report exists (123), IEEE 1028 content validation (124); `--output` persists scan results as `documentation_audit_report_v{version}.json` — the standard information item for compliance audit findings |
+| 9.2 | Audit report | 123, 124, FR-403, FR-831 | Audit report exists (123), IEEE 1028 content validation (124); `--output` persists scan results as `documentation_audit_report_v{version}.json` — the standard information item for compliance audit findings; audit status report conforms to clause 9.2 |
 
 #### ISO/IEC/IEEE 29148:2018 -- Requirements Engineering
 

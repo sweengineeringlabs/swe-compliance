@@ -8,7 +8,7 @@ requirements:
   priority: Should
   status: Implemented
   verification: Demonstration
-  acceptance: '`doc-engine scaffold <SRS_PATH> [--output DIR] [--force]` parses the SRS, extracts domains and requirements, and generates per-domain SDLC spec files; exit code 0 on success, 2 on error'
+  acceptance: '`doc-engine scaffold <SRS_PATH> [--output DIR] [--force] [--phase PHASES]` parses the SRS, extracts domains and requirements, and generates per-domain SDLC spec files; `--phase` accepts comma-separated phase names to filter output; exit code 0 on success, 2 on error'
 - id: REQ-002
   sourceId: FR-823
   title: SRS domain extraction
@@ -51,3 +51,17 @@ requirements:
   status: Implemented
   verification: Test
   acceptance: '`--output DIR` specifies the output root directory; parent directories are created automatically; defaults to the current directory if not specified'
+- id: REQ-008
+  sourceId: FR-829
+  title: Scaffold phase filter
+  priority: Should
+  status: Implemented
+  verification: Test
+  acceptance: '`--phase` accepts a comma-separated list of SDLC phases (`requirements`, `design`, `testing`, `deployment`); only files for the specified phases are generated; BRD files are included only when `requirements` is selected; omitting `--phase` generates all phases; invalid phase names exit with code 2 and a descriptive error; phase names are case-insensitive'
+- id: REQ-009
+  sourceId: FR-830
+  title: Scaffold status report (ISO 15289 clause 9)
+  priority: Should
+  status: Implemented
+  verification: Test
+  acceptance: '`--report <path>` persists a JSON scaffold status report conforming to ISO/IEC/IEEE 15289:2019 clause 9; the report contains: standard, clause, tool, tool_version, timestamp (ISO 8601 UTC), srs_source (absolute path), phases, force, domain_count, requirement_count, created, skipped'

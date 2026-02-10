@@ -88,6 +88,13 @@ fn test_cli_json() {
     let val: serde_json::Value = serde_json::from_str(&stdout).unwrap();
     assert!(val.get("results").is_some());
     assert!(val.get("summary").is_some());
+    // ISO/IEC/IEEE 15289:2019 clause 9.2 metadata in --json stdout
+    assert_eq!(val["standard"], "ISO/IEC/IEEE 15289:2019");
+    assert_eq!(val["clause"], "9.2");
+    assert_eq!(val["tool"], "doc-engine");
+    assert!(val["tool_version"].is_string());
+    assert!(val["timestamp"].is_string());
+    assert!(val["project_root"].is_string());
 }
 
 #[test]
@@ -791,6 +798,13 @@ fn test_cli_output_saves_json_file() {
     let val: serde_json::Value = serde_json::from_str(&content).unwrap();
     assert!(val.get("results").is_some());
     assert!(val.get("summary").is_some());
+    // ISO/IEC/IEEE 15289:2019 clause 9.2 metadata fields
+    assert_eq!(val["standard"], "ISO/IEC/IEEE 15289:2019");
+    assert_eq!(val["clause"], "9.2");
+    assert_eq!(val["tool"], "doc-engine");
+    assert!(val["tool_version"].is_string());
+    assert!(val["timestamp"].is_string());
+    assert!(val["project_root"].is_string());
 }
 
 #[test]
@@ -827,4 +841,125 @@ fn test_cli_output_short_flag() {
         .assert()
         .success();
     assert!(out_path.exists(), "Output file was not created with -o flag");
+}
+
+// ===========================================================================
+// ISO/IEC/IEEE 15289:2019 clause 9.2 audit report metadata tests
+// ===========================================================================
+
+#[test]
+fn test_cli_output_iso15289_metadata() {
+    let tmp = common::create_minimal_project();
+    let out_path = tmp.path().join("report.json");
+    cmd()
+        .arg("scan")
+        .arg(tmp.path())
+        .arg("--scope")
+        .arg("large")
+        .arg("--checks")
+        .arg("1")
+        .arg("--output")
+        .arg(&out_path)
+        .assert()
+        .success();
+
+    let content = std::fs::read_to_string(&out_path).unwrap();
+    let val: serde_json::Value = serde_json::from_str(&content).unwrap();
+
+    assert_eq!(val["standard"], "ISO/IEC/IEEE 15289:2019");
+    assert_eq!(val["clause"], "9.2");
+    assert_eq!(val["tool"], "doc-engine");
+    assert_eq!(val["tool_version"], "0.1.0");
+    // Timestamp format: YYYY-MM-DDTHH:MM:SSZ
+    let ts = val["timestamp"].as_str().unwrap();
+    assert_eq!(ts.len(), 20, "ISO 8601 UTC timestamp must be 20 chars: {}", ts);
+    assert!(ts.ends_with('Z'), "timestamp must end with Z: {}", ts);
+    assert_eq!(&ts[4..5], "-");
+    assert_eq!(&ts[7..8], "-");
+    assert_eq!(&ts[10..11], "T");
+}
+
+#[test]
+fn test_cli_output_project_root_is_absolute() {
+    let tmp = common::create_minimal_project();
+    let out_path = tmp.path().join("report.json");
+    cmd()
+        .arg("scan")
+        .arg(tmp.path())
+        .arg("--scope")
+        .arg("large")
+        .arg("--checks")
+        .arg("1")
+        .arg("--output")
+        .arg(&out_path)
+        .assert()
+        .success();
+
+    let content = std::fs::read_to_string(&out_path).unwrap();
+    let val: serde_json::Value = serde_json::from_str(&content).unwrap();
+
+    let project_root = val["project_root"].as_str().unwrap();
+    assert!(
+        std::path::Path::new(project_root).is_absolute(),
+        "project_root should be an absolute path: {}",
+        project_root
+    );
+}
+
+#[test]
+fn test_cli_output_contains_scan_results() {
+    let tmp = common::create_minimal_project();
+    let out_path = tmp.path().join("report.json");
+    cmd()
+        .arg("scan")
+        .arg(tmp.path())
+        .arg("--scope")
+        .arg("large")
+        .arg("--checks")
+        .arg("1,2,3")
+        .arg("--output")
+        .arg(&out_path)
+        .assert()
+        .success();
+
+    let content = std::fs::read_to_string(&out_path).unwrap();
+    let val: serde_json::Value = serde_json::from_str(&content).unwrap();
+
+    // Results and summary are present at top level (flat)
+    let results = val["results"].as_array().unwrap();
+    assert_eq!(results.len(), 3);
+    let summary = &val["summary"];
+    assert_eq!(summary["total"], 3);
+    assert!(val["project_type"].is_string());
+    assert!(val["project_scope"].is_string());
+}
+
+#[test]
+fn test_cli_output_json_stdout_matches_file() {
+    let tmp = common::create_minimal_project();
+    let out_path = tmp.path().join("report.json");
+
+    // Run with both --json and --output
+    let output = cmd()
+        .arg("scan")
+        .arg(tmp.path())
+        .arg("--scope")
+        .arg("large")
+        .arg("--checks")
+        .arg("1")
+        .arg("--json")
+        .arg("--output")
+        .arg(&out_path)
+        .output()
+        .unwrap();
+
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    let stdout_val: serde_json::Value = serde_json::from_str(&stdout).unwrap();
+    let file_val: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&out_path).unwrap()).unwrap();
+
+    // Both --json stdout and --output file include ISO metadata
+    assert_eq!(stdout_val["standard"], "ISO/IEC/IEEE 15289:2019");
+    assert_eq!(file_val["standard"], "ISO/IEC/IEEE 15289:2019");
+    // Both contain the same results
+    assert_eq!(stdout_val["summary"]["total"], file_val["summary"]["total"]);
 }
