@@ -12,7 +12,7 @@
 
 | TC | Test | Steps | Expected |
 |----|------|-------|----------|
-| TC-001 | NFR-300: Cross-platform (Demonstration) | _TODO_ | `cargo build` succeeds on Linux, macOS, and Windows |
+| TC-001 | NFR-300: Cross-platform (Demonstration) | Execute `cargo build` and observe output | `cargo build` succeeds on Linux, macOS, and Windows |
 
 ---
 

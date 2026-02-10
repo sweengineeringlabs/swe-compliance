@@ -59,6 +59,10 @@ pub struct ScaffoldConfig {
     /// Valid values: "requirements", "design", "testing", "deployment".
     /// When empty/None, all phases are generated.
     pub phases: Vec<String>,
+    /// Optional file-type filter: only generate files of these types.
+    /// Valid values: "yaml", "spec", "arch", "test", "exec", "deploy".
+    /// When empty, all file types are generated.
+    pub file_types: Vec<String>,
 }
 
 /// Result of a scaffold operation (ISO/IEC/IEEE 15289:2019 clause 9).

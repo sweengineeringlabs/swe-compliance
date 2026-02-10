@@ -167,6 +167,34 @@ fn generate_steps(req: &SrsRequirement) -> String {
     }
 }
 
+/// Strip the leading backtick command from acceptance when it duplicates steps.
+///
+/// If `steps` contains a backtick command (e.g. `` Run `X` ``) and `acceptance`
+/// starts with `` `X` `` (the same command wrapped in backticks), strip that
+/// prefix and capitalize the first letter of the remainder.
+///
+/// Returns `acceptance` unchanged when there is no match or steps is `_TODO_`.
+fn clean_expected(acceptance: &str, steps: &str) -> String {
+    if steps == "_TODO_" {
+        return acceptance.to_string();
+    }
+    if let Some(cmd) = extract_backtick_command(steps) {
+        let prefix = format!("`{}`", cmd);
+        if let Some(rest) = acceptance.strip_prefix(&prefix) {
+            let trimmed = rest.trim_start();
+            if trimmed.is_empty() {
+                return acceptance.to_string();
+            }
+            // Capitalize first character
+            let mut chars = trimmed.chars();
+            if let Some(first) = chars.next() {
+                return format!("{}{}", first.to_uppercase(), chars.as_str());
+            }
+        }
+    }
+    acceptance.to_string()
+}
+
 /// Generate a `.spec` markdown file for a domain.
 pub(crate) fn generate_feature_spec_md(domain: &SrsDomain) -> String {
     let mut out = String::new();
@@ -309,10 +337,12 @@ pub(crate) fn generate_manual_exec_md(domain: &SrsDomain) -> String {
         let tc_id = format!("TC-{:03}", idx + 1);
         let method = req.verification.as_deref().unwrap_or("Test");
         let acceptance = req.acceptance.as_deref().unwrap_or("To be defined");
-        let steps = escape_pipe(&generate_steps(req));
+        let steps_raw = generate_steps(req);
+        let expected = clean_expected(acceptance, &steps_raw);
+        let steps = escape_pipe(&steps_raw);
         out.push_str(&format!(
             "| {} | {}: {} ({}) | {} | {} |\n",
-            tc_id, req.id, escape_pipe(&req.title), method, steps, escape_pipe(acceptance),
+            tc_id, req.id, escape_pipe(&req.title), method, steps, escape_pipe(&expected),
         ));
     }
 
@@ -1220,5 +1250,91 @@ mod tests {
         };
         let md = generate_manual_exec_md(&domain);
         assert!(md.contains("_TODO_"));
+    }
+
+    // ---- clean_expected tests ----
+
+    #[test]
+    fn test_clean_expected_strips_command_prefix() {
+        let acceptance = "`doc-engine scan <PATH> --json` outputs valid JSON";
+        let steps = "Run `doc-engine scan <PATH> --json`";
+        assert_eq!(clean_expected(acceptance, steps), "Outputs valid JSON");
+    }
+
+    #[test]
+    fn test_clean_expected_no_match_returns_original() {
+        let acceptance = "Output is correct";
+        let steps = "Run `doc-engine scan .`";
+        assert_eq!(clean_expected(acceptance, steps), "Output is correct");
+    }
+
+    #[test]
+    fn test_clean_expected_todo_steps_returns_original() {
+        let acceptance = "`doc-engine scan .` outputs JSON";
+        let steps = "_TODO_";
+        assert_eq!(
+            clean_expected(acceptance, steps),
+            "`doc-engine scan .` outputs JSON",
+        );
+    }
+
+    #[test]
+    fn test_clean_expected_no_acceptance_command() {
+        let acceptance = "Engine loads rules";
+        let steps = "_TODO_";
+        assert_eq!(clean_expected(acceptance, steps), "Engine loads rules");
+    }
+
+    #[test]
+    fn test_clean_expected_demonstration_method() {
+        let acceptance = "`cargo run -- help` shows usage";
+        let steps = "Execute `cargo run -- help` and observe output";
+        assert_eq!(clean_expected(acceptance, steps), "Shows usage");
+    }
+
+    #[test]
+    fn test_clean_expected_only_command_no_remainder() {
+        // If acceptance is exactly the command with no trailing text, return as-is
+        let acceptance = "`doc-engine scan .`";
+        let steps = "Run `doc-engine scan .`";
+        assert_eq!(clean_expected(acceptance, steps), "`doc-engine scan .`");
+    }
+
+    #[test]
+    fn test_manual_exec_no_step_expected_duplication() {
+        let domain = SrsDomain {
+            section: "4.8".to_string(),
+            title: "Dedup Test".to_string(),
+            slug: "dedup_test".to_string(),
+            requirements: vec![SrsRequirement {
+                id: "FR-700".to_string(),
+                title: "JSON output".to_string(),
+                kind: ReqKind::Functional,
+                priority: Some("Must".to_string()),
+                state: Some("Approved".to_string()),
+                verification: Some("Test".to_string()),
+                traces_to: None,
+                acceptance: Some(
+                    "`doc-engine scan <PATH> --json` outputs valid JSON".to_string(),
+                ),
+                description: String::new(),
+            }],
+        };
+        let md = generate_manual_exec_md(&domain);
+        // Steps should have the command
+        assert!(md.contains("Run `doc-engine scan <PATH> --json`"));
+        // Expected should NOT have the command prefix — only the cleaned text
+        assert!(md.contains("Outputs valid JSON"));
+        // The backtick-wrapped command should NOT appear in the Expected column
+        let row = md.lines().find(|l| l.contains("TC-001")).unwrap();
+        // Split by unescaped pipe to get columns
+        let cols: Vec<&str> = row.split('|').collect();
+        // cols[0]="" cols[1]=TC cols[2]=Test cols[3]=Steps cols[4]=Expected cols[5]=""
+        let expected_col = cols[4].trim();
+        assert!(
+            !expected_col.contains("`doc-engine scan"),
+            "Expected column still contains command: {}",
+            expected_col,
+        );
     }
 }

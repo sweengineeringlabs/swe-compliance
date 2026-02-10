@@ -12,8 +12,8 @@
 
 | TC | Test | Steps | Expected |
 |----|------|-------|----------|
-| TC-001 | NFR-200: Synchronous execution (Inspection) | _TODO_ | No `tokio`, `async-std`, or other async runtime in dependencies |
-| TC-002 | NFR-201: Single pass (Analysis) | _TODO_ | Profiling shows exactly one `walkdir` traversal per scan invocation |
+| TC-001 | NFR-200: Synchronous execution (Inspection) | Review `Cargo.toml` | No `tokio`, `async-std`, or other async runtime in dependencies |
+| TC-002 | NFR-201: Single pass (Analysis) | Analyze `core/scanner.rs` | Profiling shows exactly one `walkdir` traversal per scan invocation |
 
 ---
 

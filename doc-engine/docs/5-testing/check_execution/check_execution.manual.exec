@@ -15,8 +15,8 @@
 | TC-001 | FR-300: All checks (83 base + 15 spec) (Test) | _TODO_ | Default `rules.toml` contains 128 rules; a full scan produces 128 check results |
 | TC-002 | FR-301: Check filtering (Test) | _TODO_ | `--checks 1-13` produces exactly 13 results; `--checks 1,2,3` produces exactly 3 |
 | TC-003 | FR-302: Project type filtering (Test) | _TODO_ | Rules with `project_type = "open_source"` are skipped when `--type internal` is used, and vice versa |
-| TC-004 | FR-303: Check result types (Inspection) | _TODO_ | The `CheckResult` enum has exactly three variants: Pass, Fail (with violations), Skip (with reason) |
-| TC-005 | FR-304: Violation record (Inspection) | _TODO_ | Each `Violation` contains check ID, optional file path, message, and severity |
+| TC-004 | FR-303: Check result types (Inspection) | Review `spi/types.rs` | The `CheckResult` enum has exactly three variants: Pass, Fail (with violations), Skip (with reason) |
+| TC-005 | FR-304: Violation record (Inspection) | Review `spi/types.rs` | Each `Violation` contains check ID, optional file path, message, and severity |
 
 ---
 

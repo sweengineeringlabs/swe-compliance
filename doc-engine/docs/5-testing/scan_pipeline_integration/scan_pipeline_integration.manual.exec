@@ -12,9 +12,9 @@
 
 | TC | Test | Steps | Expected |
 |----|------|-------|----------|
-| TC-001 | FR-740: Spec checks in scan pipeline (Inspection) | _TODO_ | Superseded: IDs 54-68 are now phase artifact `file_exists` checks (FR-815). Spec checks use dedicated builtin handlers. |
-| TC-002 | FR-741: Spec check category (Inspection) | _TODO_ | Superseded: IDs 54-68 now use per-phase categories (ideation, requirements, planning, design, development, testing, deployment, operations). |
-| TC-003 | FR-742: Spec check descriptions (Inspection) | _TODO_ | Each check 54-68 and 99-128 has a unique, descriptive `description` field in `rules.toml` |
+| TC-001 | FR-740: Spec checks in scan pipeline (Inspection) | Review `core/builtins/spec.rs`, `rules.toml` | Superseded: IDs 54-68 are now phase artifact `file_exists` checks (FR-815). Spec checks use dedicated builtin handlers. |
+| TC-002 | FR-741: Spec check category (Inspection) | Review `rules.toml` | Superseded: IDs 54-68 now use per-phase categories (ideation, requirements, planning, design, development, testing, deployment, operations). |
+| TC-003 | FR-742: Spec check descriptions (Inspection) | Review `rules.toml` | Each check 54-68 and 99-128 has a unique, descriptive `description` field in `rules.toml` |
 
 ---
 

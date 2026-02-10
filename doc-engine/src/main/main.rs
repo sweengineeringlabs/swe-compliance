@@ -60,6 +60,10 @@ enum Commands {
         #[arg(long)]
         phase: Option<String>,
 
+        /// Generate only specific file types (comma-separated: yaml,spec,arch,test,exec,deploy)
+        #[arg(long = "type", value_name = "TYPE")]
+        file_type: Option<String>,
+
         /// Save scaffold report as JSON
         #[arg(long)]
         report: Option<PathBuf>,
@@ -227,7 +231,7 @@ fn main() {
                 }
             }
         }
-        Commands::Scaffold { srs_path, output, force, phase, report } => {
+        Commands::Scaffold { srs_path, output, force, phase, file_type, report } => {
             let srs_resolved = match srs_path.canonicalize() {
                 Ok(p) => p,
                 Err(e) => {
@@ -253,11 +257,27 @@ fn main() {
                 None => vec![],
             };
 
+            let valid_types = ["yaml", "spec", "arch", "test", "exec", "deploy"];
+            let file_types: Vec<String> = match file_type {
+                Some(ref s) => {
+                    let parsed: Vec<String> = s.split(',').map(|t| t.trim().to_lowercase()).collect();
+                    for t in &parsed {
+                        if !valid_types.contains(&t.as_str()) {
+                            eprintln!("Error: unknown file type '{}' (valid: {})", t, valid_types.join(", "));
+                            process::exit(2);
+                        }
+                    }
+                    parsed
+                }
+                None => vec![],
+            };
+
             let config = ScaffoldConfig {
                 srs_path: srs_resolved,
                 output_dir,
                 force,
                 phases,
+                file_types,
             };
 
             match scaffold_from_srs(&config) {

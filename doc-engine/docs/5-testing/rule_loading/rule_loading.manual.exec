@@ -14,7 +14,7 @@
 |----|------|-------|----------|
 | TC-001 | FR-100: Default rules embedded in binary (Test) | _TODO_ | When no `--rules` flag is provided, the engine loads rules from the embedded default and produces a valid `ScanReport` with 128 check results |
 | TC-002 | FR-101: External rules file override (Test) | _TODO_ | When `--rules custom.toml` is provided, only rules in `custom.toml` are executed; embedded defaults are ignored |
-| TC-003 | FR-102: TOML rules schema (Inspection) | _TODO_ | The TOML parser accepts all fields below without error; missing required fields produce exit code 2 |
+| TC-003 | FR-102: TOML rules schema (Inspection) | Review `api/types.rs` | The TOML parser accepts all fields below without error; missing required fields produce exit code 2 |
 | TC-004 | FR-103: Declarative rule types (Test) | _TODO_ | Each of the 9 rule types produces correct Pass/Fail results when tested against a fixture project |
 | TC-005 | FR-104: Builtin rule types (Test) | _TODO_ | Each handler produces correct results when tested against compliant and non-compliant fixture projects |
 | TC-006 | FR-105: Unknown handler error (Test) | _TODO_ | A rules file with `handler = "nonexistent"` produces exit code 2 and a message naming the unknown handler |

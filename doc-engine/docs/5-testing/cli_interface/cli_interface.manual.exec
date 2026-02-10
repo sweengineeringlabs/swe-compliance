@@ -12,8 +12,8 @@
 
 | TC | Test | Steps | Expected |
 |----|------|-------|----------|
-| TC-001 | FR-500: Scan command (Demonstration) | _TODO_ | `doc-engine scan <PATH> --scope <TIER>` executes a scoped scan and prints results |
-| TC-002 | FR-501: JSON flag (Test) | _TODO_ | `doc-engine scan <PATH> --json` outputs valid JSON |
+| TC-001 | FR-500: Scan command (Demonstration) | Execute `doc-engine scan <PATH> --scope <TIER>` and observe output | `doc-engine scan <PATH> --scope <TIER>` executes a scoped scan and prints results |
+| TC-002 | FR-501: JSON flag (Test) | Run `doc-engine scan <PATH> --json` | `doc-engine scan <PATH> --json` outputs valid JSON |
 | TC-003 | FR-502: Check filter flag (Test) | _TODO_ | `--checks 1-13` runs exactly 13 checks; `--checks 1,2,3,14-25` runs exactly 15 |
 | TC-004 | FR-503: Project type flag (Test) | _TODO_ | `--type internal` skips open-source-only rules; `--type open-source` is the default |
 | TC-005 | FR-504: Rules file flag (Test) | _TODO_ | `--rules custom.toml` loads and uses the specified file; missing file produces exit code 2 |

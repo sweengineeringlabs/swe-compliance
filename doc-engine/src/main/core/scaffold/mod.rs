@@ -50,60 +50,82 @@ pub fn scaffold_from_srs(config: &ScaffoldConfig) -> Result<ScaffoldResult, Scan
         config.phases.is_empty() || config.phases.iter().any(|p| p == phase)
     };
 
+    let include_type = |file_type: &str| -> bool {
+        config.file_types.is_empty() || config.file_types.iter().any(|t| t == file_type)
+    };
+
     for domain in &domains {
-        // Spec files: 4 YAML + 4 markdown + 2 exec per domain (filtered by phase)
+        // Spec files: 4 YAML + 4 markdown + 2 exec per domain (filtered by phase and type)
         let mut files: Vec<(String, String)> = Vec::new();
 
         if include_phase("requirements") {
-            files.push((
-                format!("docs/1-requirements/{}/{}.spec.yaml", domain.slug, domain.slug),
-                yaml_gen::generate_feature_spec_yaml(domain),
-            ));
-            files.push((
-                format!("docs/1-requirements/{}/{}.spec", domain.slug, domain.slug),
-                markdown_gen::generate_feature_spec_md(domain),
-            ));
+            if include_type("yaml") {
+                files.push((
+                    format!("docs/1-requirements/{}/{}.spec.yaml", domain.slug, domain.slug),
+                    yaml_gen::generate_feature_spec_yaml(domain),
+                ));
+            }
+            if include_type("spec") {
+                files.push((
+                    format!("docs/1-requirements/{}/{}.spec", domain.slug, domain.slug),
+                    markdown_gen::generate_feature_spec_md(domain),
+                ));
+            }
         }
 
         if include_phase("design") {
-            files.push((
-                format!("docs/3-design/{}/{}.arch.yaml", domain.slug, domain.slug),
-                yaml_gen::generate_arch_spec_yaml(domain),
-            ));
-            files.push((
-                format!("docs/3-design/{}/{}.arch", domain.slug, domain.slug),
-                markdown_gen::generate_arch_spec_md(domain),
-            ));
+            if include_type("yaml") {
+                files.push((
+                    format!("docs/3-design/{}/{}.arch.yaml", domain.slug, domain.slug),
+                    yaml_gen::generate_arch_spec_yaml(domain),
+                ));
+            }
+            if include_type("arch") {
+                files.push((
+                    format!("docs/3-design/{}/{}.arch", domain.slug, domain.slug),
+                    markdown_gen::generate_arch_spec_md(domain),
+                ));
+            }
         }
 
         if include_phase("testing") {
-            files.push((
-                format!("docs/5-testing/{}/{}.test.yaml", domain.slug, domain.slug),
-                yaml_gen::generate_test_spec_yaml(domain),
-            ));
-            files.push((
-                format!("docs/5-testing/{}/{}.test", domain.slug, domain.slug),
-                markdown_gen::generate_test_spec_md(domain),
-            ));
-            files.push((
-                format!("docs/5-testing/{}/{}.manual.exec", domain.slug, domain.slug),
-                markdown_gen::generate_manual_exec_md(domain),
-            ));
-            files.push((
-                format!("docs/5-testing/{}/{}.auto.exec", domain.slug, domain.slug),
-                markdown_gen::generate_auto_exec_md(domain),
-            ));
+            if include_type("yaml") {
+                files.push((
+                    format!("docs/5-testing/{}/{}.test.yaml", domain.slug, domain.slug),
+                    yaml_gen::generate_test_spec_yaml(domain),
+                ));
+            }
+            if include_type("test") {
+                files.push((
+                    format!("docs/5-testing/{}/{}.test", domain.slug, domain.slug),
+                    markdown_gen::generate_test_spec_md(domain),
+                ));
+            }
+            if include_type("exec") {
+                files.push((
+                    format!("docs/5-testing/{}/{}.manual.exec", domain.slug, domain.slug),
+                    markdown_gen::generate_manual_exec_md(domain),
+                ));
+                files.push((
+                    format!("docs/5-testing/{}/{}.auto.exec", domain.slug, domain.slug),
+                    markdown_gen::generate_auto_exec_md(domain),
+                ));
+            }
         }
 
         if include_phase("deployment") {
-            files.push((
-                format!("docs/6-deployment/{}/{}.deploy.yaml", domain.slug, domain.slug),
-                yaml_gen::generate_deploy_spec_yaml(domain),
-            ));
-            files.push((
-                format!("docs/6-deployment/{}/{}.deploy", domain.slug, domain.slug),
-                markdown_gen::generate_deploy_spec_md(domain),
-            ));
+            if include_type("yaml") {
+                files.push((
+                    format!("docs/6-deployment/{}/{}.deploy.yaml", domain.slug, domain.slug),
+                    yaml_gen::generate_deploy_spec_yaml(domain),
+                ));
+            }
+            if include_type("deploy") {
+                files.push((
+                    format!("docs/6-deployment/{}/{}.deploy", domain.slug, domain.slug),
+                    markdown_gen::generate_deploy_spec_md(domain),
+                ));
+            }
         }
 
         for (rel_path, content) in files {
@@ -113,16 +135,20 @@ pub fn scaffold_from_srs(config: &ScaffoldConfig) -> Result<ScaffoldResult, Scan
 
     // BRD master inventory (only when requirements phase is included)
     if include_phase("requirements") {
-        let brd_files = vec![
-            (
+        let mut brd_files: Vec<(String, String)> = Vec::new();
+
+        if include_type("yaml") {
+            brd_files.push((
                 "docs/1-requirements/brd.spec.yaml".to_string(),
                 yaml_gen::generate_brd_yaml(&domains),
-            ),
-            (
+            ));
+        }
+        if include_type("spec") {
+            brd_files.push((
                 "docs/1-requirements/brd.spec".to_string(),
                 markdown_gen::generate_brd_md(&domains),
-            ),
-        ];
+            ));
+        }
 
         for (rel_path, content) in brd_files {
             write_file(&config.output_dir, &rel_path, &content, config.force, &mut result)?;
@@ -199,6 +225,7 @@ The binary embeds rules.
             output_dir: output_dir.clone(),
             force: false,
             phases: vec![],
+            file_types: vec![],
         };
         (config, output_dir)
     }
@@ -282,6 +309,7 @@ The binary embeds rules.
             output_dir: tmp.path().join("out"),
             force: false,
             phases: vec![],
+            file_types: vec![],
         };
 
         let err = scaffold_from_srs(&config).unwrap_err();
