@@ -45,7 +45,7 @@ pub fn create_minimal_project() -> TempDir {
          ## Coverage Targets\n80% line coverage target.\n");
 
     // Traceability artifacts (checks 51-53) + 29148 attributes (check 89)
-    write_file(root, "docs/1-requirements/requirements.md",
+    write_file(root, "docs/1-requirements/srs.md",
         "# Requirements\n\n**Audience**: Developers\n\n\
          #### FR-001: Sample requirement\n\n\
          | Attribute | Value |\n\

@@ -3,7 +3,7 @@ use std::process;
 
 use clap::{Parser, Subcommand};
 
-use doc_engine::{scan_with_config, format_report_text, format_report_json, ScanConfig, ProjectType};
+use doc_engine::{scan_with_config, format_report_text, format_report_json, ScanConfig, ProjectScope, ProjectType};
 
 #[derive(Parser)]
 #[command(name = "doc-engine", version, about = "Documentation compliance engine")]
@@ -31,9 +31,17 @@ enum Commands {
         #[arg(long = "type", value_name = "TYPE")]
         project_type: Option<String>,
 
+        /// Project scope: small, medium, or large
+        #[arg(long)]
+        scope: String,
+
         /// Path to custom rules file
         #[arg(long)]
         rules: Option<PathBuf>,
+
+        /// Save report to file (creates parent directories)
+        #[arg(long, short)]
+        output: Option<PathBuf>,
     },
 }
 
@@ -105,7 +113,7 @@ fn main() {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::Scan { path, json, checks, project_type, rules } => {
+        Commands::Scan { path, json, checks, project_type, scope, rules, output } => {
             // Canonicalize path early so auto-detection can read LICENSE
             let root = match path.canonicalize() {
                 Ok(p) => p,
@@ -126,6 +134,17 @@ fn main() {
                 }
             };
 
+            // Parse project scope (required)
+            let ps = match scope.as_str() {
+                "small" => ProjectScope::Small,
+                "medium" => ProjectScope::Medium,
+                "large" => ProjectScope::Large,
+                other => {
+                    eprintln!("Error: unknown scope '{}' (use 'small', 'medium', or 'large')", other);
+                    process::exit(2);
+                }
+            };
+
             // Parse check filter
             let check_ids = match checks {
                 Some(ref s) => match parse_checks(s) {
@@ -140,18 +159,38 @@ fn main() {
 
             let config = ScanConfig {
                 project_type: pt,
+                project_scope: ps,
                 checks: check_ids,
                 rules_path: rules,
             };
 
             match scan_with_config(&root, &config) {
                 Ok(report) => {
-                    let output = if json {
+                    let formatted = if json {
                         format_report_json(&report)
                     } else {
                         format_report_text(&report)
                     };
-                    print!("{}", output);
+                    print!("{}", formatted);
+
+                    // Save to file if --output is specified
+                    if let Some(ref out_path) = output {
+                        // Always save as JSON for machine-readable persistence
+                        let json_report = format_report_json(&report);
+                        if let Some(parent) = out_path.parent() {
+                            if !parent.exists() {
+                                if let Err(e) = std::fs::create_dir_all(parent) {
+                                    eprintln!("Error: cannot create directory '{}': {}", parent.display(), e);
+                                    process::exit(2);
+                                }
+                            }
+                        }
+                        if let Err(e) = std::fs::write(out_path, &json_report) {
+                            eprintln!("Error: cannot write report to '{}': {}", out_path.display(), e);
+                            process::exit(2);
+                        }
+                        eprintln!("Report saved to {}", out_path.display());
+                    }
 
                     if report.summary.failed > 0 {
                         process::exit(1);

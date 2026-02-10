@@ -4,14 +4,14 @@
 
 **Date**: 2026-02-08
 **Reviewers**: Claude Opus 4.6 (automated), project architect
-**Status**: Resolved — all findings addressed in requirements.md, architecture.md, implementation_plan.md
+**Status**: Resolved — all findings addressed in srs.md, architecture.md, implementation_plan.md
 
 ---
 
 ## Review Scope
 
 Second-pass cross-document consistency and design review of:
-- `docs/1-requirements/requirements.md` (v1.0)
+- `docs/1-requirements/srs.md` (v1.0)
 - `docs/2-planning/implementation_plan.md`
 - `docs/3-design/architecture.md`
 
@@ -35,7 +35,7 @@ Second-pass cross-document consistency and design review of:
 
 ### DR-03: Architecture handler table missing checklist_completeness (Must)
 
-**Problem**: `checklist_completeness` was added to requirements.md (FR-104) and implementation_plan.md (Phase 6) but omitted from architecture.md's builtin handlers table.
+**Problem**: `checklist_completeness` was added to srs.md (FR-104) and implementation_plan.md (Phase 6) but omitted from architecture.md's builtin handlers table.
 
 **Resolution**: Handler added to architecture.md builtin handlers table and structure.rs module description.
 

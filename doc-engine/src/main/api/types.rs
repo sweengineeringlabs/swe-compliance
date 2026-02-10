@@ -2,14 +2,16 @@ use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
 
-use crate::spi::types::{CheckId, CheckResult, ProjectType, Severity};
+use crate::spi::types::{CheckId, CheckResult, ProjectScope, ProjectType, Severity};
 
 /// Configuration for a scan.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct ScanConfig {
     /// The project type used to filter applicable checks.
     /// `None` means auto-detect from the LICENSE file at the project root.
     pub project_type: Option<ProjectType>,
+    /// The project scope tier for filtering checks by project size.
+    pub project_scope: ProjectScope,
     /// Optional subset of check IDs to run; `None` runs all checks.
     pub checks: Option<Vec<u8>>,
     /// Optional path to a custom rules TOML file; `None` uses the built-in rules.
@@ -51,6 +53,8 @@ pub struct ScanReport {
     pub summary: ScanSummary,
     /// The project type that was used during this scan.
     pub project_type: ProjectType,
+    /// The project scope tier that was used during this scan.
+    pub project_scope: ProjectScope,
 }
 
 /// Parsed rule set from TOML.
@@ -75,6 +79,8 @@ pub struct RuleDef {
     pub rule_type: RuleType,
     /// Optional project-type filter; `None` means the rule applies to all types.
     pub project_type: Option<ProjectType>,
+    /// Optional scope tier; `None` means the rule applies at all scope levels.
+    pub scope: Option<ProjectScope>,
 }
 
 /// The type of a rule -- declarative or builtin.

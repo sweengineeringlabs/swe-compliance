@@ -1,16 +1,22 @@
 //! doc-engine: a compliance auditing library for project documentation.
 //!
 //! Validates project documentation against the template-engine framework's
-//! 76 compliance checks plus 15 opt-in spec file checks. Provides both
-//! a library API ([`scan`], [`scan_with_config`]) and a CLI binary.
+//! compliance checks. Provides both a library API ([`scan_with_config`])
+//! and a CLI binary.
 //!
 //! # Quick Start
 //!
 //! ```no_run
-//! use doc_engine::{scan, format_report_text};
+//! use doc_engine::{scan_with_config, format_report_text, ScanConfig, ProjectScope};
 //! use std::path::Path;
 //!
-//! let report = scan(Path::new(".")).expect("scan failed");
+//! let config = ScanConfig {
+//!     project_type: None,
+//!     project_scope: ProjectScope::Small,
+//!     checks: None,
+//!     rules_path: None,
+//! };
+//! let report = scan_with_config(Path::new("."), &config).expect("scan failed");
 //! println!("{}", format_report_text(&report));
 //! ```
 

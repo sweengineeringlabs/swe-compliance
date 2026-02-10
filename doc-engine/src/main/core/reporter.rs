@@ -12,8 +12,8 @@ impl Reporter for TextReporter {
         let mut output = String::new();
 
         output.push_str(&format!(
-            "doc-engine scan results (project type: {:?})\n",
-            report.project_type
+            "doc-engine scan results (project type: {:?}, scope: {:?})\n",
+            report.project_type, report.project_scope
         ));
         output.push_str(&"=".repeat(60));
         output.push('\n');
@@ -87,7 +87,7 @@ impl Reporter for JsonReporter {
 mod tests {
     use super::*;
     use crate::api::types::{ScanSummary, CheckEntry};
-    use crate::spi::types::{CheckId, ProjectType, Violation, Severity};
+    use crate::spi::types::{CheckId, ProjectScope, ProjectType, Violation, Severity};
 
     fn make_report(entries: Vec<CheckEntry>) -> ScanReport {
         let total = entries.len() as u8;
@@ -98,6 +98,7 @@ mod tests {
             results: entries,
             summary: ScanSummary { total, passed, failed, skipped },
             project_type: ProjectType::OpenSource,
+            project_scope: ProjectScope::Large,
         }
     }
 

@@ -8,13 +8,13 @@ use crate::spi::traits::CheckRunner;
 use crate::spi::types::{CheckId, CheckResult, ScanContext, Violation};
 
 static DESIGN_REQ_RE: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"(?i)requirements\.md|FR-\d|STK-\d|SRS|1-requirements").unwrap()
+    Regex::new(r"(?i)srs\.md|requirements\.md|FR-\d|STK-\d|SRS|1-requirements").unwrap()
 });
 static PLAN_ARCH_RE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"(?i)architecture\.md|3-design|architectural").unwrap()
 });
 static BACKLOG_REQ_RE: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"(?i)requirements\.md|requirements\b|FR-\d|STK-\d|SRS|1-requirements|BL-\d").unwrap()
+    Regex::new(r"(?i)srs\.md|requirements\.md|requirements\b|FR-\d|STK-\d|SRS|1-requirements|BL-\d").unwrap()
 });
 
 /// Check 51: phase_artifact_presence
@@ -156,7 +156,7 @@ impl CheckRunner for DesignTracesRequirements {
                     check_id: CheckId(self.def.id),
                     path: Some(file.to_path_buf()),
                     message: format!(
-                        "Design document '{}' does not reference requirements (expected pattern: requirements.md, FR-N, STK-N, SRS, or 1-requirements)",
+                        "Design document '{}' does not reference requirements (expected pattern: srs.md, requirements.md, FR-N, STK-N, SRS, or 1-requirements)",
                         file.display()
                     ),
                     severity: self.def.severity.clone(),
@@ -266,7 +266,7 @@ impl CheckRunner for BacklogTracesRequirements {
                 violations: vec![Violation {
                     check_id: CheckId(self.def.id),
                     path: Some("docs/2-planning/backlog.md".into()),
-                    message: "Backlog does not reference requirements (expected: requirements.md, FR-N, STK-N, SRS, 1-requirements, or BL-N)".to_string(),
+                    message: "Backlog does not reference requirements (expected: srs.md, requirements.md, FR-N, STK-N, SRS, 1-requirements, or BL-N)".to_string(),
                     severity: self.def.severity.clone(),
                 }],
             }
@@ -278,7 +278,7 @@ impl CheckRunner for BacklogTracesRequirements {
 mod tests {
     use super::*;
     use crate::api::types::{RuleDef, RuleType};
-    use crate::spi::types::{ProjectType, Severity};
+    use crate::spi::types::{ProjectScope, ProjectType, Severity};
     use std::collections::HashMap;
     use std::path::{Path, PathBuf};
     use tempfile::TempDir;
@@ -291,6 +291,7 @@ mod tests {
             severity: Severity::Warning,
             rule_type: RuleType::Builtin { handler: handler.to_string() },
             project_type: None,
+            scope: None,
         }
     }
 
@@ -300,6 +301,7 @@ mod tests {
             files,
             file_contents: HashMap::new(),
             project_type: ProjectType::OpenSource,
+            project_scope: ProjectScope::Large,
         }
     }
 
@@ -318,13 +320,13 @@ mod tests {
     #[test]
     fn test_phase_artifact_all_present() {
         let tmp = TempDir::new().unwrap();
-        write_file(tmp.path(), "docs/1-requirements/requirements.md", "# Requirements\n");
+        write_file(tmp.path(), "docs/1-requirements/srs.md", "# Requirements\n");
         write_file(tmp.path(), "docs/2-planning/implementation_plan.md", "# Plan\n");
         write_file(tmp.path(), "docs/3-design/architecture.md", "# Arch\n");
 
         let handler = PhaseArtifactPresence { def: make_def(51, "traceability", "phase_artifact_presence") };
         let ctx = make_ctx(tmp.path(), vec![
-            PathBuf::from("docs/1-requirements/requirements.md"),
+            PathBuf::from("docs/1-requirements/srs.md"),
             PathBuf::from("docs/2-planning/implementation_plan.md"),
             PathBuf::from("docs/3-design/architecture.md"),
         ]);

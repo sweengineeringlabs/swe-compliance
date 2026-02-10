@@ -60,10 +60,6 @@ pub fn detect_project_type(root: &Path) -> ProjectType {
 pub struct DocComplianceEngine;
 
 impl ComplianceEngine for DocComplianceEngine {
-    fn scan(&self, root: &Path) -> Result<ScanReport, ScanError> {
-        self.scan_with_config(root, &ScanConfig::default())
-    }
-
     fn scan_with_config(&self, root: &Path, config: &ScanConfig) -> Result<ScanReport, ScanError> {
         // Validate root path exists
         if !root.exists() {
@@ -100,6 +96,7 @@ impl ComplianceEngine for DocComplianceEngine {
             files,
             file_contents: HashMap::new(),
             project_type: resolved_pt.clone(),
+            project_scope: config.project_scope,
         };
 
         // 5. Filter and run checks
@@ -133,6 +130,24 @@ impl ComplianceEngine for DocComplianceEngine {
                         continue;
                     }
                 }
+
+                // Filter by scope: skip rules that require a higher scope tier
+                if let Some(ref rule_scope) = rule.scope {
+                    if *rule_scope > config.project_scope {
+                        results.push(CheckEntry {
+                            id: runner.id(),
+                            category: runner.category().to_string(),
+                            description: runner.description().to_string(),
+                            result: CheckResult::Skip {
+                                reason: format!(
+                                    "Skipped: requires {:?} scope (configured {:?})",
+                                    rule_scope, config.project_scope
+                                ),
+                            },
+                        });
+                        continue;
+                    }
+                }
             }
 
             // 6. Run the check
@@ -156,6 +171,7 @@ impl ComplianceEngine for DocComplianceEngine {
             results,
             summary: ScanSummary { total, passed, failed, skipped },
             project_type: resolved_pt,
+            project_scope: config.project_scope,
         })
     }
 }
@@ -165,22 +181,34 @@ mod tests {
     use super::*;
     use crate::api::traits::ComplianceEngine;
     use crate::core::rules::default_rule_count;
-    use crate::spi::types::ProjectType;
+    use crate::spi::types::{ProjectScope, ProjectType};
     use tempfile::TempDir;
 
     #[test]
     fn test_nonexistent_path() {
         let engine = DocComplianceEngine;
-        let result = engine.scan(std::path::Path::new("/nonexistent/path/xyz"));
+        let config = ScanConfig {
+            project_type: Some(ProjectType::OpenSource),
+            project_scope: ProjectScope::Large,
+            checks: None,
+            rules_path: None,
+        };
+        let result = engine.scan_with_config(std::path::Path::new("/nonexistent/path/xyz"), &config);
         assert!(result.is_err());
         assert!(matches!(result.unwrap_err(), ScanError::Path(_)));
     }
 
     #[test]
-    fn test_default_config() {
+    fn test_all_checks_run() {
         let tmp = TempDir::new().unwrap();
         let engine = DocComplianceEngine;
-        let report = engine.scan(tmp.path()).unwrap();
+        let config = ScanConfig {
+            project_type: Some(ProjectType::OpenSource),
+            project_scope: ProjectScope::Large,
+            checks: None,
+            rules_path: None,
+        };
+        let report = engine.scan_with_config(tmp.path(), &config).unwrap();
         let expected = default_rule_count();
         assert_eq!(report.results.len(), expected);
         assert_eq!(report.summary.total, expected as u8);
@@ -192,6 +220,7 @@ mod tests {
         let engine = DocComplianceEngine;
         let config = ScanConfig {
             project_type: Some(ProjectType::OpenSource),
+            project_scope: ProjectScope::Large,
             checks: Some(vec![1, 2, 3]),
             rules_path: None,
         };
@@ -208,6 +237,7 @@ mod tests {
         // Checks 31 and 32 are open_source only; with Internal, they should be skipped
         let config = ScanConfig {
             project_type: Some(ProjectType::Internal),
+            project_scope: ProjectScope::Large,
             checks: Some(vec![31, 32]),
             rules_path: None,
         };
@@ -222,7 +252,13 @@ mod tests {
     fn test_summary_counts() {
         let tmp = TempDir::new().unwrap();
         let engine = DocComplianceEngine;
-        let report = engine.scan(tmp.path()).unwrap();
+        let config = ScanConfig {
+            project_type: Some(ProjectType::OpenSource),
+            project_scope: ProjectScope::Large,
+            checks: None,
+            rules_path: None,
+        };
+        let report = engine.scan_with_config(tmp.path(), &config).unwrap();
         assert_eq!(
             report.summary.total,
             report.summary.passed + report.summary.failed + report.summary.skipped
@@ -282,8 +318,13 @@ mod tests {
         let tmp = TempDir::new().unwrap();
         std::fs::write(tmp.path().join("LICENSE"), "MIT License\n").unwrap();
         let engine = DocComplianceEngine;
-        // None = auto-detect; MIT LICENSE → OpenSource
-        let report = engine.scan(tmp.path()).unwrap();
+        let config = ScanConfig {
+            project_type: None,
+            project_scope: ProjectScope::Large,
+            checks: Some(vec![1]),
+            rules_path: None,
+        };
+        let report = engine.scan_with_config(tmp.path(), &config).unwrap();
         assert_eq!(report.project_type, ProjectType::OpenSource);
     }
 
@@ -291,8 +332,94 @@ mod tests {
     fn test_auto_detect_internal_no_license() {
         let tmp = TempDir::new().unwrap();
         let engine = DocComplianceEngine;
-        // No LICENSE file → Internal
-        let report = engine.scan(tmp.path()).unwrap();
+        let config = ScanConfig {
+            project_type: None,
+            project_scope: ProjectScope::Large,
+            checks: Some(vec![1]),
+            rules_path: None,
+        };
+        let report = engine.scan_with_config(tmp.path(), &config).unwrap();
         assert_eq!(report.project_type, ProjectType::Internal);
+    }
+
+    #[test]
+    fn test_scope_small_skips_medium_rules() {
+        let tmp = TempDir::new().unwrap();
+        let engine = DocComplianceEngine;
+        let config = ScanConfig {
+            project_type: Some(ProjectType::OpenSource),
+            project_scope: ProjectScope::Small,
+            checks: Some(vec![11]),
+            rules_path: None,
+        };
+        let report = engine.scan_with_config(tmp.path(), &config).unwrap();
+        assert_eq!(report.results.len(), 1);
+        assert!(matches!(report.results[0].result, CheckResult::Skip { .. }));
+    }
+
+    #[test]
+    fn test_scope_medium_runs_small_rules() {
+        let tmp = TempDir::new().unwrap();
+        let engine = DocComplianceEngine;
+        let config = ScanConfig {
+            project_type: Some(ProjectType::OpenSource),
+            project_scope: ProjectScope::Medium,
+            checks: Some(vec![1]),
+            rules_path: None,
+        };
+        let report = engine.scan_with_config(tmp.path(), &config).unwrap();
+        assert_eq!(report.results.len(), 1);
+        assert!(!matches!(report.results[0].result, CheckResult::Skip { .. }));
+    }
+
+    #[test]
+    fn test_scope_large_skips_nothing_by_scope() {
+        let tmp = TempDir::new().unwrap();
+        let engine = DocComplianceEngine;
+        let config = ScanConfig {
+            project_type: Some(ProjectType::OpenSource),
+            project_scope: ProjectScope::Large,
+            checks: Some(vec![1, 11, 89]),
+            rules_path: None,
+        };
+        let report = engine.scan_with_config(tmp.path(), &config).unwrap();
+        assert_eq!(report.results.len(), 3);
+        for entry in &report.results {
+            if let CheckResult::Skip { ref reason } = entry.result {
+                assert!(!reason.contains("scope"), "Check {} was unexpectedly skipped for scope: {}", entry.id.0, reason);
+            }
+        }
+    }
+
+    #[test]
+    fn test_scope_in_report() {
+        let tmp = TempDir::new().unwrap();
+        let engine = DocComplianceEngine;
+        let config = ScanConfig {
+            project_type: Some(ProjectType::OpenSource),
+            project_scope: ProjectScope::Medium,
+            checks: Some(vec![1]),
+            rules_path: None,
+        };
+        let report = engine.scan_with_config(tmp.path(), &config).unwrap();
+        assert_eq!(report.project_scope, ProjectScope::Medium);
+    }
+
+    #[test]
+    fn test_scope_small_skips_large_rules() {
+        let tmp = TempDir::new().unwrap();
+        let engine = DocComplianceEngine;
+        let config = ScanConfig {
+            project_type: Some(ProjectType::OpenSource),
+            project_scope: ProjectScope::Small,
+            checks: Some(vec![89]),
+            rules_path: None,
+        };
+        let report = engine.scan_with_config(tmp.path(), &config).unwrap();
+        assert_eq!(report.results.len(), 1);
+        assert!(matches!(report.results[0].result, CheckResult::Skip { .. }));
+        if let CheckResult::Skip { ref reason } = report.results[0].result {
+            assert!(reason.contains("scope"));
+        }
     }
 }

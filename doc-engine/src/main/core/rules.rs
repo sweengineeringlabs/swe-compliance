@@ -2,7 +2,7 @@ use serde::Deserialize;
 
 use crate::api::types::{RuleDef, RuleSet, RuleType};
 use crate::spi::traits::CheckRunner;
-use crate::spi::types::{ProjectType, ScanError, Severity};
+use crate::spi::types::{ProjectScope, ProjectType, ScanError, Severity};
 use super::builtins;
 use super::declarative::DeclarativeCheck;
 
@@ -31,6 +31,7 @@ struct RawRule {
     exclude_pattern: Option<String>,
     message: Option<String>,
     project_type: Option<String>,
+    scope: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -55,9 +56,19 @@ fn parse_project_type(s: &str) -> Result<ProjectType, ScanError> {
     }
 }
 
+fn parse_scope(s: &str) -> Result<ProjectScope, ScanError> {
+    match s {
+        "small" => Ok(ProjectScope::Small),
+        "medium" => Ok(ProjectScope::Medium),
+        "large" => Ok(ProjectScope::Large),
+        other => Err(ScanError::Config(format!("Unknown scope: {}", other))),
+    }
+}
+
 fn convert_raw_rule(raw: RawRule) -> Result<RuleDef, ScanError> {
     let severity = parse_severity(&raw.severity)?;
     let project_type = raw.project_type.as_deref().map(parse_project_type).transpose()?;
+    let scope = raw.scope.as_deref().map(parse_scope).transpose()?;
 
     let rule_type = match raw.rule_type.as_str() {
         "file_exists" => {
@@ -151,6 +162,7 @@ fn convert_raw_rule(raw: RawRule) -> Result<RuleDef, ScanError> {
         severity,
         rule_type,
         project_type,
+        scope,
     })
 }
 
@@ -423,6 +435,7 @@ path = "x"
             severity: Severity::Error,
             rule_type: RuleType::FileExists { path: "x".to_string() },
             project_type: None,
+            scope: None,
         }];
         let reg = build_registry(&rules).unwrap();
         assert_eq!(reg.len(), 1);
@@ -438,6 +451,7 @@ path = "x"
             severity: Severity::Error,
             rule_type: RuleType::Builtin { handler: "module_docs_plural".to_string() },
             project_type: None,
+            scope: None,
         }];
         let reg = build_registry(&rules).unwrap();
         assert_eq!(reg.len(), 1);
@@ -453,6 +467,7 @@ path = "x"
             severity: Severity::Error,
             rule_type: RuleType::Builtin { handler: "nonexistent".to_string() },
             project_type: None,
+            scope: None,
         }];
         let result = build_registry(&rules);
         assert!(result.is_err());
@@ -469,6 +484,7 @@ path = "x"
                 severity: Severity::Error,
                 rule_type: RuleType::FileExists { path: "x".to_string() },
                 project_type: None,
+                scope: None,
             },
             RuleDef {
                 id: 1,
@@ -477,6 +493,7 @@ path = "x"
                 severity: Severity::Error,
                 rule_type: RuleType::DirExists { path: "y".to_string() },
                 project_type: None,
+                scope: None,
             },
         ];
         let reg = build_registry(&rules).unwrap();
@@ -489,5 +506,76 @@ path = "x"
         let rs = parse_rules(DEFAULT_RULES).unwrap();
         let reg = build_registry(&rs.rules).unwrap();
         assert_eq!(reg.len(), default_rule_count());
+    }
+
+    #[test]
+    fn test_parse_scope_values() {
+        assert_eq!(parse_scope("small").unwrap(), ProjectScope::Small);
+        assert_eq!(parse_scope("medium").unwrap(), ProjectScope::Medium);
+        assert_eq!(parse_scope("large").unwrap(), ProjectScope::Large);
+    }
+
+    #[test]
+    fn test_parse_scope_invalid() {
+        assert!(parse_scope("tiny").is_err());
+        assert!(parse_scope("huge").is_err());
+    }
+
+    #[test]
+    fn test_parse_with_scope() {
+        let toml = r#"
+[[rules]]
+id = 1
+category = "structure"
+description = "test"
+severity = "error"
+type = "file_exists"
+path = "docs/README.md"
+scope = "small"
+"#;
+        let rs = parse_rules(toml).unwrap();
+        assert_eq!(rs.rules[0].scope, Some(ProjectScope::Small));
+    }
+
+    #[test]
+    fn test_parse_without_scope() {
+        let toml = r#"
+[[rules]]
+id = 1
+category = "structure"
+description = "test"
+severity = "error"
+type = "file_exists"
+path = "docs/README.md"
+"#;
+        let rs = parse_rules(toml).unwrap();
+        assert_eq!(rs.rules[0].scope, None);
+    }
+
+    #[test]
+    fn test_parse_invalid_scope() {
+        let toml = r#"
+[[rules]]
+id = 1
+category = "structure"
+description = "test"
+severity = "error"
+type = "file_exists"
+path = "docs/README.md"
+scope = "tiny"
+"#;
+        assert!(parse_rules(toml).is_err());
+    }
+
+    #[test]
+    fn test_default_rules_have_scope() {
+        let rs = parse_rules(DEFAULT_RULES).unwrap();
+        // All rules in the default rules.toml should have a scope
+        for rule in &rs.rules {
+            assert!(
+                rule.scope.is_some(),
+                "Rule {} should have a scope annotation", rule.id
+            );
+        }
     }
 }

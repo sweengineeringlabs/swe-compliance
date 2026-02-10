@@ -97,6 +97,18 @@ pub enum ProjectType {
     Internal,
 }
 
+/// Project scope tier for filtering checks by project size.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ProjectScope {
+    /// Small project (5-10 modules): minimal structure.
+    Small,
+    /// Medium project (10-20 modules): full structure with security, ADRs.
+    Medium,
+    /// Large project (20+ modules): complete SDLC with ISO compliance.
+    Large,
+}
+
 /// Context passed to each CheckRunner during scan.
 pub struct ScanContext {
     /// Absolute path to the project root directory.
@@ -107,4 +119,34 @@ pub struct ScanContext {
     pub file_contents: HashMap<PathBuf, String>,
     /// The project type used to filter applicable checks.
     pub project_type: ProjectType,
+    /// The project scope tier used to filter checks by project size.
+    pub project_scope: ProjectScope,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_project_scope_ordering() {
+        assert!(ProjectScope::Small < ProjectScope::Medium);
+        assert!(ProjectScope::Medium < ProjectScope::Large);
+        assert!(ProjectScope::Small < ProjectScope::Large);
+    }
+
+    #[test]
+    fn test_project_scope_equality() {
+        assert_eq!(ProjectScope::Small, ProjectScope::Small);
+        assert_eq!(ProjectScope::Medium, ProjectScope::Medium);
+        assert_eq!(ProjectScope::Large, ProjectScope::Large);
+        assert_ne!(ProjectScope::Small, ProjectScope::Large);
+    }
+
+    #[test]
+    fn test_project_scope_serde_roundtrip() {
+        let json = serde_json::to_string(&ProjectScope::Medium).unwrap();
+        assert_eq!(json, "\"medium\"");
+        let deserialized: ProjectScope = serde_json::from_str(&json).unwrap();
+        assert_eq!(deserialized, ProjectScope::Medium);
+    }
 }

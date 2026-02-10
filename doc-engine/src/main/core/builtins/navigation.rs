@@ -260,7 +260,7 @@ impl CheckRunner for W3hExtended {
 mod tests {
     use super::*;
     use crate::api::types::{RuleDef, RuleType};
-    use crate::spi::types::{ProjectType, Severity};
+    use crate::spi::types::{ProjectScope, ProjectType, Severity};
     use std::collections::HashMap;
     use std::path::PathBuf;
     use tempfile::TempDir;
@@ -273,6 +273,7 @@ mod tests {
             severity: Severity::Warning,
             rule_type: RuleType::Builtin { handler: "test".to_string() },
             project_type: None,
+            scope: None,
         }
     }
 
@@ -282,6 +283,7 @@ mod tests {
             files,
             file_contents: HashMap::new(),
             project_type: ProjectType::OpenSource,
+            project_scope: ProjectScope::Large,
         }
     }
 

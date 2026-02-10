@@ -326,7 +326,7 @@ fn dir_has_files(dir: &Path) -> bool {
 mod tests {
     use super::*;
     use crate::api::types::{RuleDef, RuleType};
-    use crate::spi::types::{ProjectType, Severity};
+    use crate::spi::types::{ProjectScope, ProjectType, Severity};
     use std::collections::HashMap;
     use tempfile::TempDir;
 
@@ -338,6 +338,7 @@ mod tests {
             severity: Severity::Warning,
             rule_type: RuleType::Builtin { handler: handler.to_string() },
             project_type: None,
+            scope: None,
         }
     }
 
@@ -347,6 +348,7 @@ mod tests {
             files,
             file_contents: HashMap::new(),
             project_type: ProjectType::OpenSource,
+            project_scope: ProjectScope::Large,
         }
     }
 

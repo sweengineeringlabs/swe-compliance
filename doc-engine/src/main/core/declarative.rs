@@ -484,6 +484,7 @@ mod tests {
             severity: Severity::Error,
             rule_type,
             project_type: None,
+            scope: None,
         }
     }
 
@@ -493,6 +494,7 @@ mod tests {
             files,
             file_contents: HashMap::new(),
             project_type: crate::spi::types::ProjectType::OpenSource,
+            project_scope: crate::spi::types::ProjectScope::Large,
         }
     }
 

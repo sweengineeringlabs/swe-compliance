@@ -12,6 +12,7 @@ description = "Root docs/ folder exists (plural)"
 severity = "error"
 type = "dir_exists"
 path = "docs"
+scope = "small"
 
 [[rules]]
 id = 2
@@ -20,6 +21,7 @@ description = "docs/README.md hub document exists"
 severity = "error"
 type = "file_exists"
 path = "docs/README.md"
+scope = "small"
 
 [[rules]]
 id = 3
@@ -28,6 +30,7 @@ description = "docs/glossary.md exists"
 severity = "error"
 type = "file_exists"
 path = "docs/glossary.md"
+scope = "small"
 
 [[rules]]
 id = 4
@@ -36,6 +39,7 @@ description = "All module doc folders use docs/ (plural), not doc/"
 severity = "error"
 type = "builtin"
 handler = "module_docs_plural"
+scope = "small"
 
 [[rules]]
 id = 5
@@ -44,6 +48,7 @@ description = "No module has both doc/ and docs/"
 severity = "error"
 type = "builtin"
 handler = "module_docs_plural"
+scope = "small"
 
 [[rules]]
 id = 6
@@ -52,6 +57,7 @@ description = "docs/3-design/compliance/compliance_checklist.md exists"
 severity = "warning"
 type = "file_exists"
 path = "docs/3-design/compliance/compliance_checklist.md"
+scope = "large"
 
 [[rules]]
 id = 7
@@ -61,6 +67,7 @@ severity = "info"
 type = "file_content_matches"
 path = "docs/3-design/compliance/compliance_checklist.md"
 pattern = "architecture\\.md"
+scope = "large"
 
 [[rules]]
 id = 8
@@ -69,6 +76,7 @@ description = "Every enforceable rule has a checkbox"
 severity = "info"
 type = "builtin"
 handler = "checklist_completeness"
+scope = "large"
 
 [[rules]]
 id = 9
@@ -77,6 +85,7 @@ description = "SDLC phase numbering correct (0-7)"
 severity = "warning"
 type = "builtin"
 handler = "sdlc_phase_numbering"
+scope = "small"
 
 [[rules]]
 id = 10
@@ -85,6 +94,7 @@ description = "SDLC phases in correct order"
 severity = "warning"
 type = "builtin"
 handler = "sdlc_phase_numbering"
+scope = "small"
 
 [[rules]]
 id = 11
@@ -93,6 +103,7 @@ description = "ADR directory docs/3-design/adr/ exists"
 severity = "warning"
 type = "dir_exists"
 path = "docs/3-design/adr"
+scope = "medium"
 
 [[rules]]
 id = 12
@@ -102,6 +113,7 @@ severity = "warning"
 type = "dir_not_exists"
 path = "docs/4-development/guides"
 message = "Use guide/ (singular), not guides/"
+scope = "medium"
 
 [[rules]]
 id = 13
@@ -111,6 +123,7 @@ severity = "warning"
 type = "dir_not_exists"
 path = "docs/uiux"
 message = "Use uxui/, not uiux/"
+scope = "medium"
 
 # =============================================================================
 # Checks 14-25: Naming
@@ -123,6 +136,7 @@ description = "README.md exists (uppercase)"
 severity = "error"
 type = "file_exists"
 path = "README.md"
+scope = "small"
 
 [[rules]]
 id = 15
@@ -131,6 +145,7 @@ description = "CONTRIBUTING.md exists (uppercase)"
 severity = "error"
 type = "file_exists"
 path = "CONTRIBUTING.md"
+scope = "medium"
 
 [[rules]]
 id = 16
@@ -139,6 +154,7 @@ description = "CHANGELOG.md exists (uppercase)"
 severity = "error"
 type = "file_exists"
 path = "CHANGELOG.md"
+scope = "medium"
 
 [[rules]]
 id = 17
@@ -147,6 +163,7 @@ description = "SECURITY.md exists (uppercase)"
 severity = "error"
 type = "file_exists"
 path = "SECURITY.md"
+scope = "medium"
 
 [[rules]]
 id = 18
@@ -155,6 +172,7 @@ description = "LICENSE file exists (uppercase)"
 severity = "error"
 type = "file_exists"
 path = "LICENSE"
+scope = "small"
 
 [[rules]]
 id = 19
@@ -163,6 +181,7 @@ description = ".gitignore exists"
 severity = "error"
 type = "file_exists"
 path = ".gitignore"
+scope = "small"
 
 [[rules]]
 id = 20
@@ -171,6 +190,7 @@ description = ".editorconfig exists"
 severity = "warning"
 type = "file_exists"
 path = ".editorconfig"
+scope = "medium"
 
 [[rules]]
 id = 21
@@ -179,6 +199,7 @@ description = "All filenames in docs/ are lowercase"
 severity = "error"
 type = "builtin"
 handler = "snake_lower_case"
+scope = "small"
 
 [[rules]]
 id = 22
@@ -187,6 +208,7 @@ description = "All filenames in docs/ use underscores, not hyphens"
 severity = "error"
 type = "builtin"
 handler = "snake_lower_case"
+scope = "small"
 
 [[rules]]
 id = 23
@@ -195,6 +217,7 @@ description = "No spaces in docs/ filenames"
 severity = "error"
 type = "builtin"
 handler = "snake_lower_case"
+scope = "small"
 
 [[rules]]
 id = 24
@@ -203,6 +226,7 @@ description = "Guide files follow name_{phase}_guide.md convention"
 severity = "warning"
 type = "builtin"
 handler = "guide_naming"
+scope = "medium"
 
 [[rules]]
 id = 25
@@ -211,6 +235,7 @@ description = "No *_testing_* files outside 5-testing/"
 severity = "warning"
 type = "builtin"
 handler = "testing_file_placement"
+scope = "medium"
 
 # =============================================================================
 # Checks 26-32: Root Files
@@ -223,6 +248,7 @@ description = "README.md exists"
 severity = "error"
 type = "file_exists"
 path = "README.md"
+scope = "small"
 
 [[rules]]
 id = 27
@@ -231,6 +257,7 @@ description = "CONTRIBUTING.md exists"
 severity = "error"
 type = "file_exists"
 path = "CONTRIBUTING.md"
+scope = "medium"
 
 [[rules]]
 id = 28
@@ -239,6 +266,7 @@ description = "CHANGELOG.md exists"
 severity = "warning"
 type = "file_exists"
 path = "CHANGELOG.md"
+scope = "medium"
 
 [[rules]]
 id = 29
@@ -247,6 +275,7 @@ description = "SECURITY.md exists"
 severity = "error"
 type = "file_exists"
 path = "SECURITY.md"
+scope = "medium"
 
 [[rules]]
 id = 30
@@ -255,6 +284,7 @@ description = "LICENSE file exists"
 severity = "error"
 type = "file_exists"
 path = "LICENSE"
+scope = "small"
 
 [[rules]]
 id = 31
@@ -264,6 +294,7 @@ severity = "warning"
 type = "builtin"
 handler = "open_source_community_files"
 project_type = "open_source"
+scope = "medium"
 
 [[rules]]
 id = 32
@@ -273,6 +304,7 @@ severity = "warning"
 type = "builtin"
 handler = "open_source_github_templates"
 project_type = "open_source"
+scope = "medium"
 
 # =============================================================================
 # Checks 33-39: Content
@@ -286,6 +318,7 @@ severity = "error"
 type = "glob_content_matches"
 glob = "docs/**/*.md"
 pattern = "\\*\\*Audience\\*\\*:"
+scope = "small"
 
 [[rules]]
 id = 34
@@ -295,6 +328,7 @@ severity = "error"
 type = "glob_content_matches"
 glob = "**/docs/README.md"
 pattern = "\\*\\*Audience\\*\\*:"
+scope = "small"
 
 [[rules]]
 id = 35
@@ -303,6 +337,7 @@ description = "Docs >=200 lines should have TLDR section"
 severity = "warning"
 type = "builtin"
 handler = "tldr_conditional"
+scope = "medium"
 
 [[rules]]
 id = 36
@@ -311,6 +346,7 @@ description = "Docs <200 lines should not need TLDR section"
 severity = "info"
 type = "builtin"
 handler = "tldr_conditional"
+scope = "medium"
 
 [[rules]]
 id = 37
@@ -319,6 +355,7 @@ description = "Glossary uses **Term** - Definition format"
 severity = "warning"
 type = "builtin"
 handler = "glossary_format"
+scope = "medium"
 
 [[rules]]
 id = 38
@@ -327,6 +364,7 @@ description = "Glossary terms are alphabetized"
 severity = "warning"
 type = "builtin"
 handler = "glossary_alphabetized"
+scope = "medium"
 
 [[rules]]
 id = 39
@@ -335,6 +373,7 @@ description = "Glossary acronyms have expansions"
 severity = "info"
 type = "builtin"
 handler = "glossary_acronyms"
+scope = "medium"
 
 # =============================================================================
 # Checks 40-43: Navigation
@@ -348,6 +387,7 @@ severity = "error"
 type = "file_content_matches"
 path = "README.md"
 pattern = "docs/README\\.md"
+scope = "small"
 
 [[rules]]
 id = 41
@@ -356,6 +396,7 @@ description = "docs/README.md hub uses W3H structure"
 severity = "warning"
 type = "builtin"
 handler = "w3h_hub"
+scope = "medium"
 
 [[rules]]
 id = 42
@@ -364,6 +405,7 @@ description = "Hub links to all present SDLC phase directories"
 severity = "warning"
 type = "builtin"
 handler = "hub_links_phases"
+scope = "medium"
 
 [[rules]]
 id = 43
@@ -372,6 +414,7 @@ description = "Root README does not deep-link into docs/ subdirectories"
 severity = "warning"
 type = "builtin"
 handler = "no_deep_links"
+scope = "medium"
 
 # =============================================================================
 # Checks 44-47: Cross-References
@@ -384,6 +427,7 @@ description = "All internal markdown links resolve to existing files"
 severity = "error"
 type = "builtin"
 handler = "link_resolution"
+scope = "small"
 
 [[rules]]
 id = 45
@@ -392,6 +436,7 @@ description = "All relative links are valid"
 severity = "warning"
 type = "builtin"
 handler = "link_resolution"
+scope = "small"
 
 [[rules]]
 id = 46
@@ -402,6 +447,7 @@ type = "glob_content_not_matches"
 glob = "docs/**/*.md"
 pattern = "\\bdoc/"
 exclude_pattern = "docs/"
+scope = "small"
 
 [[rules]]
 id = 47
@@ -412,6 +458,7 @@ type = "glob_content_not_matches"
 glob = "docs/**/*.md"
 pattern = "\\bguides/"
 exclude_pattern = "guide/"
+scope = "small"
 
 # =============================================================================
 # Checks 48-50: ADR
@@ -424,6 +471,7 @@ description = "ADR index file exists"
 severity = "warning"
 type = "file_exists"
 path = "docs/3-design/adr/README.md"
+scope = "medium"
 
 [[rules]]
 id = 49
@@ -432,6 +480,7 @@ description = "ADR files follow NNN-title.md naming convention"
 severity = "warning"
 type = "builtin"
 handler = "adr_naming"
+scope = "medium"
 
 [[rules]]
 id = 50
@@ -440,6 +489,7 @@ description = "ADR index references all ADR files"
 severity = "info"
 type = "builtin"
 handler = "adr_index_completeness"
+scope = "medium"
 
 # =============================================================================
 # Checks 51-53: Traceability
@@ -452,6 +502,7 @@ description = "Populated SDLC phase directories contain their expected artifact"
 severity = "warning"
 type = "builtin"
 handler = "phase_artifact_presence"
+scope = "medium"
 
 [[rules]]
 id = 52
@@ -460,6 +511,7 @@ description = "Design documents reference requirements"
 severity = "warning"
 type = "builtin"
 handler = "design_traces_requirements"
+scope = "medium"
 
 [[rules]]
 id = 53
@@ -468,6 +520,7 @@ description = "Planning documents reference architecture"
 severity = "warning"
 type = "builtin"
 handler = "plan_traces_design"
+scope = "medium"
 
 # =============================================================================
 # Checks 69-72: Structure, Backlog, Root Files (BL-01, BL-02, BL-07, BL-08)
@@ -480,6 +533,7 @@ description = "docs/4-development/developer_guide.md exists"
 severity = "warning"
 type = "file_exists"
 path = "docs/4-development/developer_guide.md"
+scope = "small"
 
 [[rules]]
 id = 70
@@ -489,6 +543,7 @@ severity = "warning"
 type = "file_exists"
 path = "INTERNAL_USAGE.md"
 project_type = "internal"
+scope = "large"
 
 [[rules]]
 id = 71
@@ -497,6 +552,7 @@ description = "docs/2-planning/backlog.md exists"
 severity = "warning"
 type = "file_exists"
 path = "docs/2-planning/backlog.md"
+scope = "medium"
 
 [[rules]]
 id = 72
@@ -505,6 +561,7 @@ description = "docs/templates/ directory exists"
 severity = "info"
 type = "dir_exists"
 path = "docs/templates"
+scope = "large"
 
 # =============================================================================
 # Checks 73-76: Builtin checks (BL-08, BL-09, BL-10, BL-11)
@@ -517,6 +574,7 @@ description = "docs/templates/ contains template files"
 severity = "info"
 type = "builtin"
 handler = "templates_populated"
+scope = "large"
 
 [[rules]]
 id = 74
@@ -525,6 +583,7 @@ description = "Hub documents use W3H structure"
 severity = "info"
 type = "builtin"
 handler = "w3h_extended"
+scope = "large"
 
 [[rules]]
 id = 75
@@ -533,6 +592,7 @@ description = "Root README.md under 100 lines"
 severity = "info"
 type = "builtin"
 handler = "readme_line_count"
+scope = "large"
 
 [[rules]]
 id = 76
@@ -541,6 +601,7 @@ description = "FR artifacts follow FR_NNN naming"
 severity = "info"
 type = "builtin"
 handler = "fr_naming"
+scope = "large"
 
 # =============================================================================
 # Checks 77-81: Module checks (BL-03 through BL-06)
@@ -553,6 +614,7 @@ description = "Module READMEs follow W3H structure"
 severity = "warning"
 type = "builtin"
 handler = "module_readme_w3h"
+scope = "medium"
 
 [[rules]]
 id = 78
@@ -561,6 +623,7 @@ description = "Modules have examples directory"
 severity = "warning"
 type = "builtin"
 handler = "module_examples_tests"
+scope = "medium"
 
 [[rules]]
 id = 79
@@ -569,6 +632,7 @@ description = "Modules have integration tests"
 severity = "warning"
 type = "builtin"
 handler = "module_examples_tests"
+scope = "medium"
 
 [[rules]]
 id = 80
@@ -577,6 +641,7 @@ description = "Modules have toolchain documentation"
 severity = "warning"
 type = "builtin"
 handler = "module_toolchain_docs"
+scope = "large"
 
 [[rules]]
 id = 81
@@ -585,9 +650,10 @@ description = "Module deployment docs complete"
 severity = "warning"
 type = "builtin"
 handler = "module_deployment_docs"
+scope = "large"
 
 # =============================================================================
-# Check 82: Traceability (backlog → requirements)
+# Check 82: Traceability (backlog -> requirements)
 # =============================================================================
 
 [[rules]]
@@ -597,6 +663,7 @@ description = "Backlog references requirements/SRS"
 severity = "warning"
 type = "builtin"
 handler = "backlog_traces_requirements"
+scope = "medium"
 
 # =============================================================================
 # Checks 83-88: Planning Phase Artifacts (FR-804)
@@ -609,6 +676,7 @@ description = "docs/2-planning/risk_register.md exists"
 severity = "info"
 type = "file_exists"
 path = "docs/2-planning/risk_register.md"
+scope = "large"
 
 [[rules]]
 id = 84
@@ -617,6 +685,7 @@ description = "docs/2-planning/estimation.md exists"
 severity = "info"
 type = "file_exists"
 path = "docs/2-planning/estimation.md"
+scope = "large"
 
 [[rules]]
 id = 85
@@ -626,6 +695,7 @@ severity = "info"
 type = "file_exists"
 path = "docs/2-planning/schedule.md"
 project_type = "open_source"
+scope = "large"
 
 [[rules]]
 id = 86
@@ -635,6 +705,7 @@ severity = "info"
 type = "file_exists"
 path = "docs/2-planning/resource_plan.md"
 project_type = "open_source"
+scope = "large"
 
 [[rules]]
 id = 87
@@ -644,6 +715,7 @@ severity = "info"
 type = "file_exists"
 path = "docs/2-planning/communication_plan.md"
 project_type = "open_source"
+scope = "large"
 
 [[rules]]
 id = 88
@@ -652,6 +724,7 @@ description = "docs/2-planning/quality_plan.md exists"
 severity = "info"
 type = "file_exists"
 path = "docs/2-planning/quality_plan.md"
+scope = "large"
 
 # =============================================================================
 # Check 89: Requirements (ISO/IEC/IEEE 29148:2018, FR-805)
@@ -664,6 +737,7 @@ description = "SRS requirements have ISO/IEC/IEEE 29148:2018 attribute tables"
 severity = "warning"
 type = "builtin"
 handler = "srs_29148_attributes"
+scope = "large"
 
 # Check 90: Architecture (ISO/IEC/IEEE 42010:2022, FR-806)
 [[rules]]
@@ -673,6 +747,7 @@ description = "Architecture documents have ISO/IEC/IEEE 42010:2022 sections"
 severity = "info"
 type = "builtin"
 handler = "arch_42010_sections"
+scope = "large"
 
 # Check 91: Testing (ISO/IEC/IEEE 29119-3:2021, FR-807)
 [[rules]]
@@ -682,6 +757,7 @@ description = "Testing strategies have ISO/IEC/IEEE 29119-3:2021 sections"
 severity = "info"
 type = "builtin"
 handler = "test_29119_sections"
+scope = "large"
 
 # Check 92: Production readiness document (ISO/IEC 25010:2023, FR-808)
 [[rules]]
@@ -691,6 +767,7 @@ description = "Production readiness document exists"
 severity = "info"
 type = "builtin"
 handler = "prod_readiness_exists"
+scope = "large"
 
 # Check 93: Production readiness ISO/IEC 25010 sections (FR-809)
 [[rules]]
@@ -700,6 +777,7 @@ description = "Production readiness has ISO/IEC 25010:2023 quality sections"
 severity = "info"
 type = "builtin"
 handler = "prod_readiness_25010_sections"
+scope = "large"
 
 # Check 94: Developer guide ISO/IEC/IEEE 26514 sections (FR-810)
 [[rules]]
@@ -709,6 +787,7 @@ description = "Developer guide has ISO/IEC/IEEE 26514:2022 sections"
 severity = "info"
 type = "builtin"
 handler = "dev_guide_26514_sections"
+scope = "large"
 
 # Check 95: Backlog content sections (FR-811)
 [[rules]]
@@ -718,6 +797,7 @@ description = "Backlog has required sections (items, completed, blockers)"
 severity = "info"
 type = "builtin"
 handler = "backlog_sections"
+scope = "large"
 
 # Check 96: Production readiness ISO/IEC/IEEE 12207:2017 lifecycle sections (FR-812)
 [[rules]]
@@ -727,6 +807,7 @@ description = "Production readiness has ISO/IEC/IEEE 12207:2017 lifecycle sectio
 severity = "info"
 type = "builtin"
 handler = "prod_readiness_12207_sections"
+scope = "large"
 
 # Check 97: Production readiness ISO/IEC 25010:2023 supplementary sections (FR-813)
 [[rules]]
@@ -736,6 +817,7 @@ description = "Production readiness has supplementary ISO/IEC 25010:2023 quality
 severity = "info"
 type = "builtin"
 handler = "prod_readiness_25010_supp_sections"
+scope = "large"
 
 # Check 98: Production readiness ISO/IEC 25040:2024 evaluation sections (FR-814)
 [[rules]]
@@ -745,3 +827,4 @@ description = "Production readiness has ISO/IEC 25040:2024 evaluation sections"
 severity = "info"
 type = "builtin"
 handler = "prod_readiness_25040_sections"
+scope = "large"

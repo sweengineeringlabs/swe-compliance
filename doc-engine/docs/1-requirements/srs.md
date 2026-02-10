@@ -43,6 +43,8 @@ doc-engine does **not**:
 | **SPI** | Service Provider Interface — trait definitions and low-level types |
 | **W3H** | WHO-WHAT-WHY-HOW — documentation structure pattern from template-engine |
 | **SDLC** | Software Development Life Cycle — phases 0-7 mapped to directory names |
+| **Documentation audit report** | Per ISO/IEC/IEEE 15289:2019, the standard information item produced by a documentation compliance audit; canonical filename: `documentation_audit_report_v{version}.json` |
+| **Project scope** | Tier that determines which rule subset applies: Small (core essentials), Medium (security, ADRs, traceability), Large (complete SDLC with ISO compliance) |
 | **ADR** | Architecture Decision Record — numbered decision documents in `docs/3-design/adr/` |
 | **Declarative rule** | A check defined entirely in TOML, executed by the generic DeclarativeCheck runner |
 | **Builtin rule** | A check referencing a named Rust handler for complex logic |
@@ -62,7 +64,7 @@ doc-engine does **not**:
 |----------|----------|
 | ISO/IEC/IEEE 29148:2018 | Requirements engineering standard (this document conforms to) |
 | ISO/IEC/IEEE 12207:2017 | Software life cycle processes (checks 9-10, 51-53, 82-88, 92, 96) |
-| ISO/IEC/IEEE 15289:2019 | Content of life-cycle information items (checks 1-8, 14-20, 26-39, 48-50, 69-76) |
+| ISO/IEC/IEEE 15289:2019 | Content of life-cycle information items (checks 1-8, 14-20, 26-39, 48-50, 69-76); also defines the "Audit Report" information item — canonical filename for doc-engine output: `documentation_audit_report_v{version}.json` |
 | ISO/IEC/IEEE 26514:2022 | Design and development of information for users (check 94) |
 | ISO/IEC/IEEE 29119-3:2021 | Software testing -- Part 3: Test documentation (check 91) |
 | ISO/IEC/IEEE 42010:2022 | Architecture description (checks 48-50, 90) |
@@ -92,11 +94,11 @@ doc-engine does **not**:
 
 #### OS-1: Developer local scan
 
-A developer runs `doc-engine scan .` from their project root. The tool discovers all files, runs all 98 checks (83 base + 15 spec), and prints a text report showing which checks passed and which failed with file paths and messages. The developer fixes violations and re-runs until clean.
+A developer runs `doc-engine scan . --scope small` from their project root. The tool discovers all files, runs all checks applicable to the selected scope, and prints a text report showing which checks passed, failed, or were skipped. The developer fixes violations and re-runs until clean.
 
 #### OS-2: CI pipeline gate
 
-A CI job runs `doc-engine scan . --json`. The tool outputs a JSON report. The CI job parses the exit code: 0 passes the gate, 1 fails the build with violation details, 2 indicates a configuration error.
+A CI job runs `doc-engine scan . --scope large --json`. The tool outputs a JSON report. The CI job parses the exit code: 0 passes the gate, 1 fails the build with violation details, 2 indicates a configuration error.
 
 #### OS-3: Custom rules for internal project
 
@@ -108,7 +110,7 @@ A documentation maintainer needs to require a new file `docs/CODEOWNERS`. They a
 
 #### OS-5: Library integration
 
-Another Rust crate calls `doc_engine::scan(path)` programmatically and inspects the returned `ScanReport` to generate a compliance dashboard.
+Another Rust crate calls `doc_engine::scan_with_config(path, &config)` programmatically with a `ScanConfig` specifying `project_scope: ProjectScope::Large` and inspects the returned `ScanReport` to generate a compliance dashboard.
 
 #### OS-6: YAML spec validation
 
@@ -122,6 +124,10 @@ An architect runs `doc-engine spec cross-ref docs/` to verify that all dependenc
 
 A developer runs `doc-engine spec generate docs/1-requirements/auth/login.spec.yaml --output generated/` to produce a markdown document from a YAML spec file, matching the template-engine template format.
 
+#### OS-9: Audit report persistence
+
+A developer or CI job runs `doc-engine scan . --scope large --json -o docs/7-operations/compliance/documentation_audit_report_v1.0.0.json`. The tool executes the scan, prints results to stdout, and persists the JSON report to the specified path (creating parent directories as needed). The filename follows the ISO/IEC/IEEE 15289:2019 "Audit Report" information item naming convention: `documentation_audit_report_v{version}.json`.
+
 ### 2.3 Stakeholder Requirements
 
 | ID | Requirement | Source | Priority | Rationale |
@@ -134,6 +140,8 @@ A developer runs `doc-engine spec generate docs/1-requirements/auth/login.spec.y
 | STK-06 | The tool shall run without network access | Security constraint | Must | Scans local file system only |
 | STK-07 | The tool shall support both open-source and internal project types | Architect needs | Must | Different projects have different required files |
 | STK-08 | The tool shall validate YAML spec files for schema conformance, cross-references, and generate markdown from them | Architect feedback | Should | Structured specs enable automated traceability and doc generation |
+| STK-09 | The tool shall persist audit reports as versioned JSON files following ISO/IEC/IEEE 15289:2019 naming | CI pipeline needs, ISO compliance | Should | Enables audit trail, historical comparison, and compliance evidence |
+| STK-10 | The tool shall scope checks by project size (small/medium/large) so that smaller projects are not burdened by large-project requirements | Developer feedback | Must | Different project sizes have different documentation needs |
 
 ---
 
@@ -150,10 +158,11 @@ template-engine/templates/
 doc-engine/rules.toml         ← encodes checks as TOML rules
          │
          ▼
-doc-engine scan <project>     ← audits any project against them
+doc-engine scan <project> --scope <tier>  ← audits any project against them
          │
-         ▼
-stdout (text or JSON)         ← results + exit code
+         ├── stdout (text or JSON)        ← results + exit code
+         └── -o <path>                    ← documentation_audit_report_v{ver}.json
+                                            (ISO/IEC/IEEE 15289:2019 Audit Report)
 ```
 
 ### 3.2 System Functions
@@ -511,7 +520,19 @@ When `--json` is provided, output shall be a JSON `ScanReport`.
 |------|---------|
 | 0 | All executed checks passed |
 | 1 | One or more checks failed |
-| 2 | Scan error (invalid path, IO error, rules parse error, unknown handler) |
+| 2 | Scan error (invalid path, IO error, rules parse error, unknown handler, unknown scope) |
+
+#### FR-403: Report file output
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Should |
+| **State** | Approved |
+| **Verification** | Test |
+| **Traces to** | STK-09 -> `main.rs` |
+| **Acceptance** | `--output <path>` writes a JSON audit report to the specified path, creating parent directories as needed; the recommended filename follows ISO/IEC/IEEE 15289:2019: `documentation_audit_report_v{version}.json` |
+
+When `--output` / `-o` is provided, the engine shall persist the scan report as JSON to the given file path, regardless of whether `--json` was specified for stdout. Parent directories are created automatically. Stdout output is unaffected. If the file cannot be written, the tool exits with code 2.
 
 ### 4.5 CLI Interface
 
@@ -523,10 +544,10 @@ When `--json` is provided, output shall be a JSON `ScanReport`.
 | **State** | Approved |
 | **Verification** | Demonstration |
 | **Traces to** | STK-01 -> `main.rs` |
-| **Acceptance** | `doc-engine scan <PATH>` executes a full scan and prints results |
+| **Acceptance** | `doc-engine scan <PATH> --scope <TIER>` executes a scoped scan and prints results |
 
 ```
-doc-engine scan <PATH>
+doc-engine scan <PATH> --scope <small|medium|large> [--json] [--checks N] [--type TYPE] [--rules FILE] [-o FILE]
 ```
 
 #### FR-501: JSON flag
@@ -571,6 +592,28 @@ Supports ranges and comma-separated values.
 | **Traces to** | STK-02 -> `main.rs` |
 | **Acceptance** | `--rules custom.toml` loads and uses the specified file; missing file produces exit code 2 |
 
+#### FR-505: Scope flag
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Must |
+| **State** | Approved |
+| **Verification** | Test |
+| **Traces to** | STK-10 -> `main.rs` |
+| **Acceptance** | `--scope small` runs only small-tier checks, skipping medium and large; `--scope medium` runs small+medium; `--scope large` runs all; unknown values produce exit code 2 |
+
+Required flag. Each rule in `rules.toml` carries a `scope = "small"|"medium"|"large"` attribute. Rules whose scope exceeds the configured tier are skipped with a descriptive reason. `ProjectScope` derives `Ord` so that `Small < Medium < Large`.
+
+#### FR-506: Output flag
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Should |
+| **State** | Approved |
+| **Verification** | Test |
+| **Traces to** | STK-09 -> `main.rs` |
+| **Acceptance** | `--output <path>` or `-o <path>` writes a JSON report to the specified path; parent directories are created automatically; the recommended filename is `documentation_audit_report_v{version}.json` per ISO/IEC/IEEE 15289:2019 |
+
 ### 4.6 Library API
 
 #### FR-600: Public scan function
@@ -578,12 +621,12 @@ Supports ranges and comma-separated values.
 | Attribute | Value |
 |-----------|-------|
 | **Priority** | Should |
-| **State** | Approved |
-| **Verification** | Test |
+| **State** | Superseded by FR-601 |
+| **Verification** | — |
 | **Traces to** | STK-04 -> `saf/mod.rs` |
-| **Acceptance** | `doc_engine::scan(path)` compiles and returns a `Result<ScanReport, ScanError>` |
+| **Acceptance** | Removed: `scan()` convenience function was deleted when `ProjectScope` became mandatory. Use `scan_with_config()` (FR-601) instead. |
 
-The library shall expose `scan(root: &Path) -> Result<ScanReport, ScanError>` via the SAF layer.
+~~The library shall expose `scan(root: &Path) -> Result<ScanReport, ScanError>` via the SAF layer.~~ Superseded: since `ProjectScope` is a required field in `ScanConfig`, a no-argument convenience is no longer meaningful.
 
 #### FR-601: Configurable scan function
 
@@ -607,7 +650,7 @@ The library shall expose `scan_with_config(root: &Path, config: &ScanConfig) -> 
 | **Traces to** | STK-04 -> `saf/mod.rs` |
 | **Acceptance** | All listed types are importable from `doc_engine::` |
 
-Public via SAF: `ScanConfig`, `ScanReport`, `ScanSummary`, `ProjectType`, `CheckId`, `CheckResult`, `Severity`, `Violation`, `RuleDef`, `RuleType`, `SpecFormat`, `SpecKind`, `SpecStatus`, `Priority`, `DiscoveredSpec`, `BrdSpec`, `FeatureRequestSpec`, `ArchSpec`, `TestSpec`, `DeploySpec`, `MarkdownSpec`, `MarkdownTestCase`, `SpecEnvelope`, `ParsedSpec`, `SpecValidationReport`, `CrossRefReport`, `SpecDiagnostic`, `CrossRefResult`.
+Public via SAF: `ScanConfig`, `ScanReport`, `ScanSummary`, `ProjectType`, `ProjectScope`, `CheckId`, `CheckResult`, `Severity`, `Violation`, `RuleDef`, `RuleType`, `SpecFormat`, `SpecKind`, `SpecStatus`, `Priority`, `DiscoveredSpec`, `BrdSpec`, `FeatureRequestSpec`, `ArchSpec`, `TestSpec`, `DeploySpec`, `MarkdownSpec`, `MarkdownTestCase`, `SpecEnvelope`, `ParsedSpec`, `SpecValidationReport`, `CrossRefReport`, `SpecDiagnostic`, `CrossRefResult`.
 
 ### 4.7 Spec File Parsing
 
@@ -1141,7 +1184,7 @@ Traditional software engineering planning phases produce artifacts beyond the im
 | **State** | Approved |
 | **Verification** | Test |
 | **Traces to** | Check 89 -> `core/builtins/requirements.rs` |
-| **Acceptance** | Check 89 validates that every FR-xxx and NFR-xxx block in `docs/1-requirements/requirements.md` contains the five mandatory ISO/IEC/IEEE 29148:2018 attributes: Priority, State, Verification, Traces to (or Traceability), and Acceptance. Missing attributes produce per-requirement violations. Projects without an SRS file or without FR/NFR blocks produce Skip. STK-xxx blocks are excluded (they use a consolidated table format). |
+| **Acceptance** | Check 89 validates that every FR-xxx and NFR-xxx block in `docs/1-requirements/srs.md` contains the five mandatory ISO/IEC/IEEE 29148:2018 attributes: Priority, State, Verification, Traces to (or Traceability), and Acceptance. Missing attributes produce per-requirement violations. Projects without an SRS file or without FR/NFR blocks produce Skip. STK-xxx blocks are excluded (they use a consolidated table format). |
 
 The engine shall validate SRS documents for ISO/IEC/IEEE 29148:2018 compliance by checking that each requirement block has the five mandatory attribute table entries.
 
@@ -1433,6 +1476,8 @@ IO errors and missing files shall produce `Skip` results or clear error messages
 | STK-06 | SYS-02 |
 | STK-07 | SYS-03 |
 | STK-08 | SYS-06 |
+| STK-09 | SYS-05 |
+| STK-10 | SYS-03 |
 
 ### Stakeholder -> Software
 
@@ -1446,6 +1491,8 @@ IO errors and missing files shall produce `Skip` results or clear error messages
 | STK-06 | FR-201, NFR-200 |
 | STK-07 | FR-302, FR-503 |
 | STK-08 | FR-700-706, FR-710-716, FR-720-727, FR-730-735, FR-740-742, FR-750-755 |
+| STK-09 | FR-403, FR-506 |
+| STK-10 | FR-505 |
 
 ### Software -> Architecture
 
@@ -1456,8 +1503,8 @@ IO errors and missing files shall produce `Skip` results or clear error messages
 | FR-104, FR-105 | `core/builtins/mod.rs` |
 | FR-200-202 | `core/scanner.rs` |
 | FR-300-304 | `core/engine.rs`, `spi/types.rs` |
-| FR-400-402 | `core/reporter.rs`, `main.rs` |
-| FR-500-504 | `main.rs` |
+| FR-400-403 | `core/reporter.rs`, `main.rs` |
+| FR-500-506 | `main.rs` |
 | FR-600-602 | `saf/mod.rs` |
 | FR-700-706 | `core/spec/parser.rs`, `core/spec/discovery.rs`, `spi/spec_types.rs` |
 | FR-710-716 | `core/spec/validate.rs`, `api/spec_types.rs` |
@@ -1543,6 +1590,7 @@ Defines the content requirements for documentation artifacts produced throughout
 | 7.4 | Security considerations | 17, 29 | SECURITY.md exists |
 | 7.5 | License information | 18, 30 | LICENSE file exists |
 | Annex A | Information item outline examples | 72, 73 | Templates directory with template files |
+| 9.2 | Audit report | FR-403 | `--output` persists scan results as `documentation_audit_report_v{version}.json` — the standard information item for compliance audit findings |
 
 #### ISO/IEC/IEEE 29148:2018 -- Requirements Engineering
 

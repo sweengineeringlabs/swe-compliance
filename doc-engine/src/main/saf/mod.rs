@@ -7,7 +7,7 @@ use crate::spi::traits::Reporter;
 
 // Re-export all public types from SPI
 pub use crate::spi::types::{
-    CheckId, CheckResult, ProjectType, Severity, Violation, ScanContext, ScanError,
+    CheckId, CheckResult, ProjectScope, ProjectType, Severity, Violation, ScanContext, ScanError,
 };
 
 // Re-export all public types from API
@@ -20,13 +20,6 @@ pub use crate::core::engine::detect_project_type;
 
 // Re-export rule_count for test assertions
 pub use crate::core::rules::default_rule_count;
-
-/// Scan a project directory using default configuration.
-///
-/// Equivalent to calling [`scan_with_config`] with [`ScanConfig::default()`].
-pub fn scan(root: &Path) -> Result<ScanReport, ScanError> {
-    scan_with_config(root, &ScanConfig::default())
-}
 
 /// Scan a project directory with custom configuration.
 ///

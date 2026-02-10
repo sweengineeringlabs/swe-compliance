@@ -279,7 +279,7 @@ Rust implementations for complex checks, registered by handler name:
 
 > Implements: Documentation updates
 
-- Update `docs/1-requirements/requirements.md` with FR-700 through FR-755
+- Update `docs/1-requirements/srs.md` with FR-700 through FR-755
 - Update `docs/3-design/architecture.md` with spec module descriptions, scaffold, check tables
 - Update `docs/2-planning/implementation_plan.md` with phases 11-18
 - Verify all FR-700+ have `Traces to` pointing to an architecture component

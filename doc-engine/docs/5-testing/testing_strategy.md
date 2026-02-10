@@ -66,6 +66,6 @@ tests verify the full scan pipeline from CLI invocation to JSON/text output.
 
 ## Related Documents
 
-- **Requirements**: [requirements.md](../1-requirements/requirements.md)
+- **Requirements**: [srs.md](../1-requirements/srs.md)
 - **Architecture**: [architecture.md](../3-design/architecture.md)
 - **Production Readiness**: [production_readiness.md](../6-deployment/production_readiness.md)

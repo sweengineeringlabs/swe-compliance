@@ -1,9 +1,15 @@
 use std::path::Path;
-use doc_engine::{scan, scan_with_config, ScanConfig, ScanError, ProjectType};
+use doc_engine::{scan_with_config, ScanConfig, ScanError, ProjectType, ProjectScope};
 
 #[test]
 fn test_nonexistent_path() {
-    let result = scan(Path::new("/nonexistent/path/xyz"));
+    let config = ScanConfig {
+        project_type: Some(ProjectType::OpenSource),
+        project_scope: ProjectScope::Large,
+        checks: None,
+        rules_path: None,
+    };
+    let result = scan_with_config(Path::new("/nonexistent/path/xyz"), &config);
     assert!(result.is_err());
     match result.unwrap_err() {
         ScanError::Path(msg) => assert!(msg.contains("does not exist")),
@@ -16,6 +22,7 @@ fn test_bad_rules_path() {
     let tmp = tempfile::TempDir::new().unwrap();
     let config = ScanConfig {
         project_type: Some(ProjectType::OpenSource),
+        project_scope: ProjectScope::Large,
         checks: None,
         rules_path: Some("/nonexistent/rules.toml".into()),
     };
@@ -35,6 +42,7 @@ fn test_malformed_rules() {
 
     let config = ScanConfig {
         project_type: Some(ProjectType::OpenSource),
+        project_scope: ProjectScope::Large,
         checks: None,
         rules_path: Some(rules_path),
     };

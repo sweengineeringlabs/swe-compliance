@@ -139,10 +139,15 @@ impl CheckRunner for Srs29148Attributes {
     fn description(&self) -> &str { &self.def.description }
 
     fn run(&self, ctx: &ScanContext) -> CheckResult {
-        let srs_path = ctx.root.join("docs/1-requirements/requirements.md");
+        let srs_path = ctx.root.join("docs/1-requirements/srs.md");
         if !srs_path.exists() {
-            return CheckResult::Skip {
-                reason: "docs/1-requirements/requirements.md does not exist".to_string(),
+            return CheckResult::Fail {
+                violations: vec![Violation {
+                    check_id: CheckId(self.def.id),
+                    path: Some("docs/1-requirements/srs.md".into()),
+                    message: "File 'docs/1-requirements/srs.md' does not exist".to_string(),
+                    severity: self.def.severity.clone(),
+                }],
             };
         }
 
@@ -150,7 +155,7 @@ impl CheckRunner for Srs29148Attributes {
             Ok(c) => c,
             Err(e) => {
                 return CheckResult::Skip {
-                    reason: format!("Cannot read requirements.md: {}", e),
+                    reason: format!("Cannot read srs.md: {}", e),
                 };
             }
         };
@@ -207,7 +212,7 @@ impl CheckRunner for Srs29148Attributes {
             if !missing.is_empty() {
                 violations.push(Violation {
                     check_id: CheckId(self.def.id),
-                    path: Some("docs/1-requirements/requirements.md".into()),
+                    path: Some("docs/1-requirements/srs.md".into()),
                     message: format!(
                         "{} missing {} attribute{}",
                         req_id,
@@ -819,7 +824,7 @@ impl CheckRunner for BacklogSections {
 mod tests {
     use super::*;
     use crate::api::types::{RuleDef, RuleType};
-    use crate::spi::types::{ProjectType, Severity};
+    use crate::spi::types::{ProjectScope, ProjectType, Severity};
     use std::collections::HashMap;
     use std::path::Path;
     use tempfile::TempDir;
@@ -832,6 +837,7 @@ mod tests {
             severity: Severity::Warning,
             rule_type: RuleType::Builtin { handler: "srs_29148_attributes".to_string() },
             project_type: None,
+            scope: None,
         }
     }
 
@@ -841,6 +847,7 @@ mod tests {
             files: vec![],
             file_contents: HashMap::new(),
             project_type: ProjectType::OpenSource,
+            project_scope: ProjectScope::Large,
         }
     }
 
@@ -879,7 +886,7 @@ mod tests {
     fn test_pass_fr_all_attributes() {
         let tmp = TempDir::new().unwrap();
         let block = complete_fr_block("FR-100", "Sample requirement");
-        write_file(tmp.path(), "docs/1-requirements/requirements.md",
+        write_file(tmp.path(), "docs/1-requirements/srs.md",
             &srs_with_block(&block));
 
         let handler = Srs29148Attributes { def: make_def() };
@@ -891,7 +898,7 @@ mod tests {
     fn test_pass_nfr_all_attributes() {
         let tmp = TempDir::new().unwrap();
         let block = complete_fr_block("NFR-200", "Performance requirement");
-        write_file(tmp.path(), "docs/1-requirements/requirements.md",
+        write_file(tmp.path(), "docs/1-requirements/srs.md",
             &srs_with_block(&block));
 
         let handler = Srs29148Attributes { def: make_def() };
@@ -910,7 +917,7 @@ mod tests {
              | **Verification** | Test |\n\
              | **Traceability** | STK-01 |\n\
              | **Acceptance** | System meets criteria |\n";
-        write_file(tmp.path(), "docs/1-requirements/requirements.md",
+        write_file(tmp.path(), "docs/1-requirements/srs.md",
             &srs_with_block(block));
 
         let handler = Srs29148Attributes { def: make_def() };
@@ -924,7 +931,7 @@ mod tests {
         let block1 = complete_fr_block("FR-100", "First requirement");
         let block2 = complete_fr_block("FR-101", "Second requirement");
         let block3 = complete_fr_block("NFR-200", "Non-functional requirement");
-        write_file(tmp.path(), "docs/1-requirements/requirements.md",
+        write_file(tmp.path(), "docs/1-requirements/srs.md",
             &srs_with_block(&format!("{}\n{}\n{}", block1, block2, block3)));
 
         let handler = Srs29148Attributes { def: make_def() };
@@ -946,7 +953,7 @@ mod tests {
              | **Verification** | Test |\n\
              | **Traces to** | STK-01 |\n\
              | **Acceptance** | System meets criteria |\n";
-        write_file(tmp.path(), "docs/1-requirements/requirements.md",
+        write_file(tmp.path(), "docs/1-requirements/srs.md",
             &srs_with_block(block));
 
         let handler = Srs29148Attributes { def: make_def() };
@@ -969,7 +976,7 @@ mod tests {
              |-----------|-------|\n\
              | **State** | Approved |\n\
              | **Acceptance** | System meets criteria |\n";
-        write_file(tmp.path(), "docs/1-requirements/requirements.md",
+        write_file(tmp.path(), "docs/1-requirements/srs.md",
             &srs_with_block(block));
 
         let handler = Srs29148Attributes { def: make_def() };
@@ -994,7 +1001,7 @@ mod tests {
              | Attribute | Value |\n\
              |-----------|-------|\n\
              | **Priority** | Must |\n";
-        write_file(tmp.path(), "docs/1-requirements/requirements.md",
+        write_file(tmp.path(), "docs/1-requirements/srs.md",
             &srs_with_block(&format!("{}\n{}", complete, incomplete)));
 
         let handler = Srs29148Attributes { def: make_def() };
@@ -1013,18 +1020,18 @@ mod tests {
     // =========================================================================
 
     #[test]
-    fn test_skip_no_srs_file() {
+    fn test_fail_no_srs_file() {
         let tmp = TempDir::new().unwrap();
 
         let handler = Srs29148Attributes { def: make_def() };
         let ctx = make_ctx(tmp.path());
-        assert!(matches!(handler.run(&ctx), CheckResult::Skip { .. }));
+        assert!(matches!(handler.run(&ctx), CheckResult::Fail { .. }));
     }
 
     #[test]
     fn test_skip_no_fr_nfr_blocks() {
         let tmp = TempDir::new().unwrap();
-        write_file(tmp.path(), "docs/1-requirements/requirements.md",
+        write_file(tmp.path(), "docs/1-requirements/srs.md",
             "# Requirements\n\n**Audience**: Developers\n\nSome general text.\n");
 
         let handler = Srs29148Attributes { def: make_def() };
@@ -1035,7 +1042,7 @@ mod tests {
     #[test]
     fn test_skip_only_stk_blocks() {
         let tmp = TempDir::new().unwrap();
-        write_file(tmp.path(), "docs/1-requirements/requirements.md",
+        write_file(tmp.path(), "docs/1-requirements/srs.md",
             "# Requirements\n\n**Audience**: Developers\n\n\
              #### STK-01: Stakeholder requirement\n\n\
              | ID | Requirement | Source |\n\
@@ -1059,6 +1066,7 @@ mod tests {
             severity: Severity::Info,
             rule_type: RuleType::Builtin { handler: "arch_42010_sections".to_string() },
             project_type: None,
+            scope: None,
         }
     }
 
@@ -1160,6 +1168,7 @@ mod tests {
             severity: Severity::Info,
             rule_type: RuleType::Builtin { handler: "test_29119_sections".to_string() },
             project_type: None,
+            scope: None,
         }
     }
 
@@ -1358,6 +1367,7 @@ mod tests {
             severity: Severity::Info,
             rule_type: RuleType::Builtin { handler: "prod_readiness_exists".to_string() },
             project_type: None,
+            scope: None,
         }
     }
 
@@ -1399,6 +1409,7 @@ mod tests {
             severity: Severity::Info,
             rule_type: RuleType::Builtin { handler: "prod_readiness_25010_sections".to_string() },
             project_type: None,
+            scope: None,
         }
     }
 
@@ -1524,6 +1535,7 @@ mod tests {
             severity: Severity::Info,
             rule_type: RuleType::Builtin { handler: "dev_guide_26514_sections".to_string() },
             project_type: None,
+            scope: None,
         }
     }
 
@@ -1628,6 +1640,7 @@ mod tests {
             severity: Severity::Info,
             rule_type: RuleType::Builtin { handler: "backlog_sections".to_string() },
             project_type: None,
+            scope: None,
         }
     }
 
@@ -1810,6 +1823,7 @@ mod tests {
             severity: Severity::Info,
             rule_type: RuleType::Builtin { handler: "prod_readiness_12207_sections".to_string() },
             project_type: None,
+            scope: None,
         }
     }
 
@@ -1941,6 +1955,7 @@ mod tests {
             severity: Severity::Info,
             rule_type: RuleType::Builtin { handler: "prod_readiness_25010_supp_sections".to_string() },
             project_type: None,
+            scope: None,
         }
     }
 
@@ -2067,6 +2082,7 @@ mod tests {
             severity: Severity::Info,
             rule_type: RuleType::Builtin { handler: "prod_readiness_25040_sections".to_string() },
             project_type: None,
+            scope: None,
         }
     }
 
