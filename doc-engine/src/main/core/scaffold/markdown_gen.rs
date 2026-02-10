@@ -58,60 +58,92 @@ fn extract_trace_file(traces_to: &str) -> Option<&str> {
     if after_arrow.is_empty() {
         return None;
     }
-    // Strip leading/trailing backticks
-    let after_arrow = after_arrow.trim_matches('`');
-    // Strip parenthetical suffix: "api/types.rs (RuleDef)" → "api/types.rs"
-    let path = if let Some(paren_pos) = after_arrow.find('(') {
+    // Strip parenthetical suffix: "`api/types.rs` (RuleDef)" → "`api/types.rs`"
+    let trimmed = if let Some(paren_pos) = after_arrow.find('(') {
         after_arrow[..paren_pos].trim()
     } else {
         after_arrow.trim()
     };
+    // Strip backticks last, after parenthetical removal, so inner backticks
+    // like `api/types.rs` (RuleDef) are handled correctly.
+    let path = trimmed.trim_matches('`');
     if path.is_empty() { None } else { Some(path) }
+}
+
+/// Check whether a backtick span looks like a runnable CLI command.
+///
+/// Returns `true` when the span starts with an ASCII letter, contains at
+/// least one space (i.e. has arguments — bare words like `scan` are too
+/// ambiguous), and does not look like a key-value pair (`kind: brd`,
+/// `project_type = "open_source"`).
+fn is_command_like(span: &str) -> bool {
+    let bytes = span.as_bytes();
+    if bytes.is_empty() {
+        return false;
+    }
+    // Must start with an ASCII letter (rules out `--flag`, `.file`, `/path`, `(?regex)`)
+    if !bytes[0].is_ascii_alphabetic() {
+        return false;
+    }
+    // Must contain at least one space (command + arguments)
+    if !span.contains(' ') {
+        return false;
+    }
+    // Must not look like a key-value pair
+    if span.contains(": ") || span.contains("= ") {
+        return false;
+    }
+    true
 }
 
 /// Generate a step description for a Test-verified requirement.
 fn generate_test_steps(req: &SrsRequirement) -> String {
     if let Some(ref acceptance) = req.acceptance {
         if let Some(cmd) = extract_backtick_command(acceptance) {
-            return format!("Run `{}`", cmd);
+            if is_command_like(cmd) {
+                return format!("Run `{}`", cmd);
+            }
         }
     }
     "_TODO_".to_string()
 }
 
 /// Generate a step description for a Demonstration-verified requirement.
+///
+/// Only emits a step when a runnable command is found in acceptance.
+/// Prose acceptance is never used — it already appears in the Expected column.
 fn generate_demonstration_steps(req: &SrsRequirement) -> String {
     if let Some(ref acceptance) = req.acceptance {
         if let Some(cmd) = extract_backtick_command(acceptance) {
-            return format!("Execute `{}` and observe output", cmd);
-        }
-        if !acceptance.is_empty() {
-            return format!("Execute and verify: {}", acceptance);
+            if is_command_like(cmd) {
+                return format!("Execute `{}` and observe output", cmd);
+            }
         }
     }
     "_TODO_".to_string()
 }
 
 /// Generate a step description for an Inspection-verified requirement.
+///
+/// Uses the trace file as the reviewable artifact. Acceptance is never used
+/// here — it already appears in the Expected column.
 fn generate_inspection_steps(req: &SrsRequirement) -> String {
     if let Some(ref traces) = req.traces_to {
         if let Some(file) = extract_trace_file(traces) {
             return format!("Review `{}`", file);
         }
     }
-    if let Some(ref acceptance) = req.acceptance {
-        if !acceptance.is_empty() {
-            return format!("Inspect: {}", acceptance);
-        }
-    }
     "_TODO_".to_string()
 }
 
 /// Generate a step description for an Analysis-verified requirement.
+///
+/// Uses the trace file (what to analyze) or the description (how to analyze).
+/// Acceptance is never used — it already appears in the Expected column.
 fn generate_analysis_steps(req: &SrsRequirement) -> String {
-    if let Some(ref acceptance) = req.acceptance {
-        if !acceptance.is_empty() {
-            return format!("Analyze: {}", acceptance);
+    if let Some(ref traces) = req.traces_to {
+        if let Some(file) = extract_trace_file(traces) {
+            return format!("Analyze `{}`", file);
         }
     }
     if !req.description.is_empty() {
@@ -687,6 +719,49 @@ mod tests {
         assert_eq!(extract_backtick_command("`` `real`"), Some("real"));
     }
 
+    // ---- is_command_like tests ----
+
+    #[test]
+    fn test_is_command_like_real_command() {
+        assert!(is_command_like("doc-engine scan ."));
+        assert!(is_command_like("cargo test --release"));
+        assert!(is_command_like("echo hello world"));
+    }
+
+    #[test]
+    fn test_is_command_like_rejects_bare_flag() {
+        assert!(!is_command_like("--json"));
+        assert!(!is_command_like("--rules"));
+        assert!(!is_command_like("--output <path>"));
+        assert!(!is_command_like("--checks 1-13"));
+    }
+
+    #[test]
+    fn test_is_command_like_rejects_bare_word() {
+        assert!(!is_command_like("scan"));
+        assert!(!is_command_like("rules.toml"));
+        assert!(!is_command_like(".git/"));
+    }
+
+    #[test]
+    fn test_is_command_like_rejects_key_value() {
+        assert!(!is_command_like("kind: brd"));
+        assert!(!is_command_like("project_type = \"open_source\""));
+        assert!(!is_command_like("handler = \"nonexistent\""));
+    }
+
+    #[test]
+    fn test_is_command_like_rejects_regex_and_special() {
+        assert!(!is_command_like("(?i)^##\\s*(what|why|how)"));
+        assert!(!is_command_like("[[rules]]"));
+        assert!(!is_command_like("/"));
+    }
+
+    #[test]
+    fn test_is_command_like_empty() {
+        assert!(!is_command_like(""));
+    }
+
     // ---- extract_trace_file tests ----
 
     #[test]
@@ -715,6 +790,14 @@ mod tests {
         assert_eq!(
             extract_trace_file("STK-03 -> `saf/mod.rs`"),
             Some("saf/mod.rs"),
+        );
+    }
+
+    #[test]
+    fn test_extract_trace_file_backticks_with_parenthetical() {
+        assert_eq!(
+            extract_trace_file("STK-02 -> `api/types.rs` (RuleDef, RuleType)"),
+            Some("api/types.rs"),
         );
     }
 
@@ -768,6 +851,54 @@ mod tests {
         assert_eq!(generate_steps(&req), "_TODO_");
     }
 
+    #[test]
+    fn test_generate_steps_test_rejects_flag_backtick() {
+        let req = SrsRequirement {
+            id: "FR-504".to_string(),
+            title: "Flag only".to_string(),
+            kind: ReqKind::Functional,
+            priority: None,
+            state: None,
+            verification: Some("Test".to_string()),
+            traces_to: None,
+            acceptance: Some("`--json` outputs valid JSON".to_string()),
+            description: String::new(),
+        };
+        assert_eq!(generate_steps(&req), "_TODO_");
+    }
+
+    #[test]
+    fn test_generate_steps_test_rejects_filename_backtick() {
+        let req = SrsRequirement {
+            id: "FR-505".to_string(),
+            title: "Filename only".to_string(),
+            kind: ReqKind::Functional,
+            priority: None,
+            state: None,
+            verification: Some("Test".to_string()),
+            traces_to: None,
+            acceptance: Some("`rules.toml` contains 128 rules".to_string()),
+            description: String::new(),
+        };
+        assert_eq!(generate_steps(&req), "_TODO_");
+    }
+
+    #[test]
+    fn test_generate_steps_test_rejects_key_value_backtick() {
+        let req = SrsRequirement {
+            id: "FR-506".to_string(),
+            title: "Key-value".to_string(),
+            kind: ReqKind::Functional,
+            priority: None,
+            state: None,
+            verification: Some("Test".to_string()),
+            traces_to: None,
+            acceptance: Some("`kind: brd` deserializes correctly".to_string()),
+            description: String::new(),
+        };
+        assert_eq!(generate_steps(&req), "_TODO_");
+    }
+
     // ---- generate_steps: Demonstration method ----
 
     #[test]
@@ -790,7 +921,7 @@ mod tests {
     }
 
     #[test]
-    fn test_generate_steps_demonstration_prose_fallback() {
+    fn test_generate_steps_demonstration_prose_no_command_is_todo() {
         let req = SrsRequirement {
             id: "FR-601".to_string(),
             title: "Demo prose".to_string(),
@@ -802,10 +933,8 @@ mod tests {
             acceptance: Some("CLI scans directory".to_string()),
             description: String::new(),
         };
-        assert_eq!(
-            generate_steps(&req),
-            "Execute and verify: CLI scans directory",
-        );
+        // Prose acceptance is never used for Steps — it already appears in Expected
+        assert_eq!(generate_steps(&req), "_TODO_");
     }
 
     #[test]
@@ -821,6 +950,23 @@ mod tests {
             acceptance: None,
             description: String::new(),
         };
+        assert_eq!(generate_steps(&req), "_TODO_");
+    }
+
+    #[test]
+    fn test_generate_steps_demonstration_non_command_backtick_is_todo() {
+        let req = SrsRequirement {
+            id: "FR-603".to_string(),
+            title: "Demo with filename backtick".to_string(),
+            kind: ReqKind::Functional,
+            priority: None,
+            state: None,
+            verification: Some("Demonstration".to_string()),
+            traces_to: None,
+            acceptance: Some("`login.spec.yaml` generates a report".to_string()),
+            description: String::new(),
+        };
+        // Non-command backtick span is rejected, no prose fallback
         assert_eq!(generate_steps(&req), "_TODO_");
     }
 
@@ -843,7 +989,7 @@ mod tests {
     }
 
     #[test]
-    fn test_generate_steps_inspection_acceptance_fallback() {
+    fn test_generate_steps_inspection_no_trace_file_is_todo() {
         let req = SrsRequirement {
             id: "NFR-101".to_string(),
             title: "Inspect prose".to_string(),
@@ -855,10 +1001,8 @@ mod tests {
             acceptance: Some("Module boundaries respected".to_string()),
             description: String::new(),
         };
-        assert_eq!(
-            generate_steps(&req),
-            "Inspect: Module boundaries respected",
-        );
+        // Acceptance is never used for Steps — it already appears in Expected
+        assert_eq!(generate_steps(&req), "_TODO_");
     }
 
     #[test]
@@ -880,7 +1024,7 @@ mod tests {
     // ---- generate_steps: Analysis method ----
 
     #[test]
-    fn test_generate_steps_analysis_with_acceptance() {
+    fn test_generate_steps_analysis_acceptance_only_is_todo() {
         let req = SrsRequirement {
             id: "NFR-200".to_string(),
             title: "Single pass".to_string(),
@@ -892,10 +1036,24 @@ mod tests {
             acceptance: Some("Profiling shows exactly one walkdir traversal".to_string()),
             description: String::new(),
         };
-        assert_eq!(
-            generate_steps(&req),
-            "Analyze: Profiling shows exactly one walkdir traversal",
-        );
+        // Acceptance is never used for Steps — it already appears in Expected
+        assert_eq!(generate_steps(&req), "_TODO_");
+    }
+
+    #[test]
+    fn test_generate_steps_analysis_with_trace_file() {
+        let req = SrsRequirement {
+            id: "NFR-200".to_string(),
+            title: "Single pass".to_string(),
+            kind: ReqKind::NonFunctional,
+            priority: None,
+            state: None,
+            verification: Some("Analysis".to_string()),
+            traces_to: Some("SYS-02 -> core/scanner.rs".to_string()),
+            acceptance: Some("Profiling shows exactly one walkdir traversal".to_string()),
+            description: String::new(),
+        };
+        assert_eq!(generate_steps(&req), "Analyze `core/scanner.rs`");
     }
 
     #[test]
@@ -1000,7 +1158,7 @@ mod tests {
                     priority: None,
                     state: None,
                     verification: Some("Analysis".to_string()),
-                    traces_to: None,
+                    traces_to: Some("SYS-02 -> core/scanner.rs".to_string()),
                     acceptance: Some("O(n) complexity".to_string()),
                     description: String::new(),
                 },
@@ -1014,7 +1172,7 @@ mod tests {
         );
         assert!(md.contains("Review `src/lib.rs`"), "Inspection step missing");
         assert!(
-            md.contains("Analyze: O(n) complexity"),
+            md.contains("Analyze `core/scanner.rs`"),
             "Analysis step missing",
         );
     }

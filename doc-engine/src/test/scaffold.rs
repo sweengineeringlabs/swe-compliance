@@ -263,6 +263,7 @@ Module graph follows SEA.
 | **Priority** | Must |
 | **State** | Approved |
 | **Verification** | Analysis |
+| **Traces to** | SYS-02 -> core/scanner.rs |
 | **Acceptance** | Profiling shows exactly one walkdir traversal |
 
 Single directory traversal.
@@ -3425,11 +3426,11 @@ fn test_manual_exec_steps_demonstration_method() {
         "TC-003 should have Demonstration step with command, got: {}", tc003,
     );
 
-    // FR-503: Demonstration without backtick → "Execute and verify: Verbose flag increases output detail"
+    // FR-503: Demonstration without backtick command → _TODO_ (prose never used for Steps)
     let tc004 = manual.lines().find(|l| l.contains("TC-004")).unwrap();
     assert!(
-        tc004.contains("Execute and verify: Verbose flag increases output detail"),
-        "TC-004 should have Demonstration prose fallback, got: {}", tc004,
+        tc004.contains("_TODO_"),
+        "TC-004 should be _TODO_ when no command found, got: {}", tc004,
     );
 }
 
@@ -3459,11 +3460,11 @@ fn test_manual_exec_steps_analysis_method() {
         output_dir.join("docs/5-testing/architecture/architecture.manual.exec"),
     ).unwrap();
 
-    // NFR-101: Analysis with acceptance → "Analyze: Profiling shows exactly one walkdir traversal"
+    // NFR-101: Analysis with traces_to file → "Analyze `core/scanner.rs`"
     let tc002 = manual.lines().find(|l| l.contains("TC-002")).unwrap();
     assert!(
-        tc002.contains("Analyze: Profiling shows exactly one walkdir traversal"),
-        "TC-002 should have Analysis step, got: {}", tc002,
+        tc002.contains("Analyze `core/scanner.rs`"),
+        "TC-002 should have Analysis step with trace file, got: {}", tc002,
     );
 
     // NFR-102: Analysis with no acceptance but has description → uses description
@@ -3492,19 +3493,19 @@ fn test_manual_exec_steps_large_fixture_inspection_trace() {
 }
 
 #[test]
-fn test_manual_exec_steps_large_fixture_demonstration_prose() {
+fn test_manual_exec_steps_large_fixture_demonstration_no_command() {
     let (_tmp, output_dir, config) = scaffold_to_tmp(LARGE_FIXTURE_SRS);
     scaffold_from_srs(&config).unwrap();
 
-    // reporting domain: FR-400 is Demonstration, acceptance has no backtick
+    // reporting domain: FR-400 is Demonstration, acceptance has no backtick command
     let manual = fs::read_to_string(
         output_dir.join("docs/5-testing/reporting/reporting.manual.exec"),
     ).unwrap();
 
     let tc001 = manual.lines().find(|l| l.contains("TC-001")).unwrap();
     assert!(
-        tc001.contains("Execute and verify: Grouped results with summary line"),
-        "FR-400 Demonstration should use prose fallback, got: {}", tc001,
+        tc001.contains("_TODO_"),
+        "FR-400 Demonstration without command should be _TODO_, got: {}", tc001,
     );
 }
 
@@ -3513,15 +3514,15 @@ fn test_manual_exec_steps_large_fixture_inspection_no_file() {
     let (_tmp, output_dir, config) = scaffold_to_tmp(LARGE_FIXTURE_SRS);
     scaffold_from_srs(&config).unwrap();
 
-    // architecture domain: NFR-100 is Inspection, traces_to "SYS-01" (no arrow)
+    // architecture domain: NFR-100 is Inspection, traces_to "SYS-01" (no arrow → no file)
     let manual = fs::read_to_string(
         output_dir.join("docs/5-testing/architecture/architecture.manual.exec"),
     ).unwrap();
 
     let tc001 = manual.lines().find(|l| l.contains("TC-001")).unwrap();
     assert!(
-        tc001.contains("Inspect: Module graph matches SEA layers"),
-        "NFR-100 Inspection without file should use acceptance fallback, got: {}", tc001,
+        tc001.contains("_TODO_"),
+        "NFR-100 Inspection without trace file should be _TODO_, got: {}", tc001,
     );
 }
 
@@ -3582,5 +3583,6 @@ fn test_cli_scaffold_manual_exec_steps_populated() {
     // Verify CLI-produced output has auto-populated steps
     assert!(manual.contains("Run `doc-engine scan <PATH>`"));
     assert!(manual.contains("Execute `doc-engine --help` and observe output"));
-    assert!(manual.contains("Execute and verify: Verbose flag increases output detail"));
+    // Demonstration without backtick command falls back to _TODO_ (acceptance is never used for Steps)
+    assert!(manual.contains("_TODO_"));
 }
