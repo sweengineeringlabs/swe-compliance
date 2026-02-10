@@ -244,6 +244,7 @@ fn scaffold_to_tmp(srs_content: &str) -> (tempfile::TempDir, PathBuf, ScaffoldCo
         srs_path,
         output_dir: output_dir.clone(),
         force: false,
+        phases: vec![],
     };
     (tmp, output_dir, config)
 }
@@ -805,6 +806,7 @@ fn test_force_overwrite_updates_content() {
         srs_path,
         output_dir: output_dir.clone(),
         force: false,
+        phases: vec![],
     };
 
     // First run
@@ -843,6 +845,7 @@ fn test_skip_existing_mixed_scenario() {
         srs_path,
         output_dir: output_dir.clone(),
         force: false,
+        phases: vec![],
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -867,6 +870,7 @@ fn test_error_empty_srs() {
         srs_path,
         output_dir: tmp.path().join("out"),
         force: false,
+        phases: vec![],
     };
 
     let err = scaffold_from_srs(&config).unwrap_err();
@@ -896,6 +900,7 @@ No FR/NFR blocks at all.
         srs_path,
         output_dir: tmp.path().join("out"),
         force: false,
+        phases: vec![],
     };
 
     let err = scaffold_from_srs(&config).unwrap_err();
@@ -908,6 +913,7 @@ fn test_error_nonexistent_srs_path() {
         srs_path: PathBuf::from("/nonexistent/srs.md"),
         output_dir: PathBuf::from("/tmp/scaffold-out"),
         force: false,
+        phases: vec![],
     };
 
     let err = scaffold_from_srs(&config).unwrap_err();
@@ -930,6 +936,7 @@ fn test_parser_crlf_line_endings() {
         srs_path,
         output_dir: tmp.path().join("out"),
         force: false,
+        phases: vec![],
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -966,6 +973,7 @@ Additional narrative after the inner table.
         srs_path,
         output_dir: tmp.path().join("out"),
         force: false,
+        phases: vec![],
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -994,6 +1002,7 @@ Description with accented characters: éàü.
         srs_path,
         output_dir: tmp.path().join("out"),
         force: false,
+        phases: vec![],
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -1027,6 +1036,7 @@ Desc B.
         srs_path,
         output_dir: tmp.path().join("out"),
         force: false,
+        phases: vec![],
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -1063,6 +1073,7 @@ All checks in a single traversal.
         srs_path,
         output_dir: tmp.path().join("out"),
         force: false,
+        phases: vec![],
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -1098,6 +1109,7 @@ fn test_parser_many_domains_file_count() {
         srs_path,
         output_dir: tmp.path().join("out"),
         force: false,
+        phases: vec![],
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -1128,6 +1140,7 @@ fn test_parse_real_project_srs() {
         srs_path: real_srs_path,
         output_dir: output_dir.clone(),
         force: false,
+        phases: vec![],
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -1397,6 +1410,7 @@ Support 128 checks.
         srs_path,
         output_dir: tmp.path().join("out"),
         force: false,
+        phases: vec![],
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -1440,6 +1454,7 @@ Desc B.
         srs_path,
         output_dir: output_dir.clone(),
         force: false,
+        phases: vec![],
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -1495,6 +1510,7 @@ Exit code behavior.
         srs_path,
         output_dir: output_dir.clone(),
         force: false,
+        phases: vec![],
     };
     scaffold_from_srs(&config).unwrap();
 
@@ -1566,6 +1582,7 @@ fn test_output_dir_created_automatically() {
         srs_path,
         output_dir: output_dir.clone(),
         force: false,
+        phases: vec![],
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -1622,6 +1639,7 @@ Report.
         srs_path,
         output_dir: output_dir.clone(),
         force: false,
+        phases: vec![],
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -1705,4 +1723,885 @@ fn test_yaml_and_markdown_parity() {
             "YAML {} has no matching markdown file", yaml_str
         );
     }
+}
+
+// ===========================================================================
+// Phase filtering
+// ===========================================================================
+
+#[test]
+fn test_phase_filter_single_testing() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let srs_path = tmp.path().join("srs.md");
+    fs::write(&srs_path, FIXTURE_SRS).unwrap();
+    let output_dir = tmp.path().join("output");
+
+    let config = ScaffoldConfig {
+        srs_path,
+        output_dir: output_dir.clone(),
+        force: false,
+        phases: vec!["testing".to_string()],
+    };
+
+    let result = scaffold_from_srs(&config).unwrap();
+
+    // 2 domains × 4 testing files = 8 (no BRD)
+    assert_eq!(result.created.len(), 8);
+    assert_eq!(result.domain_count, 2);
+    assert_eq!(result.requirement_count, 3);
+
+    for slug in &["rule_loading", "file_discovery"] {
+        assert!(output_dir.join(format!("docs/5-testing/{}/{}.test.yaml", slug, slug)).exists());
+        assert!(output_dir.join(format!("docs/5-testing/{}/{}.test", slug, slug)).exists());
+        assert!(output_dir.join(format!("docs/5-testing/{}/{}.manual.exec", slug, slug)).exists());
+        assert!(output_dir.join(format!("docs/5-testing/{}/{}.auto.exec", slug, slug)).exists());
+        // Other phases should NOT exist
+        assert!(!output_dir.join(format!("docs/1-requirements/{}", slug)).exists());
+        assert!(!output_dir.join(format!("docs/3-design/{}", slug)).exists());
+        assert!(!output_dir.join(format!("docs/6-deployment/{}", slug)).exists());
+    }
+    assert!(!output_dir.join("docs/1-requirements/brd.spec.yaml").exists());
+}
+
+#[test]
+fn test_phase_filter_requirements_includes_brd() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let srs_path = tmp.path().join("srs.md");
+    fs::write(&srs_path, FIXTURE_SRS).unwrap();
+    let output_dir = tmp.path().join("output");
+
+    let config = ScaffoldConfig {
+        srs_path,
+        output_dir: output_dir.clone(),
+        force: false,
+        phases: vec!["requirements".to_string()],
+    };
+
+    let result = scaffold_from_srs(&config).unwrap();
+
+    // 2 domains × 2 req files + 2 BRD = 6
+    assert_eq!(result.created.len(), 6);
+    assert!(output_dir.join("docs/1-requirements/brd.spec.yaml").exists());
+    assert!(output_dir.join("docs/1-requirements/brd.spec").exists());
+    assert!(output_dir.join("docs/1-requirements/rule_loading/rule_loading.spec.yaml").exists());
+    assert!(!output_dir.join("docs/3-design/rule_loading").exists());
+}
+
+#[test]
+fn test_phase_filter_multiple_phases() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let srs_path = tmp.path().join("srs.md");
+    fs::write(&srs_path, FIXTURE_SRS).unwrap();
+    let output_dir = tmp.path().join("output");
+
+    let config = ScaffoldConfig {
+        srs_path,
+        output_dir: output_dir.clone(),
+        force: false,
+        phases: vec!["design".to_string(), "deployment".to_string()],
+    };
+
+    let result = scaffold_from_srs(&config).unwrap();
+
+    // 2 domains × (2 design + 2 deployment) = 8 (no BRD)
+    assert_eq!(result.created.len(), 8);
+
+    for slug in &["rule_loading", "file_discovery"] {
+        assert!(output_dir.join(format!("docs/3-design/{}/{}.arch.yaml", slug, slug)).exists());
+        assert!(output_dir.join(format!("docs/3-design/{}/{}.arch", slug, slug)).exists());
+        assert!(output_dir.join(format!("docs/6-deployment/{}/{}.deploy.yaml", slug, slug)).exists());
+        assert!(output_dir.join(format!("docs/6-deployment/{}/{}.deploy", slug, slug)).exists());
+    }
+    assert!(!output_dir.join("docs/1-requirements/rule_loading").exists());
+    assert!(!output_dir.join("docs/5-testing/rule_loading").exists());
+}
+
+#[test]
+fn test_phase_filter_deployment_only() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let srs_path = tmp.path().join("srs.md");
+    fs::write(&srs_path, FIXTURE_SRS).unwrap();
+    let output_dir = tmp.path().join("output");
+
+    let config = ScaffoldConfig {
+        srs_path,
+        output_dir: output_dir.clone(),
+        force: false,
+        phases: vec!["deployment".to_string()],
+    };
+
+    let result = scaffold_from_srs(&config).unwrap();
+
+    // 2 domains × 2 deploy files = 4
+    assert_eq!(result.created.len(), 4);
+    assert!(output_dir.join("docs/6-deployment/rule_loading/rule_loading.deploy.yaml").exists());
+    assert!(output_dir.join("docs/6-deployment/rule_loading/rule_loading.deploy").exists());
+}
+
+#[test]
+fn test_phase_filter_with_force() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let srs_path = tmp.path().join("srs.md");
+    fs::write(&srs_path, FIXTURE_SRS).unwrap();
+    let output_dir = tmp.path().join("output");
+
+    // First run: all phases
+    let config_all = ScaffoldConfig {
+        srs_path: srs_path.clone(),
+        output_dir: output_dir.clone(),
+        force: false,
+        phases: vec![],
+    };
+    scaffold_from_srs(&config_all).unwrap();
+
+    // Second run: testing only with --force
+    let config_phase = ScaffoldConfig {
+        srs_path,
+        output_dir: output_dir.clone(),
+        force: true,
+        phases: vec!["testing".to_string()],
+    };
+    let result = scaffold_from_srs(&config_phase).unwrap();
+
+    // Only testing files created (force applies only to filtered set)
+    assert_eq!(result.created.len(), 8);
+    assert!(result.skipped.is_empty());
+}
+
+// ===========================================================================
+// CLI --phase flag
+// ===========================================================================
+
+#[test]
+fn test_cli_scaffold_phase_flag() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let srs_path = tmp.path().join("srs.md");
+    fs::write(&srs_path, FIXTURE_SRS).unwrap();
+    let output_dir = tmp.path().join("output");
+
+    cmd()
+        .arg("scaffold")
+        .arg(&srs_path)
+        .arg("--output")
+        .arg(&output_dir)
+        .arg("--phase")
+        .arg("testing")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("8 files created"))
+        .stdout(predicate::str::contains("0 skipped"));
+
+    assert!(output_dir.join("docs/5-testing/rule_loading/rule_loading.test.yaml").exists());
+    assert!(!output_dir.join("docs/1-requirements/rule_loading").exists());
+}
+
+#[test]
+fn test_cli_scaffold_phase_comma_separated() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let srs_path = tmp.path().join("srs.md");
+    fs::write(&srs_path, FIXTURE_SRS).unwrap();
+    let output_dir = tmp.path().join("output");
+
+    cmd()
+        .arg("scaffold")
+        .arg(&srs_path)
+        .arg("--output")
+        .arg(&output_dir)
+        .arg("--phase")
+        .arg("requirements,design")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("10 files created"));
+
+    assert!(output_dir.join("docs/1-requirements/brd.spec.yaml").exists());
+    assert!(output_dir.join("docs/3-design/rule_loading/rule_loading.arch.yaml").exists());
+    assert!(!output_dir.join("docs/5-testing/rule_loading").exists());
+}
+
+#[test]
+fn test_cli_scaffold_phase_invalid() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let srs_path = tmp.path().join("srs.md");
+    fs::write(&srs_path, FIXTURE_SRS).unwrap();
+
+    cmd()
+        .arg("scaffold")
+        .arg(&srs_path)
+        .arg("--phase")
+        .arg("invalid")
+        .assert()
+        .code(2)
+        .stderr(predicate::str::contains("unknown phase 'invalid'"));
+}
+
+#[test]
+fn test_cli_scaffold_phase_in_help() {
+    cmd()
+        .arg("scaffold")
+        .arg("--help")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("--phase"));
+}
+
+// ===========================================================================
+// Phase filtering: design-only
+// ===========================================================================
+
+#[test]
+fn test_phase_filter_design_only() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let srs_path = tmp.path().join("srs.md");
+    fs::write(&srs_path, FIXTURE_SRS).unwrap();
+    let output_dir = tmp.path().join("output");
+
+    let config = ScaffoldConfig {
+        srs_path,
+        output_dir: output_dir.clone(),
+        force: false,
+        phases: vec!["design".to_string()],
+    };
+
+    let result = scaffold_from_srs(&config).unwrap();
+
+    // 2 domains × 2 design files = 4 (no BRD)
+    assert_eq!(result.created.len(), 4);
+
+    for slug in &["rule_loading", "file_discovery"] {
+        assert!(output_dir.join(format!("docs/3-design/{}/{}.arch.yaml", slug, slug)).exists());
+        assert!(output_dir.join(format!("docs/3-design/{}/{}.arch", slug, slug)).exists());
+        assert!(!output_dir.join(format!("docs/1-requirements/{}", slug)).exists());
+        assert!(!output_dir.join(format!("docs/5-testing/{}", slug)).exists());
+        assert!(!output_dir.join(format!("docs/6-deployment/{}", slug)).exists());
+    }
+    assert!(!output_dir.join("docs/1-requirements/brd.spec.yaml").exists());
+    assert!(!output_dir.join("docs/1-requirements/brd.spec").exists());
+}
+
+// ===========================================================================
+// Phase filtering: all four phases explicit = same as no filter
+// ===========================================================================
+
+#[test]
+fn test_phase_filter_all_four_equals_no_filter() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let srs_path = tmp.path().join("srs.md");
+    fs::write(&srs_path, FIXTURE_SRS).unwrap();
+
+    let output_all = tmp.path().join("all");
+    let config_all = ScaffoldConfig {
+        srs_path: srs_path.clone(),
+        output_dir: output_all.clone(),
+        force: false,
+        phases: vec![],
+    };
+    let result_all = scaffold_from_srs(&config_all).unwrap();
+
+    let output_explicit = tmp.path().join("explicit");
+    let config_explicit = ScaffoldConfig {
+        srs_path,
+        output_dir: output_explicit.clone(),
+        force: false,
+        phases: vec![
+            "requirements".to_string(),
+            "design".to_string(),
+            "testing".to_string(),
+            "deployment".to_string(),
+        ],
+    };
+    let result_explicit = scaffold_from_srs(&config_explicit).unwrap();
+
+    assert_eq!(result_all.created.len(), result_explicit.created.len());
+    assert_eq!(result_all.domain_count, result_explicit.domain_count);
+    assert_eq!(result_all.requirement_count, result_explicit.requirement_count);
+
+    // Same file paths
+    let mut paths_all: Vec<String> = result_all.created.iter().map(|p| p.to_string_lossy().to_string()).collect();
+    let mut paths_explicit: Vec<String> = result_explicit.created.iter().map(|p| p.to_string_lossy().to_string()).collect();
+    paths_all.sort();
+    paths_explicit.sort();
+    assert_eq!(paths_all, paths_explicit);
+}
+
+// ===========================================================================
+// Phase filtering: large multi-domain file counts
+// ===========================================================================
+
+#[test]
+fn test_phase_filter_large_srs_testing_only() {
+    let (_tmp, output_dir, mut config) = scaffold_to_tmp(LARGE_FIXTURE_SRS);
+    config.phases = vec!["testing".to_string()];
+
+    let result = scaffold_from_srs(&config).unwrap();
+
+    assert_eq!(result.domain_count, 5);
+    assert_eq!(result.requirement_count, 10);
+    // 5 domains × 4 testing files = 20
+    assert_eq!(result.created.len(), 20);
+
+    for slug in &["rule_loading", "file_discovery", "check_execution", "reporting", "architecture"] {
+        assert!(
+            output_dir.join(format!("docs/5-testing/{}/{}.test.yaml", slug, slug)).exists(),
+            "Missing test.yaml for {}", slug
+        );
+        assert!(
+            output_dir.join(format!("docs/5-testing/{}/{}.manual.exec", slug, slug)).exists(),
+            "Missing manual.exec for {}", slug
+        );
+        assert!(
+            output_dir.join(format!("docs/5-testing/{}/{}.auto.exec", slug, slug)).exists(),
+            "Missing auto.exec for {}", slug
+        );
+    }
+    // No other phase dirs
+    assert!(!output_dir.join("docs/1-requirements/rule_loading").exists());
+    assert!(!output_dir.join("docs/3-design/rule_loading").exists());
+    assert!(!output_dir.join("docs/6-deployment/rule_loading").exists());
+}
+
+#[test]
+fn test_phase_filter_large_srs_requirements_only() {
+    let (_tmp, output_dir, mut config) = scaffold_to_tmp(LARGE_FIXTURE_SRS);
+    config.phases = vec!["requirements".to_string()];
+
+    let result = scaffold_from_srs(&config).unwrap();
+
+    // 5 domains × 2 req files + 2 BRD = 12
+    assert_eq!(result.created.len(), 12);
+    assert!(output_dir.join("docs/1-requirements/brd.spec.yaml").exists());
+    assert!(output_dir.join("docs/1-requirements/brd.spec").exists());
+    assert!(!output_dir.join("docs/3-design/rule_loading").exists());
+}
+
+#[test]
+fn test_phase_filter_large_srs_three_phases() {
+    let (_tmp, _output_dir, mut config) = scaffold_to_tmp(LARGE_FIXTURE_SRS);
+    config.phases = vec![
+        "requirements".to_string(),
+        "design".to_string(),
+        "testing".to_string(),
+    ];
+
+    let result = scaffold_from_srs(&config).unwrap();
+
+    // 5 domains × (2 req + 2 design + 4 testing) + 2 BRD = 42
+    assert_eq!(result.created.len(), 42);
+}
+
+// ===========================================================================
+// Phase filtering: skip behavior with pre-existing files
+// ===========================================================================
+
+#[test]
+fn test_phase_filter_skip_existing_in_filtered_phase() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let srs_path = tmp.path().join("srs.md");
+    fs::write(&srs_path, FIXTURE_SRS).unwrap();
+    let output_dir = tmp.path().join("output");
+
+    // Pre-create one testing file
+    let test_dir = output_dir.join("docs/5-testing/rule_loading");
+    fs::create_dir_all(&test_dir).unwrap();
+    fs::write(test_dir.join("rule_loading.test.yaml"), "existing").unwrap();
+
+    let config = ScaffoldConfig {
+        srs_path,
+        output_dir: output_dir.clone(),
+        force: false,
+        phases: vec!["testing".to_string()],
+    };
+
+    let result = scaffold_from_srs(&config).unwrap();
+
+    // 8 total testing files: 1 skipped, 7 created
+    assert_eq!(result.created.len(), 7);
+    assert_eq!(result.skipped.len(), 1);
+    assert!(result.skipped.iter().any(|p| p.to_string_lossy().contains("rule_loading.test.yaml")));
+
+    // Skipped file preserved
+    let content = fs::read_to_string(test_dir.join("rule_loading.test.yaml")).unwrap();
+    assert_eq!(content, "existing");
+}
+
+#[test]
+fn test_phase_filter_skip_then_force() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let srs_path = tmp.path().join("srs.md");
+    fs::write(&srs_path, FIXTURE_SRS).unwrap();
+    let output_dir = tmp.path().join("output");
+
+    // First run: design only
+    let config1 = ScaffoldConfig {
+        srs_path: srs_path.clone(),
+        output_dir: output_dir.clone(),
+        force: false,
+        phases: vec!["design".to_string()],
+    };
+    let r1 = scaffold_from_srs(&config1).unwrap();
+    assert_eq!(r1.created.len(), 4);
+
+    // Second run: design only without force — all skipped
+    let config2 = ScaffoldConfig {
+        srs_path: srs_path.clone(),
+        output_dir: output_dir.clone(),
+        force: false,
+        phases: vec!["design".to_string()],
+    };
+    let r2 = scaffold_from_srs(&config2).unwrap();
+    assert_eq!(r2.skipped.len(), 4);
+    assert!(r2.created.is_empty());
+
+    // Third run: design only with force — all re-created
+    let config3 = ScaffoldConfig {
+        srs_path,
+        output_dir: output_dir.clone(),
+        force: true,
+        phases: vec!["design".to_string()],
+    };
+    let r3 = scaffold_from_srs(&config3).unwrap();
+    assert_eq!(r3.created.len(), 4);
+    assert!(r3.skipped.is_empty());
+}
+
+// ===========================================================================
+// Phase filtering: domain/requirement counts are stable
+// ===========================================================================
+
+#[test]
+fn test_phase_filter_metadata_unchanged() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let srs_path = tmp.path().join("srs.md");
+    fs::write(&srs_path, LARGE_FIXTURE_SRS).unwrap();
+
+    let phases_to_test: Vec<Vec<String>> = vec![
+        vec![],
+        vec!["requirements".to_string()],
+        vec!["design".to_string()],
+        vec!["testing".to_string()],
+        vec!["deployment".to_string()],
+        vec!["requirements".to_string(), "testing".to_string()],
+    ];
+
+    for phases in phases_to_test {
+        let output_dir = tmp.path().join(format!("out_{}", phases.join("_")));
+        let config = ScaffoldConfig {
+            srs_path: srs_path.clone(),
+            output_dir,
+            force: false,
+            phases: phases.clone(),
+        };
+        let result = scaffold_from_srs(&config).unwrap();
+
+        assert_eq!(result.domain_count, 5, "domain_count changed with phases {:?}", phases);
+        assert_eq!(result.requirement_count, 10, "requirement_count changed with phases {:?}", phases);
+    }
+}
+
+// ===========================================================================
+// Phase filtering: YAML files in filtered output parse cleanly
+// ===========================================================================
+
+#[test]
+fn test_phase_filter_yaml_files_valid() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let srs_path = tmp.path().join("srs.md");
+    fs::write(&srs_path, LARGE_FIXTURE_SRS).unwrap();
+
+    // Test each single-phase filter produces valid YAML
+    for phase in &["requirements", "design", "testing", "deployment"] {
+        let output_dir = tmp.path().join(format!("out_{}", phase));
+        let config = ScaffoldConfig {
+            srs_path: srs_path.clone(),
+            output_dir: output_dir.clone(),
+            force: false,
+            phases: vec![phase.to_string()],
+        };
+        let result = scaffold_from_srs(&config).unwrap();
+
+        for path in &result.created {
+            if path.to_string_lossy().ends_with(".yaml") {
+                let full_path = output_dir.join(path);
+                let content = fs::read_to_string(&full_path)
+                    .unwrap_or_else(|e| panic!("Cannot read {}: {}", path.display(), e));
+                let _: serde_yml::Value = serde_yml::from_str(&content)
+                    .unwrap_or_else(|e| panic!("Invalid YAML in {} (phase={}): {}", path.display(), phase, e));
+            }
+        }
+    }
+}
+
+// ===========================================================================
+// Phase filtering: content correctness
+// ===========================================================================
+
+#[test]
+fn test_phase_filter_testing_content_valid() {
+    let (_tmp, output_dir, mut config) = scaffold_to_tmp(FIXTURE_SRS);
+    config.phases = vec!["testing".to_string()];
+    scaffold_from_srs(&config).unwrap();
+
+    // Test YAML has correct kind and test cases
+    let yaml = fs::read_to_string(
+        output_dir.join("docs/5-testing/rule_loading/rule_loading.test.yaml"),
+    ).unwrap();
+    let val: serde_yml::Value = serde_yml::from_str(&yaml).unwrap();
+    assert_eq!(val["kind"], "test_plan");
+    assert_eq!(val["testCases"].as_sequence().unwrap().len(), 2);
+
+    // Test markdown has proper structure
+    let md = fs::read_to_string(
+        output_dir.join("docs/5-testing/rule_loading/rule_loading.test"),
+    ).unwrap();
+    assert!(md.starts_with("# Test Plan: Rule Loading"));
+    assert!(md.contains("TC-001"));
+    assert!(md.contains("TC-002"));
+
+    // Manual exec has all TCs
+    let manual = fs::read_to_string(
+        output_dir.join("docs/5-testing/rule_loading/rule_loading.manual.exec"),
+    ).unwrap();
+    assert!(manual.contains("TC-001"));
+    assert!(manual.contains("TC-002"));
+
+    // Auto exec has all TCs
+    let auto = fs::read_to_string(
+        output_dir.join("docs/5-testing/rule_loading/rule_loading.auto.exec"),
+    ).unwrap();
+    assert!(auto.contains("TC-001"));
+    assert!(auto.contains("TC-002"));
+}
+
+#[test]
+fn test_phase_filter_design_content_valid() {
+    let (_tmp, output_dir, mut config) = scaffold_to_tmp(FIXTURE_SRS);
+    config.phases = vec!["design".to_string()];
+    scaffold_from_srs(&config).unwrap();
+
+    let yaml = fs::read_to_string(
+        output_dir.join("docs/3-design/rule_loading/rule_loading.arch.yaml"),
+    ).unwrap();
+    let val: serde_yml::Value = serde_yml::from_str(&yaml).unwrap();
+    assert_eq!(val["kind"], "architecture");
+    assert_eq!(val["domain"], "Rule Loading");
+
+    let md = fs::read_to_string(
+        output_dir.join("docs/3-design/rule_loading/rule_loading.arch"),
+    ).unwrap();
+    assert!(md.starts_with("# Architecture: Rule Loading"));
+    assert!(md.contains("## Components"));
+}
+
+#[test]
+fn test_phase_filter_requirements_content_valid() {
+    let (_tmp, output_dir, mut config) = scaffold_to_tmp(FIXTURE_SRS);
+    config.phases = vec!["requirements".to_string()];
+    scaffold_from_srs(&config).unwrap();
+
+    // Feature spec
+    let yaml = fs::read_to_string(
+        output_dir.join("docs/1-requirements/rule_loading/rule_loading.spec.yaml"),
+    ).unwrap();
+    let val: serde_yml::Value = serde_yml::from_str(&yaml).unwrap();
+    assert_eq!(val["kind"], "feature_request");
+    assert_eq!(val["requirements"].as_sequence().unwrap().len(), 2);
+
+    // BRD
+    let brd_yaml = fs::read_to_string(
+        output_dir.join("docs/1-requirements/brd.spec.yaml"),
+    ).unwrap();
+    let brd: serde_yml::Value = serde_yml::from_str(&brd_yaml).unwrap();
+    assert_eq!(brd["kind"], "brd");
+    assert_eq!(brd["domains"].as_sequence().unwrap().len(), 2);
+}
+
+#[test]
+fn test_phase_filter_deployment_content_valid() {
+    let (_tmp, output_dir, mut config) = scaffold_to_tmp(FIXTURE_SRS);
+    config.phases = vec!["deployment".to_string()];
+    scaffold_from_srs(&config).unwrap();
+
+    let yaml = fs::read_to_string(
+        output_dir.join("docs/6-deployment/rule_loading/rule_loading.deploy.yaml"),
+    ).unwrap();
+    let val: serde_yml::Value = serde_yml::from_str(&yaml).unwrap();
+    assert_eq!(val["kind"], "deployment");
+    assert_eq!(val["environments"].as_sequence().unwrap().len(), 2);
+
+    let md = fs::read_to_string(
+        output_dir.join("docs/6-deployment/rule_loading/rule_loading.deploy"),
+    ).unwrap();
+    assert!(md.starts_with("# Deployment: Rule Loading"));
+    assert!(md.contains("## Rollback"));
+}
+
+// ===========================================================================
+// Phase filtering: NFR-only domain
+// ===========================================================================
+
+#[test]
+fn test_phase_filter_nfr_only_domain() {
+    let srs = "\
+### 5.1 Performance
+
+#### NFR-200: Sub-second execution
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Must |
+| **Verification** | Analysis |
+
+Scans complete in under one second.
+";
+    let tmp = tempfile::TempDir::new().unwrap();
+    let srs_path = tmp.path().join("nfr.md");
+    fs::write(&srs_path, srs).unwrap();
+    let output_dir = tmp.path().join("output");
+
+    let config = ScaffoldConfig {
+        srs_path,
+        output_dir: output_dir.clone(),
+        force: false,
+        phases: vec!["testing".to_string()],
+    };
+
+    let result = scaffold_from_srs(&config).unwrap();
+
+    // 1 domain × 4 testing files = 4
+    assert_eq!(result.created.len(), 4);
+    assert_eq!(result.domain_count, 1);
+    assert_eq!(result.requirement_count, 1);
+
+    let test_yaml = fs::read_to_string(
+        output_dir.join("docs/5-testing/performance/performance.test.yaml"),
+    ).unwrap();
+    let val: serde_yml::Value = serde_yml::from_str(&test_yaml).unwrap();
+    let tcs = val["testCases"].as_sequence().unwrap();
+    assert_eq!(tcs.len(), 1);
+    assert!(tcs[0]["test"].as_str().unwrap().contains("(Analysis)"));
+}
+
+// ===========================================================================
+// Phase filtering: mixed attributes SRS
+// ===========================================================================
+
+#[test]
+fn test_phase_filter_mixed_attrs_design() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let srs_path = tmp.path().join("srs.md");
+    fs::write(&srs_path, MIXED_ATTRS_SRS).unwrap();
+    let output_dir = tmp.path().join("output");
+
+    let config = ScaffoldConfig {
+        srs_path,
+        output_dir: output_dir.clone(),
+        force: false,
+        phases: vec!["design".to_string()],
+    };
+
+    let result = scaffold_from_srs(&config).unwrap();
+
+    // 1 domain × 2 design files = 2
+    assert_eq!(result.created.len(), 2);
+    assert_eq!(result.requirement_count, 3);
+
+    let md = fs::read_to_string(
+        output_dir.join("docs/3-design/cli_interface/cli_interface.arch"),
+    ).unwrap();
+    assert!(md.contains("CLI Interface"));
+}
+
+// ===========================================================================
+// Phase filtering: result counts consistency
+// ===========================================================================
+
+#[test]
+fn test_phase_filter_result_counts_formula() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let srs_path = tmp.path().join("srs.md");
+    fs::write(&srs_path, LARGE_FIXTURE_SRS).unwrap();
+
+    // Each phase contributes a known number of files per domain
+    let phase_files: Vec<(&str, usize, bool)> = vec![
+        ("requirements", 2, true),  // 2 per domain + 2 BRD
+        ("design", 2, false),       // 2 per domain
+        ("testing", 4, false),      // 4 per domain
+        ("deployment", 2, false),   // 2 per domain
+    ];
+
+    for (phase, files_per_domain, has_brd) in &phase_files {
+        let output_dir = tmp.path().join(format!("out_{}", phase));
+        let config = ScaffoldConfig {
+            srs_path: srs_path.clone(),
+            output_dir,
+            force: false,
+            phases: vec![phase.to_string()],
+        };
+        let result = scaffold_from_srs(&config).unwrap();
+
+        let expected = result.domain_count * files_per_domain + if *has_brd { 2 } else { 0 };
+        assert_eq!(
+            result.created.len(), expected,
+            "Phase '{}': expected {} files ({}×{} + brd={}), got {}",
+            phase, expected, result.domain_count, files_per_domain, has_brd, result.created.len()
+        );
+    }
+}
+
+// ===========================================================================
+// CLI --phase: additional scenarios
+// ===========================================================================
+
+#[test]
+fn test_cli_scaffold_phase_case_insensitive() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let srs_path = tmp.path().join("srs.md");
+    fs::write(&srs_path, FIXTURE_SRS).unwrap();
+    let output_dir = tmp.path().join("output");
+
+    cmd()
+        .arg("scaffold")
+        .arg(&srs_path)
+        .arg("--output")
+        .arg(&output_dir)
+        .arg("--phase")
+        .arg("Testing")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("8 files created"));
+
+    assert!(output_dir.join("docs/5-testing/rule_loading/rule_loading.test.yaml").exists());
+}
+
+#[test]
+fn test_cli_scaffold_phase_three_phases() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let srs_path = tmp.path().join("srs.md");
+    fs::write(&srs_path, FIXTURE_SRS).unwrap();
+    let output_dir = tmp.path().join("output");
+
+    cmd()
+        .arg("scaffold")
+        .arg(&srs_path)
+        .arg("--output")
+        .arg(&output_dir)
+        .arg("--phase")
+        .arg("requirements,design,deployment")
+        .assert()
+        .success()
+        // 2 domains × (2 req + 2 design + 2 deploy) + 2 BRD = 14
+        .stdout(predicate::str::contains("14 files created"));
+
+    assert!(output_dir.join("docs/1-requirements/rule_loading/rule_loading.spec.yaml").exists());
+    assert!(output_dir.join("docs/3-design/rule_loading/rule_loading.arch.yaml").exists());
+    assert!(output_dir.join("docs/6-deployment/rule_loading/rule_loading.deploy.yaml").exists());
+    assert!(!output_dir.join("docs/5-testing/rule_loading").exists());
+}
+
+#[test]
+fn test_cli_scaffold_phase_all_four_explicit() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let srs_path = tmp.path().join("srs.md");
+    fs::write(&srs_path, FIXTURE_SRS).unwrap();
+    let output_dir = tmp.path().join("output");
+
+    cmd()
+        .arg("scaffold")
+        .arg(&srs_path)
+        .arg("--output")
+        .arg(&output_dir)
+        .arg("--phase")
+        .arg("requirements,design,testing,deployment")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("22 files created"));
+}
+
+#[test]
+fn test_cli_scaffold_phase_with_force() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let srs_path = tmp.path().join("srs.md");
+    fs::write(&srs_path, FIXTURE_SRS).unwrap();
+    let output_dir = tmp.path().join("output");
+
+    // First run: all phases
+    cmd()
+        .arg("scaffold")
+        .arg(&srs_path)
+        .arg("--output")
+        .arg(&output_dir)
+        .assert()
+        .success();
+
+    // Second run: design only + force
+    cmd()
+        .arg("scaffold")
+        .arg(&srs_path)
+        .arg("--output")
+        .arg(&output_dir)
+        .arg("--phase")
+        .arg("design")
+        .arg("--force")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("4 files created"))
+        .stdout(predicate::str::contains("0 skipped"));
+}
+
+#[test]
+fn test_cli_scaffold_phase_partial_invalid() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let srs_path = tmp.path().join("srs.md");
+    fs::write(&srs_path, FIXTURE_SRS).unwrap();
+
+    // One valid, one invalid
+    cmd()
+        .arg("scaffold")
+        .arg(&srs_path)
+        .arg("--phase")
+        .arg("testing,bogus")
+        .assert()
+        .code(2)
+        .stderr(predicate::str::contains("unknown phase 'bogus'"));
+}
+
+#[test]
+fn test_cli_scaffold_phase_with_spaces() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let srs_path = tmp.path().join("srs.md");
+    fs::write(&srs_path, FIXTURE_SRS).unwrap();
+    let output_dir = tmp.path().join("output");
+
+    // Spaces around comma-separated values
+    cmd()
+        .arg("scaffold")
+        .arg(&srs_path)
+        .arg("--output")
+        .arg(&output_dir)
+        .arg("--phase")
+        .arg("design , deployment")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("8 files created"));
+}
+
+#[test]
+fn test_cli_scaffold_phase_large_srs() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let srs_path = tmp.path().join("srs.md");
+    fs::write(&srs_path, LARGE_FIXTURE_SRS).unwrap();
+    let output_dir = tmp.path().join("output");
+
+    cmd()
+        .arg("scaffold")
+        .arg(&srs_path)
+        .arg("--output")
+        .arg(&output_dir)
+        .arg("--phase")
+        .arg("deployment")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("5 domains"))
+        .stdout(predicate::str::contains("10 requirements"))
+        // 5 domains × 2 deploy files = 10
+        .stdout(predicate::str::contains("10 files created"));
 }

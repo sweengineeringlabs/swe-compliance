@@ -54,6 +54,10 @@ pub struct ScaffoldConfig {
     pub output_dir: PathBuf,
     /// Overwrite existing files when true.
     pub force: bool,
+    /// Optional phase filter: only generate files for these SDLC phases.
+    /// Valid values: "requirements", "design", "testing", "deployment".
+    /// When empty/None, all phases are generated.
+    pub phases: Vec<String>,
 }
 
 /// Result of a scaffold operation.

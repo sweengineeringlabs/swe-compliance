@@ -38,70 +38,87 @@ pub fn scaffold_from_srs(config: &ScaffoldConfig) -> Result<ScaffoldResult, Scan
         requirement_count: domains.iter().map(|d| d.requirements.len()).sum(),
     };
 
+    let include_phase = |phase: &str| -> bool {
+        config.phases.is_empty() || config.phases.iter().any(|p| p == phase)
+    };
+
     for domain in &domains {
-        // Spec files: 4 YAML + 4 markdown + 2 exec per domain
-        let files = vec![
-            (
+        // Spec files: 4 YAML + 4 markdown + 2 exec per domain (filtered by phase)
+        let mut files: Vec<(String, String)> = Vec::new();
+
+        if include_phase("requirements") {
+            files.push((
                 format!("docs/1-requirements/{}/{}.spec.yaml", domain.slug, domain.slug),
                 yaml_gen::generate_feature_spec_yaml(domain),
-            ),
-            (
+            ));
+            files.push((
                 format!("docs/1-requirements/{}/{}.spec", domain.slug, domain.slug),
                 markdown_gen::generate_feature_spec_md(domain),
-            ),
-            (
+            ));
+        }
+
+        if include_phase("design") {
+            files.push((
                 format!("docs/3-design/{}/{}.arch.yaml", domain.slug, domain.slug),
                 yaml_gen::generate_arch_spec_yaml(domain),
-            ),
-            (
+            ));
+            files.push((
                 format!("docs/3-design/{}/{}.arch", domain.slug, domain.slug),
                 markdown_gen::generate_arch_spec_md(domain),
-            ),
-            (
+            ));
+        }
+
+        if include_phase("testing") {
+            files.push((
                 format!("docs/5-testing/{}/{}.test.yaml", domain.slug, domain.slug),
                 yaml_gen::generate_test_spec_yaml(domain),
-            ),
-            (
+            ));
+            files.push((
                 format!("docs/5-testing/{}/{}.test", domain.slug, domain.slug),
                 markdown_gen::generate_test_spec_md(domain),
-            ),
-            (
+            ));
+            files.push((
                 format!("docs/5-testing/{}/{}.manual.exec", domain.slug, domain.slug),
                 markdown_gen::generate_manual_exec_md(domain),
-            ),
-            (
+            ));
+            files.push((
                 format!("docs/5-testing/{}/{}.auto.exec", domain.slug, domain.slug),
                 markdown_gen::generate_auto_exec_md(domain),
-            ),
-            (
+            ));
+        }
+
+        if include_phase("deployment") {
+            files.push((
                 format!("docs/6-deployment/{}/{}.deploy.yaml", domain.slug, domain.slug),
                 yaml_gen::generate_deploy_spec_yaml(domain),
-            ),
-            (
+            ));
+            files.push((
                 format!("docs/6-deployment/{}/{}.deploy", domain.slug, domain.slug),
                 markdown_gen::generate_deploy_spec_md(domain),
-            ),
-        ];
+            ));
+        }
 
         for (rel_path, content) in files {
             write_file(&config.output_dir, &rel_path, &content, config.force, &mut result)?;
         }
     }
 
-    // BRD master inventory
-    let brd_files = vec![
-        (
-            "docs/1-requirements/brd.spec.yaml".to_string(),
-            yaml_gen::generate_brd_yaml(&domains),
-        ),
-        (
-            "docs/1-requirements/brd.spec".to_string(),
-            markdown_gen::generate_brd_md(&domains),
-        ),
-    ];
+    // BRD master inventory (only when requirements phase is included)
+    if include_phase("requirements") {
+        let brd_files = vec![
+            (
+                "docs/1-requirements/brd.spec.yaml".to_string(),
+                yaml_gen::generate_brd_yaml(&domains),
+            ),
+            (
+                "docs/1-requirements/brd.spec".to_string(),
+                markdown_gen::generate_brd_md(&domains),
+            ),
+        ];
 
-    for (rel_path, content) in brd_files {
-        write_file(&config.output_dir, &rel_path, &content, config.force, &mut result)?;
+        for (rel_path, content) in brd_files {
+            write_file(&config.output_dir, &rel_path, &content, config.force, &mut result)?;
+        }
     }
 
     Ok(result)
@@ -173,6 +190,7 @@ The binary embeds rules.
             srs_path,
             output_dir: output_dir.clone(),
             force: false,
+            phases: vec![],
         };
         (config, output_dir)
     }
@@ -255,9 +273,62 @@ The binary embeds rules.
             srs_path,
             output_dir: tmp.path().join("out"),
             force: false,
+            phases: vec![],
         };
 
         let err = scaffold_from_srs(&config).unwrap_err();
         assert!(err.to_string().contains("no domains"));
+    }
+
+    #[test]
+    fn test_scaffold_phase_filter_testing_only() {
+        let tmp = tempfile::TempDir::new().unwrap();
+        let (mut config, output_dir) = setup_config(tmp.path());
+        config.phases = vec!["testing".to_string()];
+
+        let result = scaffold_from_srs(&config).unwrap();
+
+        // 1 domain × 4 testing files (test.yaml, test, manual.exec, auto.exec) = 4
+        assert_eq!(result.created.len(), 4);
+        assert!(output_dir.join("docs/5-testing/rule_loading/rule_loading.test.yaml").exists());
+        assert!(output_dir.join("docs/5-testing/rule_loading/rule_loading.test").exists());
+        assert!(output_dir.join("docs/5-testing/rule_loading/rule_loading.manual.exec").exists());
+        assert!(output_dir.join("docs/5-testing/rule_loading/rule_loading.auto.exec").exists());
+        // No other phases
+        assert!(!output_dir.join("docs/1-requirements/rule_loading").exists());
+        assert!(!output_dir.join("docs/3-design/rule_loading").exists());
+        assert!(!output_dir.join("docs/6-deployment/rule_loading").exists());
+        assert!(!output_dir.join("docs/1-requirements/brd.spec.yaml").exists());
+    }
+
+    #[test]
+    fn test_scaffold_phase_filter_multiple() {
+        let tmp = tempfile::TempDir::new().unwrap();
+        let (mut config, output_dir) = setup_config(tmp.path());
+        config.phases = vec!["requirements".to_string(), "design".to_string()];
+
+        let result = scaffold_from_srs(&config).unwrap();
+
+        // 1 domain × (2 req + 2 design) + 2 BRD = 6
+        assert_eq!(result.created.len(), 6);
+        assert!(output_dir.join("docs/1-requirements/rule_loading/rule_loading.spec.yaml").exists());
+        assert!(output_dir.join("docs/1-requirements/rule_loading/rule_loading.spec").exists());
+        assert!(output_dir.join("docs/3-design/rule_loading/rule_loading.arch.yaml").exists());
+        assert!(output_dir.join("docs/3-design/rule_loading/rule_loading.arch").exists());
+        assert!(output_dir.join("docs/1-requirements/brd.spec.yaml").exists());
+        assert!(output_dir.join("docs/1-requirements/brd.spec").exists());
+        // No testing or deployment
+        assert!(!output_dir.join("docs/5-testing/rule_loading").exists());
+        assert!(!output_dir.join("docs/6-deployment/rule_loading").exists());
+    }
+
+    #[test]
+    fn test_scaffold_phase_filter_empty_means_all() {
+        let tmp = tempfile::TempDir::new().unwrap();
+        let (config, _output_dir) = setup_config(tmp.path());
+
+        let result = scaffold_from_srs(&config).unwrap();
+        // Empty phases = all phases: 1 domain × 10 + 2 BRD = 12
+        assert_eq!(result.created.len(), 12);
     }
 }

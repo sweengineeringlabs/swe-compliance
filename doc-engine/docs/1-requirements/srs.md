@@ -28,7 +28,7 @@ doc-engine is a single-crate Rust project within the `swe-compliance` workspace.
 - Is usable as both a CLI binary and a Rust library
 - Validates spec files in two formats: YAML (`.spec.yaml`, `.arch.yaml`, `.test.yaml`, `.deploy.yaml`) and markdown (`.spec`, `.arch`, `.test`, `.deploy`) for structure, cross-references, and SDLC coverage
 - Generates markdown documentation from YAML spec files
-- Scaffolds per-domain SDLC spec files from an SRS markdown document, including test execution plans (`.manual.exec`, `.auto.exec`)
+- Scaffolds per-domain SDLC spec files from an SRS markdown document, including test execution plans (`.manual.exec`, `.auto.exec`), with optional `--phase` filtering by SDLC phase
 
 doc-engine does **not**:
 
@@ -61,6 +61,7 @@ doc-engine does **not**:
 | **Scaffold** | The process of generating a full set of SDLC spec files from an SRS document — creates per-domain `.spec`, `.arch`, `.test`, `.deploy` (YAML + markdown), `.manual.exec`, `.auto.exec`, and a BRD inventory |
 | **Manual execution plan** | A `.manual.exec` markdown file listing all test cases with Steps, Expected, Tester, Date, Pass/Fail, and Notes columns — an actionable checklist for human testers |
 | **Automated execution plan** | An `.auto.exec` markdown file listing all test cases with Verifies, CI Job, Build, Status, and Last Run columns — a CI/automated test tracker |
+| **Phase filter** | A `--phase` CLI flag that restricts scaffold output to specific SDLC phases (`requirements`, `design`, `testing`, `deployment`); when omitted, all phases are generated |
 
 ### 1.4 References
 
@@ -135,7 +136,7 @@ A developer or CI job runs `doc-engine scan . --scope large --json -o docs/7-ope
 
 #### OS-10: SRS scaffold
 
-An architect runs `doc-engine scaffold docs/1-requirements/srs.md --output . --force`. The tool parses the SRS, extracts all domains and their requirements, and generates 10 files per domain (spec.yaml, spec, arch.yaml, arch, test.yaml, test, manual.exec, auto.exec, deploy.yaml, deploy) plus 2 BRD files. The `.manual.exec` files provide actionable checklists with Steps and Expected columns for human testers. The `.auto.exec` files provide CI tracking tables with CI Job and Build columns. Both exec files list all test cases aligned row-for-row with the `.test` plan.
+An architect runs `doc-engine scaffold docs/1-requirements/srs.md --output . --force`. The tool parses the SRS, extracts all domains and their requirements, and generates 10 files per domain (spec.yaml, spec, arch.yaml, arch, test.yaml, test, manual.exec, auto.exec, deploy.yaml, deploy) plus 2 BRD files. The `.manual.exec` files provide actionable checklists with Steps and Expected columns for human testers. The `.auto.exec` files provide CI tracking tables with CI Job and Build columns. Both exec files list all test cases aligned row-for-row with the `.test` plan. The `--phase` flag filters output to specific SDLC phases (e.g., `--phase testing` generates only `docs/5-testing/` files).
 
 ### 2.3 Stakeholder Requirements
 
@@ -1409,7 +1410,7 @@ Severity mapping: mandatory artifacts (per ISO) use `warning`; recommended artif
 | **State** | Implemented |
 | **Verification** | Demonstration |
 | **Traces to** | STK-11 -> `main.rs`, `core/scaffold/mod.rs` |
-| **Acceptance** | `doc-engine scaffold <SRS_PATH> [--output DIR] [--force]` parses the SRS, extracts domains and requirements, and generates per-domain SDLC spec files; exit code 0 on success, 2 on error |
+| **Acceptance** | `doc-engine scaffold <SRS_PATH> [--output DIR] [--force] [--phase PHASES]` parses the SRS, extracts domains and requirements, and generates per-domain SDLC spec files; `--phase` accepts comma-separated phase names to filter output; exit code 0 on success, 2 on error |
 
 ```
 doc-engine scaffold <SRS_PATH> [--output DIR] [--force]
@@ -1489,6 +1490,16 @@ Generated files per domain:
 | **Verification** | Test |
 | **Traces to** | STK-11 -> `main.rs` |
 | **Acceptance** | `--output DIR` specifies the output root directory; parent directories are created automatically; defaults to the current directory if not specified |
+
+#### FR-829: Scaffold phase filter
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Should |
+| **State** | Implemented |
+| **Verification** | Test |
+| **Traces to** | STK-11 -> `main.rs`, `core/scaffold/mod.rs`, `core/scaffold/types.rs` |
+| **Acceptance** | `--phase` accepts a comma-separated list of SDLC phases (`requirements`, `design`, `testing`, `deployment`); only files for the specified phases are generated; BRD files are included only when `requirements` is selected; omitting `--phase` generates all phases; invalid phase names exit with code 2 and a descriptive error; phase names are case-insensitive |
 
 ---
 
@@ -1688,7 +1699,7 @@ IO errors and missing files shall produce `Skip` results or clear error messages
 | STK-08 | FR-700-706, FR-710-716, FR-720-727, FR-730-735, FR-740-742, FR-750-755 |
 | STK-09 | FR-403, FR-506 |
 | STK-10 | FR-505 |
-| STK-11 | FR-822, FR-823, FR-824, FR-825, FR-826, FR-827, FR-828 |
+| STK-11 | FR-822, FR-823, FR-824, FR-825, FR-826, FR-827, FR-828, FR-829 |
 
 ### Software -> Architecture
 
@@ -1709,7 +1720,7 @@ IO errors and missing files shall produce `Skip` results or clear error messages
 | FR-740-742 | `core/builtins/spec.rs`, `rules.toml` |
 | FR-750-755 | `main.rs`, `core/reporter.rs` |
 | FR-808-821 | `core/builtins/requirements.rs`, `rules.toml` |
-| FR-822-828 | `core/scaffold/mod.rs`, `core/scaffold/parser.rs`, `core/scaffold/yaml_gen.rs`, `core/scaffold/markdown_gen.rs`, `main.rs` |
+| FR-822-829 | `core/scaffold/mod.rs`, `core/scaffold/types.rs`, `core/scaffold/parser.rs`, `core/scaffold/yaml_gen.rs`, `core/scaffold/markdown_gen.rs`, `main.rs` |
 | NFR-100-101 | Module structure (spi/, api/, core/, saf/) |
 | NFR-400-401 | `rules.toml`, `core/declarative.rs`, `core/builtins/` |
 | NFR-500-501 | `core/engine.rs`, `core/rules.rs` |

@@ -116,7 +116,7 @@ Both formats are discovered, validated, and cross-referenced. YAML specs additio
 │  L3: main.rs (CLI)                      │  clap-based entry point
 │  Depends on SAF + Reporter              │  scan + spec + scaffold subcommands
 │  FR-402, FR-500-504, FR-750-755,        │
-│  FR-822, FR-828                         │
+│  FR-822, FR-828, FR-829                 │
 ├─────────────────────────────────────────┤
 │  L2: API (Application Interface)        │  pub trait ComplianceEngine, SpecEngine
 │  api/traits.rs, api/types.rs            │  ScanConfig, ScanReport, RuleDef
@@ -137,7 +137,7 @@ Both formats are discovered, validated, and cross-referenced. YAML specs additio
 │  core/scaffold/*.rs                     │  cross-ref, generate, scaffold
 │  FR-100-105, FR-200-202, FR-300-302,    │
 │  FR-400, FR-401, FR-700-742,            │
-│  FR-822-828                             │
+│  FR-822-829                             │
 └─────────────────────────────────────────┘
 ```
 
@@ -707,7 +707,7 @@ Parses an SRS markdown document and generates a complete SDLC spec file tree.
 
 - `SrsDomain`: section number, title, slug, and requirements
 - `SrsRequirement`: id, title, kind (FR/NFR), priority, state, verification, traces_to, acceptance, description
-- `ScaffoldConfig`: srs_path, output_dir, force flag
+- `ScaffoldConfig`: srs_path, output_dir, force flag, phases filter
 - `ScaffoldResult`: created files, skipped files, domain count, requirement count
 
 #### scaffold/parser.rs — SRS Parser (FR-823)
@@ -740,7 +740,7 @@ Generates markdown spec files per domain:
 
 #### scaffold/mod.rs — Orchestrator (FR-822, FR-827, FR-828)
 
-- `scaffold_from_srs(config)` — reads SRS, calls parser, iterates domains, generates 10 files per domain + 2 BRD files
+- `scaffold_from_srs(config)` — reads SRS, calls parser, iterates domains, generates up to 10 files per domain + 2 BRD files; respects `phases` filter to selectively generate only requested SDLC phases
 - `write_file()` — creates parent dirs, respects force/skip logic
 - Reports created (`+`) and skipped (`~`) files
 
@@ -999,12 +999,14 @@ doc-engine spec generate <FILE> --output DIR # FR-735: generate markdown to file
 
 ### Scaffold subcommand
 
-> Implements: FR-822, FR-823, FR-824, FR-825, FR-826, FR-827, FR-828
+> Implements: FR-822, FR-823, FR-824, FR-825, FR-826, FR-827, FR-828, FR-829
 
 ```
-doc-engine scaffold <SRS_PATH>                # FR-822: parse SRS and generate spec files
-doc-engine scaffold <SRS_PATH> --output DIR   # FR-828: output to specific directory
-doc-engine scaffold <SRS_PATH> --force        # FR-827: overwrite existing files
+doc-engine scaffold <SRS_PATH>                          # FR-822: parse SRS and generate spec files
+doc-engine scaffold <SRS_PATH> --output DIR             # FR-828: output to specific directory
+doc-engine scaffold <SRS_PATH> --force                  # FR-827: overwrite existing files
+doc-engine scaffold <SRS_PATH> --phase testing          # FR-829: generate only testing files
+doc-engine scaffold <SRS_PATH> --phase requirements,design  # FR-829: multiple phases
 ```
 
 Uses `clap` derive API. Exit code 0 = all pass, 1 = failures/violations found, 2 = error (FR-402, FR-753).

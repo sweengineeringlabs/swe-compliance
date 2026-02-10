@@ -4,7 +4,7 @@
 
 ## TLDR
 
-This plan describes the implementation strategy for doc-engine using a Single-Crate Modular SEA architecture. It covers a working CLI with 128 checks across 18 categories, spec file validation and generation, SRS scaffold (generating per-domain SDLC spec files including `.manual.exec` and `.auto.exec` test execution plans), a comprehensive test suite, and self-compliance. Rules are config-driven via TOML with builtin Rust handlers for complex checks.
+This plan describes the implementation strategy for doc-engine using a Single-Crate Modular SEA architecture. It covers a working CLI with 128 checks across 18 categories, spec file validation and generation, SRS scaffold (generating per-domain SDLC spec files including `.manual.exec` and `.auto.exec` test execution plans, with `--phase` filtering by SDLC phase), a comprehensive test suite, and self-compliance. Rules are config-driven via TOML with builtin Rust handlers for complex checks.
 
 ## Architecture Decision
 
@@ -338,6 +338,16 @@ Rust implementations for complex checks, registered by handler name:
 - Extend `main.rs` with `scaffold` subcommand (FR-822)
 - Integration tests in `src/test/scaffold.rs`: 44 tests covering parsing, file generation, skip/force, CLI E2E, edge cases
 
+### Phase 21: Scaffold Phase Filter
+
+> Implements: FR-829
+
+- Add `phases: Vec<String>` field to `ScaffoldConfig` in `core/scaffold/types.rs`
+- Add `--phase` CLI flag in `main.rs` with comma-separated parsing and validation (valid: `requirements`, `design`, `testing`, `deployment`; case-insensitive; exit 2 on invalid)
+- Filter per-domain file generation in `core/scaffold/mod.rs` using `include_phase()` closure; BRD files only when `requirements` phase included
+- Unit tests: 3 new tests in `core/scaffold/mod.rs` (testing-only, multiple, empty-means-all)
+- Integration tests: 24 new tests in `src/test/scaffold.rs` covering single phase, multiple phases, all-four-explicit, large SRS, skip/force combos, content validity, metadata stability, NFR-only domains, CLI flags (case insensitivity, spaces, invalid, partial invalid)
+
 ## Traceability: Phase -> Requirements
 
 | Phase | FR | NFR |
@@ -362,6 +372,7 @@ Rust implementations for complex checks, registered by handler name:
 | 18: Documentation + Self-Compliance | — | |
 | 19: Testing | FR-103, FR-105, FR-200-202, FR-300-302, FR-401, FR-600, FR-601, FR-700-755 | NFR-500, NFR-501 |
 | 20: SRS Scaffold | FR-822, FR-823, FR-824, FR-825, FR-826, FR-827, FR-828 | |
+| 21: Scaffold Phase Filter | FR-829 | |
 
 ## Verification
 
@@ -398,4 +409,8 @@ cargo run -- spec generate docs/1-requirements/auth/login.spec.yaml --output gen
 
 # Scaffold from SRS
 cargo run -- scaffold docs/1-requirements/srs.md --output /tmp/scaffold-out --force
+
+# Scaffold specific phases only
+cargo run -- scaffold docs/1-requirements/srs.md --output /tmp/scaffold-out --phase testing
+cargo run -- scaffold docs/1-requirements/srs.md --output /tmp/scaffold-out --phase requirements,design
 ```

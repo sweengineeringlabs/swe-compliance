@@ -55,6 +55,10 @@ enum Commands {
         /// Overwrite existing files
         #[arg(long)]
         force: bool,
+
+        /// Generate only specific SDLC phases (comma-separated: requirements,design,testing,deployment)
+        #[arg(long)]
+        phase: Option<String>,
     },
 }
 
@@ -217,7 +221,7 @@ fn main() {
                 }
             }
         }
-        Commands::Scaffold { srs_path, output, force } => {
+        Commands::Scaffold { srs_path, output, force, phase } => {
             let srs_resolved = match srs_path.canonicalize() {
                 Ok(p) => p,
                 Err(e) => {
@@ -228,10 +232,26 @@ fn main() {
 
             let output_dir = output.unwrap_or_else(|| std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
 
+            let valid_phases = ["requirements", "design", "testing", "deployment"];
+            let phases: Vec<String> = match phase {
+                Some(ref s) => {
+                    let parsed: Vec<String> = s.split(',').map(|p| p.trim().to_lowercase()).collect();
+                    for p in &parsed {
+                        if !valid_phases.contains(&p.as_str()) {
+                            eprintln!("Error: unknown phase '{}' (valid: {})", p, valid_phases.join(", "));
+                            process::exit(2);
+                        }
+                    }
+                    parsed
+                }
+                None => vec![],
+            };
+
             let config = ScaffoldConfig {
                 srs_path: srs_resolved,
                 output_dir,
                 force,
+                phases,
             };
 
             match scaffold_from_srs(&config) {

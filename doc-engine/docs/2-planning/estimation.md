@@ -14,6 +14,7 @@
 | 17 | Planning phase checks (83-88) | S | Complete |
 | 18-19 | CI/CD integration and release | S | Planned |
 | 20 | SRS scaffold (parser, generators, manual/auto exec plans) | M | Complete |
+| 21 | Scaffold phase filter (`--phase` flag, tests) | S | Complete |
 
 ## Sizing Key
 
