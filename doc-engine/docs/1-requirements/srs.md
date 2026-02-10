@@ -4,7 +4,7 @@
 
 ## TLDR
 
-This SRS defines requirements for doc-engine, a Rust CLI tool that audits project documentation against 128 compliance checks across 18 categories, mapped to 8 ISO/IEC/IEEE standards, IEEE 1028, and PMBOK. It covers stakeholder needs, functional requirements for rule evaluation and reporting, non-functional requirements for performance and extensibility, and traceability from stakeholder goals to implementation modules.
+This SRS defines requirements for doc-engine, a Rust CLI tool that audits project documentation against 128 compliance checks across 18 categories, mapped to 8 ISO/IEC/IEEE standards, IEEE 1028, and PMBOK. It also scaffolds SDLC spec files from an SRS document, generating per-domain spec, architecture, test plan, deployment, and test execution plan files. It covers stakeholder needs, functional requirements for rule evaluation, reporting, and scaffolding, non-functional requirements for performance and extensibility, and traceability from stakeholder goals to implementation modules.
 
 **Version**: 1.0
 **Date**: 2026-02-07
@@ -28,6 +28,7 @@ doc-engine is a single-crate Rust project within the `swe-compliance` workspace.
 - Is usable as both a CLI binary and a Rust library
 - Validates spec files in two formats: YAML (`.spec.yaml`, `.arch.yaml`, `.test.yaml`, `.deploy.yaml`) and markdown (`.spec`, `.arch`, `.test`, `.deploy`) for structure, cross-references, and SDLC coverage
 - Generates markdown documentation from YAML spec files
+- Scaffolds per-domain SDLC spec files from an SRS markdown document, including test execution plans (`.manual.exec`, `.auto.exec`)
 
 doc-engine does **not**:
 
@@ -57,6 +58,9 @@ doc-engine does **not**:
 | **Feature stem** | The shared name portion of linked spec files (e.g., `compiler_design` in `compiler_design.spec` / `.arch` / `.test` / `.deploy`) |
 | **SpecKind** | The SDLC role of a spec file: `brd`, `feature_request`/`spec`, `architecture`, `test_plan`, `deployment` — determined by extension |
 | **SpecFormat** | Whether a spec file is YAML (`.spec.yaml`) or markdown (`.spec`) — determines the parsing strategy |
+| **Scaffold** | The process of generating a full set of SDLC spec files from an SRS document — creates per-domain `.spec`, `.arch`, `.test`, `.deploy` (YAML + markdown), `.manual.exec`, `.auto.exec`, and a BRD inventory |
+| **Manual execution plan** | A `.manual.exec` markdown file listing all test cases with Steps, Expected, Tester, Date, Pass/Fail, and Notes columns — an actionable checklist for human testers |
+| **Automated execution plan** | An `.auto.exec` markdown file listing all test cases with Verifies, CI Job, Build, Status, and Last Run columns — a CI/automated test tracker |
 
 ### 1.4 References
 
@@ -129,6 +133,10 @@ A developer runs `doc-engine spec generate docs/1-requirements/auth/login.spec.y
 
 A developer or CI job runs `doc-engine scan . --scope large --json -o docs/7-operations/compliance/documentation_audit_report_v1.0.0.json`. The tool executes the scan, prints results to stdout, and persists the JSON report to the specified path (creating parent directories as needed). The filename follows the ISO/IEC/IEEE 15289:2019 "Audit Report" information item naming convention: `documentation_audit_report_v{version}.json`.
 
+#### OS-10: SRS scaffold
+
+An architect runs `doc-engine scaffold docs/1-requirements/srs.md --output . --force`. The tool parses the SRS, extracts all domains and their requirements, and generates 10 files per domain (spec.yaml, spec, arch.yaml, arch, test.yaml, test, manual.exec, auto.exec, deploy.yaml, deploy) plus 2 BRD files. The `.manual.exec` files provide actionable checklists with Steps and Expected columns for human testers. The `.auto.exec` files provide CI tracking tables with CI Job and Build columns. Both exec files list all test cases aligned row-for-row with the `.test` plan.
+
 ### 2.3 Stakeholder Requirements
 
 | ID | Requirement | Source | Priority | Rationale |
@@ -143,6 +151,7 @@ A developer or CI job runs `doc-engine scan . --scope large --json -o docs/7-ope
 | STK-08 | The tool shall validate YAML spec files for schema conformance, cross-references, and generate markdown from them | Architect feedback | Should | Structured specs enable automated traceability and doc generation |
 | STK-09 | The tool shall persist audit reports as versioned JSON files following ISO/IEC/IEEE 15289:2019 naming | CI pipeline needs, ISO compliance | Should | Enables audit trail, historical comparison, and compliance evidence |
 | STK-10 | The tool shall scope checks by project size (small/medium/large) so that smaller projects are not burdened by large-project requirements | Developer feedback | Must | Different project sizes have different documentation needs |
+| STK-11 | The tool shall scaffold a complete set of SDLC spec files from an SRS document, including actionable manual and automated test execution plans | Architect feedback | Should | Bootstraps documentation structure from requirements, ensuring consistent traceability from day one |
 
 ---
 
@@ -176,6 +185,7 @@ doc-engine scan <project> --scope <tier>  ← audits any project against them
 | SYS-04 | Result aggregation | Collect pass/fail/skip per check, compute summary |
 | SYS-05 | Reporting | Output results as human-readable text or machine-readable JSON |
 | SYS-06 | YAML spec processing | Parse, validate, cross-reference, and generate markdown from YAML spec files |
+| SYS-07 | SRS scaffold | Parse SRS document, extract domains/requirements, generate per-domain SDLC spec files and test execution plans |
 
 ### 3.3 System Constraints
 
@@ -1389,6 +1399,97 @@ Severity mapping: mandatory artifacts (per ISO) use `warning`; recommended artif
 | **Traces to** | Check 128 -> `core/builtins/requirements.rs` |
 | **Acceptance** | Check 128 validates that `docs/5-testing/verification_report.md` contains Summary/results, Pass/fail status, and Defects/issues sections per 29119-3 clause 10. Missing sections produce per-section violations. Projects without the file produce Skip. |
 
+### 4.14 SRS Scaffold
+
+#### FR-822: Scaffold command
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Should |
+| **State** | Implemented |
+| **Verification** | Demonstration |
+| **Traces to** | STK-11 -> `main.rs`, `core/scaffold/mod.rs` |
+| **Acceptance** | `doc-engine scaffold <SRS_PATH> [--output DIR] [--force]` parses the SRS, extracts domains and requirements, and generates per-domain SDLC spec files; exit code 0 on success, 2 on error |
+
+```
+doc-engine scaffold <SRS_PATH> [--output DIR] [--force]
+```
+
+#### FR-823: SRS domain extraction
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Should |
+| **State** | Implemented |
+| **Verification** | Test |
+| **Traces to** | STK-11 -> `core/scaffold/parser.rs` |
+| **Acceptance** | The parser extracts `### X.Y Title` domain sections and `#### FR-NNN: Title` / `#### NFR-NNN: Title` requirement blocks with their attribute tables (Priority, State, Verification, Traces to, Acceptance); domains with no requirements are excluded |
+
+#### FR-824: Per-domain spec file generation
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Should |
+| **State** | Implemented |
+| **Verification** | Test |
+| **Traces to** | STK-11 -> `core/scaffold/mod.rs`, `core/scaffold/yaml_gen.rs`, `core/scaffold/markdown_gen.rs` |
+| **Acceptance** | For each domain, generates 10 files: `.spec.yaml`, `.spec`, `.arch.yaml`, `.arch`, `.test.yaml`, `.test`, `.manual.exec`, `.auto.exec`, `.deploy.yaml`, `.deploy`; plus 2 BRD files (`brd.spec.yaml`, `brd.spec`); total = `domains × 10 + 2` |
+
+Generated files per domain:
+
+| File | Directory | Format |
+|------|-----------|--------|
+| `{slug}.spec.yaml` | `docs/1-requirements/{slug}/` | YAML |
+| `{slug}.spec` | `docs/1-requirements/{slug}/` | Markdown |
+| `{slug}.arch.yaml` | `docs/3-design/{slug}/` | YAML |
+| `{slug}.arch` | `docs/3-design/{slug}/` | Markdown |
+| `{slug}.test.yaml` | `docs/5-testing/{slug}/` | YAML |
+| `{slug}.test` | `docs/5-testing/{slug}/` | Markdown |
+| `{slug}.manual.exec` | `docs/5-testing/{slug}/` | Markdown |
+| `{slug}.auto.exec` | `docs/5-testing/{slug}/` | Markdown |
+| `{slug}.deploy.yaml` | `docs/6-deployment/{slug}/` | YAML |
+| `{slug}.deploy` | `docs/6-deployment/{slug}/` | Markdown |
+
+#### FR-825: Manual test execution plan
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Should |
+| **State** | Implemented |
+| **Verification** | Test |
+| **Traces to** | STK-11 -> `core/scaffold/markdown_gen.rs` |
+| **Acceptance** | Each `.manual.exec` file contains a TLDR, a Test Cases table with TC, Test, Steps (`_TODO_`), and Expected (from acceptance criteria) columns, and an Execution Log table with TC, Tester, Date, Pass/Fail, Notes columns; all TCs are aligned row-for-row with `.test` and `.auto.exec` |
+
+#### FR-826: Automated test execution plan
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Should |
+| **State** | Implemented |
+| **Verification** | Test |
+| **Traces to** | STK-11 -> `core/scaffold/markdown_gen.rs` |
+| **Acceptance** | Each `.auto.exec` file contains a TLDR, and a Test Cases table with TC, Test, Verifies, CI Job, Build, Status, Last Run columns; all TCs are aligned row-for-row with `.test` and `.manual.exec` |
+
+#### FR-827: Scaffold skip/force behavior
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Should |
+| **State** | Implemented |
+| **Verification** | Test |
+| **Traces to** | STK-11 -> `core/scaffold/mod.rs` |
+| **Acceptance** | Without `--force`, existing files are skipped (not overwritten) and reported with `~` prefix; with `--force`, all files are overwritten and reported with `+` prefix |
+
+#### FR-828: Scaffold output directory
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Should |
+| **State** | Implemented |
+| **Verification** | Test |
+| **Traces to** | STK-11 -> `main.rs` |
+| **Acceptance** | `--output DIR` specifies the output root directory; parent directories are created automatically; defaults to the current directory if not specified |
+
 ---
 
 ## 5. Non-Functional Requirements
@@ -1571,6 +1672,7 @@ IO errors and missing files shall produce `Skip` results or clear error messages
 | STK-08 | SYS-06 |
 | STK-09 | SYS-05 |
 | STK-10 | SYS-03 |
+| STK-11 | SYS-07 |
 
 ### Stakeholder -> Software
 
@@ -1586,6 +1688,7 @@ IO errors and missing files shall produce `Skip` results or clear error messages
 | STK-08 | FR-700-706, FR-710-716, FR-720-727, FR-730-735, FR-740-742, FR-750-755 |
 | STK-09 | FR-403, FR-506 |
 | STK-10 | FR-505 |
+| STK-11 | FR-822, FR-823, FR-824, FR-825, FR-826, FR-827, FR-828 |
 
 ### Software -> Architecture
 
@@ -1606,6 +1709,7 @@ IO errors and missing files shall produce `Skip` results or clear error messages
 | FR-740-742 | `core/builtins/spec.rs`, `rules.toml` |
 | FR-750-755 | `main.rs`, `core/reporter.rs` |
 | FR-808-821 | `core/builtins/requirements.rs`, `rules.toml` |
+| FR-822-828 | `core/scaffold/mod.rs`, `core/scaffold/parser.rs`, `core/scaffold/yaml_gen.rs`, `core/scaffold/markdown_gen.rs`, `main.rs` |
 | NFR-100-101 | Module structure (spi/, api/, core/, saf/) |
 | NFR-400-401 | `rules.toml`, `core/declarative.rs`, `core/builtins/` |
 | NFR-500-501 | `core/engine.rs`, `core/rules.rs` |

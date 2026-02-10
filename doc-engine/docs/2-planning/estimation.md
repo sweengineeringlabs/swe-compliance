@@ -13,6 +13,7 @@
 | 16 | Backlog checks (69-82) | M | Complete |
 | 17 | Planning phase checks (83-88) | S | Complete |
 | 18-19 | CI/CD integration and release | S | Planned |
+| 20 | SRS scaffold (parser, generators, manual/auto exec plans) | M | Complete |
 
 ## Sizing Key
 

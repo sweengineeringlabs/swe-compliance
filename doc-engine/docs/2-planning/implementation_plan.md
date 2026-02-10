@@ -4,7 +4,7 @@
 
 ## TLDR
 
-This plan describes the implementation strategy for doc-engine using a Single-Crate Modular SEA architecture. It covers three milestones: a working CLI with 53 base checks (50 structural + 3 traceability), a comprehensive test suite, and self-compliance. Rules are config-driven via TOML with builtin Rust handlers for complex checks.
+This plan describes the implementation strategy for doc-engine using a Single-Crate Modular SEA architecture. It covers a working CLI with 128 checks across 18 categories, spec file validation and generation, SRS scaffold (generating per-domain SDLC spec files including `.manual.exec` and `.auto.exec` test execution plans), a comprehensive test suite, and self-compliance. Rules are config-driven via TOML with builtin Rust handlers for complex checks.
 
 ## Architecture Decision
 
@@ -317,6 +317,27 @@ Rust implementations for complex checks, registered by handler name:
   - Library API (`doc_engine::scan()`, `doc_engine::scan_with_config()`) returns expected results (FR-600, FR-601)
 - **Regression tests**: one test per bugfix, named after the issue
 
+### Phase 20: SRS Scaffold
+
+> Implements: FR-822, FR-823, FR-824, FR-825, FR-826, FR-827, FR-828
+
+- Create `core/scaffold/types.rs`: `SrsDomain`, `SrsRequirement`, `ScaffoldConfig`, `ScaffoldResult`
+- Create `core/scaffold/parser.rs`: SRS markdown parser
+  - Extract `### X.Y Title` domain sections
+  - Extract `#### FR-NNN` / `#### NFR-NNN` requirement blocks with attribute tables
+  - Slugify domain titles for directory names
+- Create `core/scaffold/yaml_gen.rs`: YAML spec generators (feature_request, architecture, test_plan, deployment, brd)
+- Create `core/scaffold/markdown_gen.rs`: Markdown generators (spec, arch, test, deploy, brd) plus:
+  - `generate_manual_exec_md()`: actionable test checklist with Steps, Expected, Execution Log (FR-825)
+  - `generate_auto_exec_md()`: CI tracking table with Verifies, CI Job, Build, Status, Last Run (FR-826)
+  - Both exec files list all TCs aligned row-for-row with `.test`
+- Create `core/scaffold/mod.rs`: `scaffold_from_srs()` orchestrator
+  - 10 files per domain + 2 BRD files
+  - Skip/force logic (FR-827)
+  - Output directory support (FR-828)
+- Extend `main.rs` with `scaffold` subcommand (FR-822)
+- Integration tests in `src/test/scaffold.rs`: 44 tests covering parsing, file generation, skip/force, CLI E2E, edge cases
+
 ## Traceability: Phase -> Requirements
 
 | Phase | FR | NFR |
@@ -340,6 +361,7 @@ Rust implementations for complex checks, registered by handler name:
 | 17: SAF Exports + Library API | FR-600, FR-601, FR-602 (extended) | |
 | 18: Documentation + Self-Compliance | — | |
 | 19: Testing | FR-103, FR-105, FR-200-202, FR-300-302, FR-401, FR-600, FR-601, FR-700-755 | NFR-500, NFR-501 |
+| 20: SRS Scaffold | FR-822, FR-823, FR-824, FR-825, FR-826, FR-827, FR-828 | |
 
 ## Verification
 
@@ -373,4 +395,7 @@ cargo run -- spec generate docs/1-requirements/auth/login.spec.yaml
 
 # Markdown generation to file
 cargo run -- spec generate docs/1-requirements/auth/login.spec.yaml --output generated/
+
+# Scaffold from SRS
+cargo run -- scaffold docs/1-requirements/srs.md --output /tmp/scaffold-out --force
 ```

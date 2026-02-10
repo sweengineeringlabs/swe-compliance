@@ -4,7 +4,7 @@
 
 ## TLDR
 
-doc-engine uses a Single-Crate Modular SEA architecture with a CLI binary and reusable library. Rules are defined in TOML (simple checks declaratively, complex checks via builtin Rust handlers). The engine walks the project directory, evaluates each rule, and reports pass/fail/skip results. It also supports YAML and markdown spec file validation.
+doc-engine uses a Single-Crate Modular SEA architecture with a CLI binary and reusable library. Rules are defined in TOML (simple checks declaratively, complex checks via builtin Rust handlers). The engine walks the project directory, evaluates each rule, and reports pass/fail/skip results. It also supports YAML and markdown spec file validation, and scaffolds complete SDLC spec file trees from SRS documents (including `.manual.exec` and `.auto.exec` test execution plans).
 
 ## What
 
@@ -76,6 +76,12 @@ Both formats are discovered, validated, and cross-referenced. YAML specs additio
 │       │   │   ├── module.rs        # module discovery, module_readme_w3h, examples_tests, toolchain, deployment
 │       │   │   ├── requirements.rs  # srs_29148_attributes, arch_42010_sections, test_29119_sections
 │       │   │   └── spec.rs          # 12 spec check handlers (thin wrappers to core/spec/)
+│       │   ├── scaffold/
+│       │   │   ├── mod.rs           # scaffold_from_srs orchestrator, file writer
+│       │   │   ├── types.rs         # SrsDomain, SrsRequirement, ScaffoldConfig, ScaffoldResult
+│       │   │   ├── parser.rs        # SRS markdown parser (domain/requirement extraction)
+│       │   │   ├── yaml_gen.rs      # YAML spec file generators (spec, arch, test, deploy, brd)
+│       │   │   └── markdown_gen.rs  # Markdown generators (spec, arch, test, deploy, brd, manual.exec, auto.exec)
 │       │   └── spec/
 │       │       ├── mod.rs           # DocSpecEngine impl
 │       │       ├── parser.rs        # Dual-format: YAML parsing + kind dispatch, markdown metadata extraction
@@ -108,8 +114,9 @@ Both formats are discovered, validated, and cross-referenced. YAML specs additio
 │  FR-600, FR-601, FR-602                 │  spec_generate()
 ├─────────────────────────────────────────┤
 │  L3: main.rs (CLI)                      │  clap-based entry point
-│  Depends on SAF + Reporter              │  scan + spec subcommands
-│  FR-402, FR-500-504, FR-750-755         │
+│  Depends on SAF + Reporter              │  scan + spec + scaffold subcommands
+│  FR-402, FR-500-504, FR-750-755,        │
+│  FR-822, FR-828                         │
 ├─────────────────────────────────────────┤
 │  L2: API (Application Interface)        │  pub trait ComplianceEngine, SpecEngine
 │  api/traits.rs, api/types.rs            │  ScanConfig, ScanReport, RuleDef
@@ -127,8 +134,10 @@ Both formats are discovered, validated, and cross-referenced. YAML specs additio
 │  core/rules.rs, core/declarative.rs     │  TOML parser, DeclarativeCheck
 │  core/builtins/*.rs                     │  Builtin check handlers (scan + spec)
 │  core/spec/*.rs                         │  DocSpecEngine: parse, validate,
-│  FR-100-105, FR-200-202, FR-300-302,    │  cross-ref, generate
-│  FR-400, FR-401, FR-700-742             │
+│  core/scaffold/*.rs                     │  cross-ref, generate, scaffold
+│  FR-100-105, FR-200-202, FR-300-302,    │
+│  FR-400, FR-401, FR-700-742,            │
+│  FR-822-828                             │
 └─────────────────────────────────────────┘
 ```
 
@@ -688,6 +697,53 @@ The `spec_schema_valid` handler appears as four separate `[[rules]]` entries in 
 
 All spec handlers implement opt-in behavior (FR-727): if no spec files of either format are discovered, they return `CheckResult::Skip("No spec files found")`.
 
+### scaffold/ — SRS Scaffold (FR-822-828)
+
+> Implements: FR-822, FR-823, FR-824, FR-825, FR-826, FR-827, FR-828
+
+Parses an SRS markdown document and generates a complete SDLC spec file tree.
+
+#### scaffold/types.rs — Domain and Config Types
+
+- `SrsDomain`: section number, title, slug, and requirements
+- `SrsRequirement`: id, title, kind (FR/NFR), priority, state, verification, traces_to, acceptance, description
+- `ScaffoldConfig`: srs_path, output_dir, force flag
+- `ScaffoldResult`: created files, skipped files, domain count, requirement count
+
+#### scaffold/parser.rs — SRS Parser (FR-823)
+
+- Extracts `### X.Y Title` sections as domains
+- Extracts `#### FR-NNN: Title` and `#### NFR-NNN: Title` blocks as requirements
+- Parses attribute tables: Priority, State, Verification, Traces to, Acceptance
+- Slugifies domain titles for directory names (e.g., "Rule Loading" → `rule_loading`)
+- Excludes domains with zero requirements
+
+#### scaffold/yaml_gen.rs — YAML Generators (FR-824)
+
+Generates YAML spec files per domain:
+- `generate_feature_spec_yaml()` — `kind: feature_request`, requirements with REQ-NNN IDs
+- `generate_arch_spec_yaml()` — `kind: architecture`, components from traced requirements
+- `generate_test_spec_yaml()` — `kind: test_plan`, test cases with TC-NNN IDs
+- `generate_deploy_spec_yaml()` — `kind: deployment`, staging + production environments
+- `generate_brd_yaml()` — `kind: brd`, master inventory of all domains
+
+#### scaffold/markdown_gen.rs — Markdown Generators (FR-824, FR-825, FR-826)
+
+Generates markdown spec files per domain:
+- `generate_feature_spec_md()` — requirements table with acceptance criteria
+- `generate_arch_spec_md()` — component table with related document links
+- `generate_test_spec_md()` — test case table with verification methods
+- `generate_deploy_spec_md()` — environment table with build/rollback stubs
+- `generate_manual_exec_md()` — **FR-825**: actionable test checklist with Steps (_TODO_), Expected (from acceptance), and Execution Log (Tester, Date, Pass/Fail, Notes); all TCs aligned with `.test` and `.auto.exec`
+- `generate_auto_exec_md()` — **FR-826**: CI test tracker with Verifies, CI Job, Build, Status, Last Run; all TCs aligned with `.test` and `.manual.exec`
+- `generate_brd_md()` — domain inventory table with spec/arch/test/deploy links
+
+#### scaffold/mod.rs — Orchestrator (FR-822, FR-827, FR-828)
+
+- `scaffold_from_srs(config)` — reads SRS, calls parser, iterates domains, generates 10 files per domain + 2 BRD files
+- `write_file()` — creates parent dirs, respects force/skip logic
+- Reports created (`+`) and skipped (`~`) files
+
 ### spec/ — DocSpecEngine (FR-700-742)
 
 #### spec/mod.rs — DocSpecEngine
@@ -939,6 +995,16 @@ doc-engine spec cross-ref <PATH>             # FR-751: cross-reference analysis
 doc-engine spec cross-ref <PATH> --json      # FR-754: JSON output
 doc-engine spec generate <FILE>              # FR-752: generate markdown to stdout
 doc-engine spec generate <FILE> --output DIR # FR-735: generate markdown to file
+```
+
+### Scaffold subcommand
+
+> Implements: FR-822, FR-823, FR-824, FR-825, FR-826, FR-827, FR-828
+
+```
+doc-engine scaffold <SRS_PATH>                # FR-822: parse SRS and generate spec files
+doc-engine scaffold <SRS_PATH> --output DIR   # FR-828: output to specific directory
+doc-engine scaffold <SRS_PATH> --force        # FR-827: overwrite existing files
 ```
 
 Uses `clap` derive API. Exit code 0 = all pass, 1 = failures/violations found, 2 = error (FR-402, FR-753).
