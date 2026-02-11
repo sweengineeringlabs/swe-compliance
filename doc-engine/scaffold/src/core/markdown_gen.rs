@@ -9,7 +9,7 @@ fn escape_pipe(s: &str) -> String {
 ///
 /// Skips double/triple backtick fences. Returns the content between the
 /// first matched pair of single backticks, or `None` if no span is found.
-fn extract_backtick_command(text: &str) -> Option<&str> {
+fn extract_first_backtick_span(text: &str) -> Option<&str> {
     let bytes = text.as_bytes();
     let len = bytes.len();
     let mut i = 0;
@@ -37,6 +37,44 @@ fn extract_backtick_command(text: &str) -> Option<&str> {
                 if !span.is_empty() {
                     return Some(span);
                 }
+            }
+        } else {
+            i += 1;
+        }
+    }
+    None
+}
+
+/// Find the first single-backtick span that looks like a runnable CLI command.
+///
+/// Iterates all single-backtick spans in `text`, skipping double/triple fences,
+/// and returns the first span where `is_command_like` returns true.
+/// Returns `None` if no command-like span is found.
+fn find_command_span(text: &str) -> Option<&str> {
+    let bytes = text.as_bytes();
+    let len = bytes.len();
+    let mut i = 0;
+    while i < len {
+        if bytes[i] == b'`' {
+            let start = i;
+            while i < len && bytes[i] == b'`' {
+                i += 1;
+            }
+            let tick_count = i - start;
+            if tick_count != 1 {
+                continue;
+            }
+            let content_start = i;
+            while i < len && bytes[i] != b'`' {
+                i += 1;
+            }
+            if i < len {
+                let span = &text[content_start..i];
+                i += 1;
+                if !span.is_empty() && is_command_like(span) {
+                    return Some(span);
+                }
+                // Not command-like — continue scanning for more spans
             }
         } else {
             i += 1;
@@ -99,10 +137,8 @@ fn is_command_like(span: &str) -> bool {
 /// Generate a step description for a Test-verified requirement.
 fn generate_test_steps(req: &SrsRequirement) -> String {
     if let Some(ref acceptance) = req.acceptance {
-        if let Some(cmd) = extract_backtick_command(acceptance) {
-            if is_command_like(cmd) {
-                return format!("Run `{}`", cmd);
-            }
+        if let Some(cmd) = find_command_span(acceptance) {
+            return format!("Run `{}`", cmd);
         }
     }
     "_TODO_".to_string()
@@ -114,10 +150,8 @@ fn generate_test_steps(req: &SrsRequirement) -> String {
 /// Prose acceptance is never used — it already appears in the Expected column.
 fn generate_demonstration_steps(req: &SrsRequirement) -> String {
     if let Some(ref acceptance) = req.acceptance {
-        if let Some(cmd) = extract_backtick_command(acceptance) {
-            if is_command_like(cmd) {
-                return format!("Execute `{}` and observe output", cmd);
-            }
+        if let Some(cmd) = find_command_span(acceptance) {
+            return format!("Execute `{}` and observe output", cmd);
         }
     }
     "_TODO_".to_string()
@@ -178,7 +212,7 @@ fn clean_expected(acceptance: &str, steps: &str) -> String {
     if steps == "_TODO_" {
         return acceptance.to_string();
     }
-    if let Some(cmd) = extract_backtick_command(steps) {
+    if let Some(cmd) = extract_first_backtick_span(steps) {
         let prefix = format!("`{}`", cmd);
         if let Some(rest) = acceptance.strip_prefix(&prefix) {
             let trimmed = rest.trim_start();

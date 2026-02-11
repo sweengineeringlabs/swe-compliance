@@ -356,3 +356,42 @@ AI-powered analysis.
 
 Experimental subsystem.
 ";
+
+/// Fixture with backtick spans that are NOT commands before the actual command.
+/// Exercises `find_command_span` scanning past non-command spans.
+pub const MULTI_BACKTICK_FIXTURE_SRS: &str = "\
+### 4.1 CLI Interface
+
+#### FR-600: Rules flag
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Must |
+| **State** | Approved |
+| **Verification** | Test |
+| **Acceptance** | `--rules` flag causes `doc-engine scan --rules custom.toml` to load custom rules |
+
+The --rules flag.
+
+#### FR-601: AI service init
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Must |
+| **State** | Approved |
+| **Verification** | Demonstration |
+| **Acceptance** | `DefaultDocEngineAiService::new(config)` initializes, then `doc-engine ai chat hello` responds |
+
+AI service initialization.
+
+#### FR-602: Only non-command spans
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Must |
+| **State** | Approved |
+| **Verification** | Test |
+| **Acceptance** | `--verbose` and `ScanReport` are both present |
+
+No runnable command in any span.
+";

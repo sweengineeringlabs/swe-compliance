@@ -1423,6 +1423,57 @@ fn test_manual_exec_expected_no_strip_when_no_command() {
     );
 }
 
+#[test]
+fn test_manual_exec_steps_skips_non_command_backticks() {
+    let (_tmp, output_dir, config) = scaffold_to_tmp(MULTI_BACKTICK_FIXTURE_SRS);
+    scaffold_from_srs(&config).unwrap();
+
+    let manual = fs::read_to_string(
+        output_dir.join("docs/5-testing/cli_interface/cli_interface.manual.exec"),
+    ).unwrap();
+
+    // FR-600: acceptance has `--rules` (not command-like) then `doc-engine scan --rules custom.toml`
+    let tc001 = manual.lines().find(|l| l.contains("TC-001")).unwrap();
+    assert!(
+        tc001.contains("Run `doc-engine scan --rules custom.toml`"),
+        "TC-001 should skip `--rules` and find the command, got: {}", tc001,
+    );
+}
+
+#[test]
+fn test_manual_exec_steps_skips_function_call_backticks() {
+    let (_tmp, output_dir, config) = scaffold_to_tmp(MULTI_BACKTICK_FIXTURE_SRS);
+    scaffold_from_srs(&config).unwrap();
+
+    let manual = fs::read_to_string(
+        output_dir.join("docs/5-testing/cli_interface/cli_interface.manual.exec"),
+    ).unwrap();
+
+    // FR-601: acceptance has `DefaultDocEngineAiService::new(config)` then `doc-engine ai chat hello`
+    let tc002 = manual.lines().find(|l| l.contains("TC-002")).unwrap();
+    assert!(
+        tc002.contains("Execute `doc-engine ai chat hello` and observe output"),
+        "TC-002 should skip function call and find the command, got: {}", tc002,
+    );
+}
+
+#[test]
+fn test_manual_exec_steps_no_command_in_any_span() {
+    let (_tmp, output_dir, config) = scaffold_to_tmp(MULTI_BACKTICK_FIXTURE_SRS);
+    scaffold_from_srs(&config).unwrap();
+
+    let manual = fs::read_to_string(
+        output_dir.join("docs/5-testing/cli_interface/cli_interface.manual.exec"),
+    ).unwrap();
+
+    // FR-602: acceptance has only `--verbose` and `ScanReport` — neither is command-like
+    let tc003 = manual.lines().find(|l| l.contains("TC-003")).unwrap();
+    assert!(
+        tc003.contains("_TODO_"),
+        "TC-003 should be _TODO_ when no command-like span exists, got: {}", tc003,
+    );
+}
+
 // === TC-006: FR-SCA-006: Skip/force behavior ==============================
 
 #[test]
