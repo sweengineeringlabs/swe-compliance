@@ -1,5 +1,14 @@
 # doc-engine rules — 128 documentation compliance checks
 # Embedded in binary via include_str!("../../rules.toml")
+#
+# Scope policy (FR-505a): each rule must have scope = "small"|"medium"|"large".
+# Decision tree (see SRS FR-505a for full criteria):
+#   small  — Can't ship day one without it? (README, LICENSE, hub, glossary,
+#            naming, cross-refs, architecture, dev guide, test strategy, test plan)
+#   medium — Team collaboration, security, traceability? (CONTRIBUTING, CHANGELOG,
+#            SECURITY, ADRs, SDLC phase artifacts, module maturity, content quality)
+#   large  — ISO/IEC/IEEE content validation or supplementary artifact?
+# Any scope change requires updating FR-505a in the SRS.
 
 # =============================================================================
 # Checks 1-13: Structure
@@ -592,7 +601,7 @@ description = "Testing strategy exists"
 severity = "warning"
 type = "file_exists"
 path = "docs/5-testing/testing_strategy.md"
-scope = "medium"
+scope = "small"
 
 # =============================================================================
 # Checks 60-62, 68: Deployment
@@ -999,7 +1008,7 @@ description = "Test plan exists"
 severity = "warning"
 type = "file_exists"
 path = "docs/5-testing/test_plan.md"
-scope = "medium"
+scope = "small"
 
 [[rules]]
 id = 100

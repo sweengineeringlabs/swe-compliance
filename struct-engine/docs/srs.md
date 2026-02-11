@@ -4,7 +4,7 @@
 
 ## TLDR
 
-This SRS defines requirements for struct-engine, a Rust CLI tool and library that audits Rust project structure against configurable compliance rules derived from the [rustboot project structure](../../../langboot/rustboot/docs/3-design/project_structure.md) and [testing strategy](../../../langboot/rustboot/doc/5_testing/testing_strategy.md) conventions. It enforces the `{main,tests}` layout, SEA layering, Cargo target paths, naming conventions, test organization, documentation, hygiene, umbrella workspace validation, and optional directory placement. The engine currently supports 44 checks across 7 categories with a target of ~59 checks across 10 categories. It covers stakeholder needs, functional requirements for rule evaluation and reporting, non-functional requirements for performance and extensibility, and traceability from stakeholder goals to implementation modules.
+This SRS defines requirements for struct-engine, a Rust CLI tool and library that audits Rust project structure against configurable compliance rules. It enforces the `{main,tests}` layout, SEA layering, Cargo target paths, naming conventions, test organization, documentation, hygiene, umbrella workspace validation, and optional directory placement. The engine currently supports 44 checks across 7 categories with a target of ~59 checks across 10 categories. It covers stakeholder needs, functional requirements for rule evaluation and reporting, non-functional requirements for performance and extensibility, and traceability from stakeholder goals to implementation modules.
 
 **Version**: 1.0
 **Date**: 2026-02-10
@@ -51,12 +51,8 @@ struct-engine does **not**:
 
 | Document | Location |
 |----------|----------|
-| Rustboot Project Structure | `langboot/rustboot/docs/3-design/project_structure.md` |
-| Rustboot Testing Strategy | `langboot/rustboot/doc/5_testing/testing_strategy.md` |
-| SEA Architecture Reference | `langboot/rustratify/doc/3-design/architecture.md` |
-| struct-engine Backlog | `struct-engine/docs/backlog.md` |
-| struct-engine Architecture | `struct-engine/docs/architecture.md` (planned) |
-| doc-engine SRS (format reference) | `doc-engine/docs/1-requirements/srs.md` |
+| struct-engine Backlog | `docs/backlog.md` |
+| struct-engine Architecture | `docs/architecture.md` (planned) |
 
 ---
 
@@ -121,11 +117,7 @@ A developer with a binary crate that also has library components runs `struct-en
 ### 3.1 System Context
 
 ```
-rustboot/docs/3-design/project_structure.md    ← defines structure conventions
-rustboot/doc/5_testing/testing_strategy.md     ← defines test conventions
-         │
-         ▼
-struct-engine/config/rules.toml                ← encodes checks as TOML rules
+config/rules.toml                             ← encodes checks as TOML rules
          │
          ▼
 struct-engine scan <project>                   ← audits any Rust project
@@ -291,7 +283,7 @@ When `type = "builtin"`, the engine shall look up a Rust handler by `handler` na
 | `no_test_in_src` | `test_org` | No non-#[cfg(test)] test code in src/ |
 | `module_names_match` | `naming` | Module file names match mod declarations |
 | `bin_names_valid` | `naming` | Binary names use hyphens or underscores |
-| `doc_dir_exists` | `documentation` | doc/ or docs/ directory exists (if library) |
+| `doc_dir_exists` | `documentation` | docs/ directory exists (if library) |
 | `examples_dir_lib` | `documentation` | examples/ directory exists (if library) |
 
 #### FR-105: Unknown handler error

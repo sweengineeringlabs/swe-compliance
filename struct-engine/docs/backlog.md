@@ -1,10 +1,12 @@
 # struct-engine — Backlog
 
+**Audience**: Developers, architects
+
 ## Overview
 
 Enhance struct-engine rules to enforce the updated conventions from:
 - `rustboot/docs/3-design/project_structure.md`
-- `rustboot/doc/5_testing/testing_strategy.md`
+- `rustboot/docs/5_testing/testing_strategy.md`
 
 Current state: 44 rules across 7 categories (mixed standard `src/` and rustboot `main/src/` checks).
 Target state: unified ruleset enforcing `{main,tests}` layout, SEA layers, and testing strategy.
