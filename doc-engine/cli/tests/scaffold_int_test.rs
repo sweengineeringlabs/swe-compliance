@@ -23,6 +23,7 @@ fn scaffold_to_tmp(srs_content: &str) -> (tempfile::TempDir, PathBuf, ScaffoldCo
         file_types: vec![],
         features: vec![],
         exclude_features: None,
+        command_map_path: None,
     };
     (tmp, output_dir, config)
 }
@@ -45,6 +46,7 @@ fn test_parser_crlf_line_endings() {
         file_types: vec![],
         features: vec![],
         exclude_features: None,
+        command_map_path: None,
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -85,6 +87,7 @@ Additional narrative after the inner table.
         file_types: vec![],
         features: vec![],
         exclude_features: None,
+        command_map_path: None,
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -117,6 +120,7 @@ Description with accented characters: éàü.
         file_types: vec![],
         features: vec![],
         exclude_features: None,
+        command_map_path: None,
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -154,6 +158,7 @@ Desc B.
         file_types: vec![],
         features: vec![],
         exclude_features: None,
+        command_map_path: None,
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -194,6 +199,7 @@ All checks in a single traversal.
         file_types: vec![],
         features: vec![],
         exclude_features: None,
+        command_map_path: None,
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -233,6 +239,7 @@ fn test_parser_many_domains_file_count() {
         file_types: vec![],
         features: vec![],
         exclude_features: None,
+        command_map_path: None,
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -263,6 +270,7 @@ fn test_parse_real_project_srs() {
         file_types: vec![],
         features: vec![],
         exclude_features: None,
+        command_map_path: None,
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -355,6 +363,7 @@ Support 128 checks.
         file_types: vec![],
         features: vec![],
         exclude_features: None,
+        command_map_path: None,
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -402,6 +411,7 @@ Desc B.
         file_types: vec![],
         features: vec![],
         exclude_features: None,
+        command_map_path: None,
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -426,6 +436,7 @@ fn test_error_empty_srs() {
         file_types: vec![],
         features: vec![],
         exclude_features: None,
+        command_map_path: None,
     };
 
     let err = scaffold_from_srs(&config).unwrap_err();
@@ -459,6 +470,7 @@ No FR/NFR blocks at all.
         file_types: vec![],
         features: vec![],
         exclude_features: None,
+        command_map_path: None,
     };
 
     let err = scaffold_from_srs(&config).unwrap_err();
@@ -475,6 +487,7 @@ fn test_error_nonexistent_srs_path() {
         file_types: vec![],
         features: vec![],
         exclude_features: None,
+        command_map_path: None,
     };
 
     let err = scaffold_from_srs(&config).unwrap_err();
@@ -1042,6 +1055,7 @@ Report.
         file_types: vec![],
         features: vec![],
         exclude_features: None,
+        command_map_path: None,
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -1174,6 +1188,7 @@ Exit code behavior.
         file_types: vec![],
         features: vec![],
         exclude_features: None,
+        command_map_path: None,
     };
     scaffold_from_srs(&config).unwrap();
 
@@ -1512,6 +1527,7 @@ fn test_force_overwrite_updates_content() {
         file_types: vec![],
         features: vec![],
         exclude_features: None,
+        command_map_path: None,
     };
 
     // First run
@@ -1555,6 +1571,7 @@ fn test_skip_existing_mixed_scenario() {
         file_types: vec![],
         features: vec![],
         exclude_features: None,
+        command_map_path: None,
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -1585,6 +1602,7 @@ fn test_output_dir_created_automatically() {
         file_types: vec![],
         features: vec![],
         exclude_features: None,
+        command_map_path: None,
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -1609,6 +1627,7 @@ fn test_phase_filter_single_testing() {
         file_types: vec![],
         features: vec![],
         exclude_features: None,
+        command_map_path: None,
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -1648,6 +1667,7 @@ fn test_phase_filter_requirements_includes_brd() {
         file_types: vec![],
         features: vec![],
         exclude_features: None,
+        command_map_path: None,
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -1675,6 +1695,7 @@ fn test_phase_filter_multiple_phases() {
         file_types: vec![],
         features: vec![],
         exclude_features: None,
+        command_map_path: None,
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -1707,6 +1728,7 @@ fn test_phase_filter_deployment_only() {
         file_types: vec![],
         features: vec![],
         exclude_features: None,
+        command_map_path: None,
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -1733,6 +1755,7 @@ fn test_phase_filter_with_force() {
         file_types: vec![],
         features: vec![],
         exclude_features: None,
+        command_map_path: None,
     };
     scaffold_from_srs(&config_all).unwrap();
 
@@ -1745,6 +1768,7 @@ fn test_phase_filter_with_force() {
         file_types: vec![],
         features: vec![],
         exclude_features: None,
+        command_map_path: None,
     };
     let result = scaffold_from_srs(&config_phase).unwrap();
 
@@ -1768,6 +1792,7 @@ fn test_phase_filter_design_only() {
         file_types: vec![],
         features: vec![],
         exclude_features: None,
+        command_map_path: None,
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -1801,6 +1826,7 @@ fn test_phase_filter_all_four_equals_no_filter() {
         file_types: vec![],
         features: vec![],
         exclude_features: None,
+        command_map_path: None,
     };
     let result_all = scaffold_from_srs(&config_all).unwrap();
 
@@ -1818,6 +1844,7 @@ fn test_phase_filter_all_four_equals_no_filter() {
         file_types: vec![],
         features: vec![],
         exclude_features: None,
+        command_map_path: None,
     };
     let result_explicit = scaffold_from_srs(&config_explicit).unwrap();
 
@@ -1914,6 +1941,7 @@ fn test_phase_filter_skip_existing_in_filtered_phase() {
         file_types: vec![],
         features: vec![],
         exclude_features: None,
+        command_map_path: None,
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -1944,6 +1972,7 @@ fn test_phase_filter_skip_then_force() {
         file_types: vec![],
         features: vec![],
         exclude_features: None,
+        command_map_path: None,
     };
     let r1 = scaffold_from_srs(&config1).unwrap();
     assert_eq!(r1.created.len(), 4);
@@ -1957,6 +1986,7 @@ fn test_phase_filter_skip_then_force() {
         file_types: vec![],
         features: vec![],
         exclude_features: None,
+        command_map_path: None,
     };
     let r2 = scaffold_from_srs(&config2).unwrap();
     assert_eq!(r2.skipped.len(), 4);
@@ -1971,6 +2001,7 @@ fn test_phase_filter_skip_then_force() {
         file_types: vec![],
         features: vec![],
         exclude_features: None,
+        command_map_path: None,
     };
     let r3 = scaffold_from_srs(&config3).unwrap();
     assert_eq!(r3.created.len(), 4);
@@ -1994,6 +2025,7 @@ fn test_phase_filter_yaml_files_valid() {
         file_types: vec![],
         features: vec![],
         exclude_features: None,
+        command_map_path: None,
         };
         let result = scaffold_from_srs(&config).unwrap();
 
@@ -2136,6 +2168,7 @@ Scans complete in under one second.
         file_types: vec![],
         features: vec![],
         exclude_features: None,
+        command_map_path: None,
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -2169,6 +2202,7 @@ fn test_phase_filter_mixed_attrs_design() {
         file_types: vec![],
         features: vec![],
         exclude_features: None,
+        command_map_path: None,
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -2207,6 +2241,7 @@ fn test_phase_filter_result_counts_formula() {
         file_types: vec![],
         features: vec![],
         exclude_features: None,
+        command_map_path: None,
         };
         let result = scaffold_from_srs(&config).unwrap();
 
@@ -2233,6 +2268,7 @@ fn test_type_filter_exec_only() {
         file_types: vec!["exec".to_string()],
         features: vec![],
         exclude_features: None,
+        command_map_path: None,
     };
     let result = scaffold_from_srs(&config).unwrap();
 
@@ -2261,6 +2297,7 @@ fn test_type_filter_yaml_only() {
         file_types: vec!["yaml".to_string()],
         features: vec![],
         exclude_features: None,
+        command_map_path: None,
     };
     let result = scaffold_from_srs(&config).unwrap();
 
@@ -2290,6 +2327,7 @@ fn test_type_filter_multiple() {
         file_types: vec!["yaml".to_string(), "exec".to_string()],
         features: vec![],
         exclude_features: None,
+        command_map_path: None,
     };
     let result = scaffold_from_srs(&config).unwrap();
 
@@ -2318,6 +2356,7 @@ fn test_type_filter_empty_means_all() {
         file_types: vec![],
         features: vec![],
         exclude_features: None,
+        command_map_path: None,
     };
     let result = scaffold_from_srs(&config).unwrap();
 
@@ -2339,6 +2378,7 @@ fn test_type_filter_combined_with_phase() {
         file_types: vec!["exec".to_string()],
         features: vec![],
         exclude_features: None,
+        command_map_path: None,
     };
     let result = scaffold_from_srs(&config).unwrap();
 
@@ -2381,6 +2421,7 @@ fn test_phase_filter_metadata_unchanged() {
         file_types: vec![],
         features: vec![],
         exclude_features: None,
+        command_map_path: None,
         };
         let result = scaffold_from_srs(&config).unwrap();
 
@@ -2435,6 +2476,7 @@ fn test_scaffold_result_json_with_phase_filter() {
         file_types: vec![],
         features: vec![],
         exclude_features: None,
+        command_map_path: None,
     };
     let result = scaffold_from_srs(&config).unwrap();
     let json = serde_json::to_string_pretty(&result).unwrap();
@@ -2464,6 +2506,7 @@ fn test_exclude_features_blanket_excludes_all_gated() {
         file_types: vec![],
         features: vec![],
         exclude_features: Some(vec![]),
+        command_map_path: None,
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -2490,6 +2533,7 @@ fn test_exclude_features_targeted_excludes_specific() {
         file_types: vec![],
         features: vec![],
         exclude_features: Some(vec!["ai".into()]),
+        command_map_path: None,
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -2516,6 +2560,7 @@ fn test_features_positive_filter_only_ai() {
         file_types: vec![],
         features: vec!["ai".into()],
         exclude_features: None,
+        command_map_path: None,
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -2526,39 +2571,61 @@ fn test_features_positive_filter_only_ai() {
     assert!(!output_dir.join("docs/1-requirements/experimental_subsystem").exists());
 }
 
-// === TC-011: Command attribute tests ========================================
+// === TC-011: Command map tests ===============================================
 
 #[test]
-fn test_manual_exec_steps_uses_command_attribute() {
-    let (_tmp, output_dir, config) = scaffold_to_tmp(COMMAND_ATTR_FIXTURE_SRS);
+fn test_manual_exec_steps_uses_command_map() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let srs_path = tmp.path().join("srs.md");
+    fs::write(&srs_path, COMMAND_MAP_FIXTURE_SRS).unwrap();
+    let output_dir = tmp.path().join("output");
+
+    // Write a command map TOML
+    let cmd_map_path = tmp.path().join("commands.toml");
+    fs::write(&cmd_map_path, "\
+[commands]
+FR-700 = \"doc-engine scan <PATH>\"
+FR-701 = \"doc-engine scaffold srs.md\"
+").unwrap();
+
+    let config = ScaffoldConfig {
+        srs_path,
+        output_dir: output_dir.clone(),
+        force: false,
+        phases: vec![],
+        file_types: vec![],
+        features: vec![],
+        exclude_features: None,
+        command_map_path: Some(cmd_map_path),
+    };
     scaffold_from_srs(&config).unwrap();
 
     let manual = fs::read_to_string(
         output_dir.join("docs/5-testing/cli_interface/cli_interface.manual.exec"),
     ).unwrap();
 
-    // FR-700: Has Command attribute + backtick-heavy acceptance → Steps uses explicit command
+    // FR-700: Mapped in command map + backtick-heavy acceptance → Steps uses mapped command
     let tc001 = manual.lines().find(|l| l.contains("TC-001")).unwrap();
     assert!(
         tc001.contains("Run `doc-engine scan <PATH>`"),
-        "TC-001 should use explicit Command attribute, got: {}", tc001,
+        "TC-001 should use command map entry, got: {}", tc001,
     );
 
-    // FR-701: Has Command attribute, no acceptance backtick commands → Demonstration uses command
+    // FR-701: Mapped in command map, no acceptance backtick commands → Demonstration uses mapped command
     let tc002 = manual.lines().find(|l| l.contains("TC-002")).unwrap();
     assert!(
         tc002.contains("Execute `doc-engine scaffold srs.md` and observe output"),
-        "TC-002 should use explicit Command attribute for Demonstration, got: {}", tc002,
+        "TC-002 should use command map entry for Demonstration, got: {}", tc002,
     );
 
-    // FR-702: No Command, backtick acceptance → fallback to heuristic
+    // FR-702: Not mapped, backtick acceptance → fallback to heuristic
     let tc003 = manual.lines().find(|l| l.contains("TC-003")).unwrap();
     assert!(
         tc003.contains("Run `doc-engine scan --json`"),
         "TC-003 should fall back to heuristic backtick scan, got: {}", tc003,
     );
 
-    // FR-703: No Command, no backtick commands → _TODO_
+    // FR-703: Not mapped, no backtick commands → _TODO_
     let tc004 = manual.lines().find(|l| l.contains("TC-004")).unwrap();
     assert!(
         tc004.contains("_TODO_"),
@@ -2567,15 +2634,36 @@ fn test_manual_exec_steps_uses_command_attribute() {
 }
 
 #[test]
-fn test_manual_exec_expected_strips_explicit_command() {
-    let (_tmp, output_dir, config) = scaffold_to_tmp(COMMAND_ATTR_FIXTURE_SRS);
+fn test_manual_exec_expected_strips_command_map_entry() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let srs_path = tmp.path().join("srs.md");
+    fs::write(&srs_path, COMMAND_MAP_FIXTURE_SRS).unwrap();
+    let output_dir = tmp.path().join("output");
+
+    let cmd_map_path = tmp.path().join("commands.toml");
+    fs::write(&cmd_map_path, "\
+[commands]
+FR-700 = \"doc-engine scan <PATH>\"
+FR-701 = \"doc-engine scaffold srs.md\"
+").unwrap();
+
+    let config = ScaffoldConfig {
+        srs_path,
+        output_dir: output_dir.clone(),
+        force: false,
+        phases: vec![],
+        file_types: vec![],
+        features: vec![],
+        exclude_features: None,
+        command_map_path: Some(cmd_map_path),
+    };
     scaffold_from_srs(&config).unwrap();
 
     let manual = fs::read_to_string(
         output_dir.join("docs/5-testing/cli_interface/cli_interface.manual.exec"),
     ).unwrap();
 
-    // FR-701: Command="doc-engine scaffold srs.md", acceptance="Scaffold generates all compliance documents"
+    // FR-701: command map="doc-engine scaffold srs.md", acceptance="Scaffold generates all compliance documents"
     // Acceptance does not start with the command, so Expected should remain unchanged
     let tc002 = manual.lines().find(|l| l.contains("TC-002")).unwrap();
     let cols: Vec<&str> = tc002.split('|').collect();
@@ -2585,13 +2673,45 @@ fn test_manual_exec_expected_strips_explicit_command() {
         "TC-002 Expected should remain unchanged when acceptance doesn't start with command, got: {}", expected,
     );
 
-    // FR-702: No Command, heuristic finds `doc-engine scan --json`, acceptance starts with it
+    // FR-702: No map entry, heuristic finds `doc-engine scan --json`, acceptance starts with it
     let tc003 = manual.lines().find(|l| l.contains("TC-003")).unwrap();
     let cols: Vec<&str> = tc003.split('|').collect();
     let expected = cols[4].trim();
     assert_eq!(
         expected, "Outputs valid JSON",
         "TC-003 Expected should strip heuristic command prefix, got: {}", expected,
+    );
+}
+
+#[test]
+fn test_manual_exec_no_command_map_falls_back_to_heuristic() {
+    // No command map at all — heuristic should still work for backtick commands
+    let (_tmp, output_dir, config) = scaffold_to_tmp(COMMAND_MAP_FIXTURE_SRS);
+    scaffold_from_srs(&config).unwrap();
+
+    let manual = fs::read_to_string(
+        output_dir.join("docs/5-testing/cli_interface/cli_interface.manual.exec"),
+    ).unwrap();
+
+    // FR-700: No map, acceptance has backtick non-command spans then `doc-engine scan --verbose`
+    let tc001 = manual.lines().find(|l| l.contains("TC-001")).unwrap();
+    assert!(
+        tc001.contains("Run `doc-engine scan --verbose`"),
+        "TC-001 should fall back to heuristic without command map, got: {}", tc001,
+    );
+
+    // FR-702: No map, acceptance has `doc-engine scan --json`
+    let tc003 = manual.lines().find(|l| l.contains("TC-003")).unwrap();
+    assert!(
+        tc003.contains("Run `doc-engine scan --json`"),
+        "TC-003 heuristic should still work without command map, got: {}", tc003,
+    );
+
+    // FR-703: No map, no backtick commands → _TODO_
+    let tc004 = manual.lines().find(|l| l.contains("TC-004")).unwrap();
+    assert!(
+        tc004.contains("_TODO_"),
+        "TC-004 should be _TODO_ without command map, got: {}", tc004,
     );
 }
 
@@ -2610,6 +2730,7 @@ fn test_features_filter_default_includes_all() {
         file_types: vec![],
         features: vec![],
         exclude_features: None,
+        command_map_path: None,
     };
 
     let result = scaffold_from_srs(&config).unwrap();

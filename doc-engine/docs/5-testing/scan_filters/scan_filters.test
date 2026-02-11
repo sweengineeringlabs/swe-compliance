@@ -1,0 +1,13 @@
+# Test Plan: Scan Filters
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/scan_filters/scan_filters.spec)
+
+## Test Cases
+
+| ID | Test | Verifies | Priority |
+|----|------|----------|----------|
+| TC-001 | FR-835: Scan phase filter (Test) | REQ-001 | Should |
+| TC-002 | FR-836: Scan module filter (Test) | REQ-002 | Should |
+

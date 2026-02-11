@@ -1,0 +1,14 @@
+# Test Plan: AI Subsystem (feature-gated)
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/ai_subsystem_feature_gated/ai_subsystem_feature_gated.spec)
+
+## Test Cases
+
+| ID | Test | Verifies | Priority |
+|----|------|----------|----------|
+| TC-001 | NFR-600: AI feature is opt-in (Demonstration) | REQ-001 | Must |
+| TC-002 | NFR-601: AI crate SEA compliance (Inspection) | REQ-002 | Must |
+| TC-003 | NFR-602: Graceful AI degradation (Demonstration) | REQ-003 | Must |
+

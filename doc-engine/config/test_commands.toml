@@ -1,0 +1,10 @@
+# Test command mappings — maps FR/NFR IDs to runnable CLI commands.
+# Used by: doc-engine scaffold --command-map config/test_commands.toml
+# Populates the Steps column in .manual.exec files (ISO 29119-3).
+
+[commands]
+FR-901 = "cargo test -p doc-engine-ai config"
+FR-902 = "cargo test -p doc-engine-ai compliance_scan"
+FR-903 = "cargo test -p doc-engine-ai loads_embedded_agents"
+FR-904 = "cargo test -p doc-engine-ai agent"
+FR-907 = "cargo test -p doc-engine-ai service"

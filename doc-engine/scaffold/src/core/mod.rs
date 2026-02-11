@@ -2,11 +2,52 @@ pub(crate) mod parser;
 pub(crate) mod yaml_gen;
 pub(crate) mod markdown_gen;
 
+use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
 
 use crate::api::types::{ScaffoldError, iso8601_now};
 use crate::api::types::{ScaffoldConfig, ScaffoldResult};
+
+/// Load a TOML command map file (`[commands]` table) into a HashMap.
+///
+/// The file must contain a `[commands]` table mapping requirement IDs to CLI commands:
+/// ```toml
+/// [commands]
+/// FR-901 = "cargo test -p doc-engine-ai config"
+/// ```
+pub(crate) fn load_command_map(path: &std::path::Path) -> Result<HashMap<String, String>, ScaffoldError> {
+    let content = fs::read_to_string(path).map_err(|e| {
+        ScaffoldError::Path(format!(
+            "cannot read command map '{}': {}",
+            path.display(),
+            e
+        ))
+    })?;
+    let table: toml::Table = content.parse().map_err(|e| {
+        ScaffoldError::Parse(format!(
+            "invalid TOML in command map '{}': {}",
+            path.display(),
+            e
+        ))
+    })?;
+    let commands = table
+        .get("commands")
+        .and_then(|v| v.as_table())
+        .ok_or_else(|| {
+            ScaffoldError::Parse(format!(
+                "command map '{}' missing [commands] table",
+                path.display(),
+            ))
+        })?;
+    let mut map = HashMap::new();
+    for (key, val) in commands {
+        if let Some(s) = val.as_str() {
+            map.insert(key.clone(), s.to_string());
+        }
+    }
+    Ok(map)
+}
 
 /// Generate SDLC spec file scaffold from an SRS document.
 ///
@@ -47,6 +88,11 @@ pub fn scaffold_from_srs(config: &ScaffoldConfig) -> Result<ScaffoldResult, Scaf
             "no domains with requirements found in SRS".to_string(),
         ));
     }
+
+    let command_map = match config.command_map_path {
+        Some(ref p) => load_command_map(p)?,
+        None => HashMap::new(),
+    };
 
     let mut result = ScaffoldResult {
         standard: "ISO/IEC/IEEE 15289:2019".to_string(),
@@ -121,7 +167,7 @@ pub fn scaffold_from_srs(config: &ScaffoldConfig) -> Result<ScaffoldResult, Scaf
             if include_type("exec") {
                 files.push((
                     format!("docs/5-testing/{}/{}.manual.exec", domain.slug, domain.slug),
-                    markdown_gen::generate_manual_exec_md(domain),
+                    markdown_gen::generate_manual_exec_md(domain, &command_map),
                 ));
                 files.push((
                     format!("docs/5-testing/{}/{}.auto.exec", domain.slug, domain.slug),
@@ -251,6 +297,7 @@ The binary embeds rules.
             file_types: vec![],
             features: vec![],
             exclude_features: None,
+            command_map_path: None,
         };
         (config, output_dir)
     }
@@ -338,6 +385,7 @@ The binary embeds rules.
             file_types: vec![],
             features: vec![],
             exclude_features: None,
+            command_map_path: None,
         };
 
         let err = scaffold_from_srs(&config).unwrap_err();

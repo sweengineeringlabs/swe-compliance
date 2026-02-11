@@ -34,8 +34,6 @@ pub struct SrsRequirement {
     pub traces_to: Option<String>,
     /// Acceptance criteria text.
     pub acceptance: Option<String>,
-    /// Explicit CLI command for test step generation.
-    pub command: Option<String>,
     /// Narrative description text after the attribute table.
     pub description: String,
 }
@@ -76,6 +74,8 @@ pub struct ScaffoldConfig {
     pub features: Vec<String>,
     /// Exclude feature-gated domains. None = no filter, Some(vec![]) = exclude ALL, Some(vec!["ai"]) = exclude specific.
     pub exclude_features: Option<Vec<String>>,
+    /// Optional path to a TOML command map file (`[commands]` table: FR-ID → CLI command).
+    pub command_map_path: Option<PathBuf>,
 }
 
 /// Result of a scaffold operation (ISO/IEC/IEEE 15289:2019 clause 9).

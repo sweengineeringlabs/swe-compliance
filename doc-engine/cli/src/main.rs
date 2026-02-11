@@ -90,6 +90,10 @@ enum Commands {
         #[arg(long, num_args = 0..=1, default_missing_value = "", conflicts_with = "feature")]
         exclude_feature: Option<String>,
 
+        /// Path to a TOML command map (FR-ID → CLI command for test steps)
+        #[arg(long = "command-map", value_name = "PATH")]
+        command_map: Option<PathBuf>,
+
         /// Save scaffold report as JSON
         #[arg(long)]
         report: Option<PathBuf>,
@@ -366,7 +370,7 @@ fn main() {
                 }
             });
         }
-        Commands::Scaffold { srs_path, output, force, phase, file_type, feature, exclude_feature, report } => {
+        Commands::Scaffold { srs_path, output, force, phase, file_type, feature, exclude_feature, command_map, report } => {
             let srs_resolved = match srs_path.canonicalize() {
                 Ok(p) => p,
                 Err(e) => {
@@ -423,6 +427,7 @@ fn main() {
                 file_types,
                 features,
                 exclude_features,
+                command_map_path: command_map,
             };
 
             match scaffold_from_srs(&config) {

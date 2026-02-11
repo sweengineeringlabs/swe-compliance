@@ -1,0 +1,13 @@
+kind: test_plan
+domain: Scan Filters
+section: '4.14'
+specRef: docs/1-requirements/scan_filters/scan_filters.spec.yaml
+testCases:
+- id: TC-001
+  test: 'FR-835: Scan phase filter (Test)'
+  verifies: REQ-001
+  priority: Should
+- id: TC-002
+  test: 'FR-836: Scan module filter (Test)'
+  verifies: REQ-002
+  priority: Should

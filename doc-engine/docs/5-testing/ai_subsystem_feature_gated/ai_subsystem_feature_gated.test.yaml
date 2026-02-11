@@ -1,0 +1,17 @@
+kind: test_plan
+domain: AI Subsystem (feature-gated)
+section: '5.6'
+specRef: docs/1-requirements/ai_subsystem_feature_gated/ai_subsystem_feature_gated.spec.yaml
+testCases:
+- id: TC-001
+  test: 'NFR-600: AI feature is opt-in (Demonstration)'
+  verifies: REQ-001
+  priority: Must
+- id: TC-002
+  test: 'NFR-601: AI crate SEA compliance (Inspection)'
+  verifies: REQ-002
+  priority: Must
+- id: TC-003
+  test: 'NFR-602: Graceful AI degradation (Demonstration)'
+  verifies: REQ-003
+  priority: Must

@@ -5,7 +5,7 @@ specRef: docs/1-requirements/architecture/architecture.spec.yaml
 components:
 - name: NFR-100 handler
   tracesTo: STK-04 -> module structure
-  description: 'The crate shall follow Single-Crate Modular SEA:'
+  description: The crate shall follow the Stratified Encapsulation Architecture pattern.
 - name: NFR-101 handler
   tracesTo: STK-04 -> module structure
   description: No layer shall depend on a layer above it.

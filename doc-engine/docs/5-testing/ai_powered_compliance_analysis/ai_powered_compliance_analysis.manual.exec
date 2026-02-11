@@ -1,0 +1,40 @@
+# Manual Test Execution: AI-Powered Compliance Analysis
+
+> **TLDR:** Manual test checklist for AI-Powered Compliance Analysis — step-by-step procedures with expected outcomes.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](ai_powered_compliance_analysis.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Steps | Expected |
+|----|------|-------|----------|
+| TC-001 | FR-900: AI feature gate (Demonstration) | Execute `cargo build` and observe output | (default) succeeds without `tokio`, `llm-provider`, or any AI dependencies; `cargo build --features ai` compiles the `doc-engine-ai` crate and enables the `ai` subcommand; the default CLI help does not show the `ai` subcommand |
+| TC-002 | FR-901: AI configuration from environment (Test) | Run `cargo test -p doc-engine-ai config` | Passes; environment variables `DOC_ENGINE_AI_ENABLED`, `LLM_PROVIDER`, `LLM_DEFAULT_MODEL`, and `DOC_ENGINE_AI_HISTORY_SIZE` are read with sensible defaults (enabled=true, provider=anthropic, model=claude-sonnet-4-20250514, history_size=20); setting `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, or `GEMINI_API_KEY` to a non-empty value is detected as key-present |
+| TC-003 | FR-902: ComplianceScanTool (Test) | Run `cargo test -p doc-engine-ai compliance_scan` | Passes; the tool is registered as `compliance_scan` with read-only risk level; it accepts a `path` (required), `scope` (small/medium/large), and `format` (json/text) parameter; executing the tool on a valid project path returns a compliance scan report |
+| TC-004 | FR-903: Agent configuration from embedded YAML (Test) | Run `cargo test -p doc-engine-ai loads_embedded_agents` | Passes; the embedded agent configuration defines a `compliance-auditor` agent with trigger keywords (`audit`, `compliance`, `scan`, `check`, `iso`) and the `compliance_scan` tool; the agent manager loads all agents at construction without errors |
+| TC-005 | FR-904: DocEngineAgent descriptor (Test) | Run `cargo test -p doc-engine-ai agent` | Passes; each loaded agent exposes an id, display name, description, system prompt, and trigger keywords derived from the embedded YAML configuration |
+| TC-006 | FR-905: DocEngineFactory (Inspection) | Review `ai/src/core/agents/factory.rs` | The factory builds a tool-aware chat engine for a given agent; when the agent's tool list includes `compliance_scan`, the engine has access to the scan tool; the engine is configured with the agent's system prompt and the AI provider settings from environment |
+| TC-007 | FR-906: DocEngineAiService trait (Inspection) | Review `ai/src/api/types.rs` | The AI service trait exposes `chat` and `audit` operations; `chat` accepts a message and returns an LLM response or an error; `audit` accepts a path and scope, returns a summary, raw scan results, and a list of recommendations; errors are typed as configuration, provider, or scan failures |
+| TC-008 | FR-907: DefaultDocEngineAiService (Test) | Run `cargo test -p doc-engine-ai service` | Passes; construction fails with a configuration error when AI is disabled or no API key is set; `chat` sends a message to the LLM and returns the response; `audit` runs a compliance scan, sends results to the LLM, and returns a summary with recommendations |
+| TC-009 | FR-908: AI CLI subcommands (Demonstration) | Execute `doc-engine ai chat <MESSAGE>` and observe output | When built with `--features ai`, the CLI exposes `doc-engine ai chat <MESSAGE>` and `doc-engine ai audit <PATH> [--scope small\\|medium\\|large]`; the `chat` subcommand prints the LLM response to stdout; the `audit` subcommand prints the summary and recommendations; both exit with code 1 on AI errors and code 2 on configuration errors; the `ai` subcommand does not appear in help when the feature is disabled |
+
+---
+
+## Execution Log
+
+| TC | Tester | Date | Pass/Fail | Notes |
+|----|--------|------|-----------|-------|
+| TC-001 | | | | |
+| TC-002 | | | | |
+| TC-003 | | | | |
+| TC-004 | | | | |
+| TC-005 | | | | |
+| TC-006 | | | | |
+| TC-007 | | | | |
+| TC-008 | | | | |
+| TC-009 | | | | |
+

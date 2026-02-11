@@ -244,7 +244,6 @@ mod tests {
                     verification: Some("Test".to_string()),
                     traces_to: Some("STK-01 -> core/rules.rs".to_string()),
                     acceptance: Some("Engine loads embedded rules".to_string()),
-                    command: None,
                     description: "The binary shall embed rules.".to_string(),
                 },
                 SrsRequirement {
@@ -256,7 +255,6 @@ mod tests {
                     verification: Some("Test".to_string()),
                     traces_to: Some("STK-02".to_string()),
                     acceptance: Some("External rules override".to_string()),
-                    command: None,
                     description: "Load external file.".to_string(),
                 },
             ],

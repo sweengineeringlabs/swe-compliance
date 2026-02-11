@@ -1,0 +1,18 @@
+# Automated Test Execution: AI Subsystem (feature-gated)
+
+> **TLDR:** CI/automated test tracker for AI Subsystem (feature-gated) — maps each test case to a CI job and build.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](ai_subsystem_feature_gated.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Verifies | CI Job | Build | Status | Last Run |
+|----|------|----------|--------|-------|--------|----------|
+| TC-001 | NFR-600: AI feature is opt-in (Demonstration) | REQ-001 | | | Pending | |
+| TC-002 | NFR-601: AI crate SEA compliance (Inspection) | REQ-002 | | | Pending | |
+| TC-003 | NFR-602: Graceful AI degradation (Demonstration) | REQ-003 | | | Pending | |
+

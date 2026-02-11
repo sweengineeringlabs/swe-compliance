@@ -1,0 +1,105 @@
+{
+  "standard": "ISO/IEC/IEEE 15289:2019",
+  "clause": "9.2",
+  "tool": "doc-engine",
+  "tool_version": "0.1.0",
+  "timestamp": "2026-02-11T12:35:39Z",
+  "project_root": "/mnt/c/phd-systems/swe-labs/swe-compliance/doc-engine",
+  "results": [
+    {
+      "id": 59,
+      "category": "testing",
+      "description": "Testing strategy exists",
+      "result": {
+        "status": "pass"
+      }
+    },
+    {
+      "id": 99,
+      "category": "testing",
+      "description": "Test plan exists",
+      "result": {
+        "status": "fail",
+        "violations": [
+          {
+            "check_id": 99,
+            "path": "docs/5-testing/test_plan.md",
+            "message": "File 'docs/5-testing/test_plan.md' does not exist",
+            "severity": "warning"
+          }
+        ]
+      }
+    },
+    {
+      "id": 100,
+      "category": "testing",
+      "description": "Test design specification exists",
+      "result": {
+        "status": "skip",
+        "reason": "Skipped: requires Large scope (configured Small)"
+      }
+    },
+    {
+      "id": 101,
+      "category": "testing",
+      "description": "Test case specification exists",
+      "result": {
+        "status": "skip",
+        "reason": "Skipped: requires Large scope (configured Small)"
+      }
+    },
+    {
+      "id": 102,
+      "category": "testing",
+      "description": "Verification report exists",
+      "result": {
+        "status": "skip",
+        "reason": "Skipped: requires Large scope (configured Small)"
+      }
+    },
+    {
+      "id": 125,
+      "category": "testing",
+      "description": "Test plan has 29119-3 sections",
+      "result": {
+        "status": "skip",
+        "reason": "Skipped: requires Large scope (configured Small)"
+      }
+    },
+    {
+      "id": 126,
+      "category": "testing",
+      "description": "Test design has 29119-3 sections",
+      "result": {
+        "status": "skip",
+        "reason": "Skipped: requires Large scope (configured Small)"
+      }
+    },
+    {
+      "id": 127,
+      "category": "testing",
+      "description": "Test cases has 29119-3 sections",
+      "result": {
+        "status": "skip",
+        "reason": "Skipped: requires Large scope (configured Small)"
+      }
+    },
+    {
+      "id": 128,
+      "category": "testing",
+      "description": "Verification report has 29119-3 sections",
+      "result": {
+        "status": "skip",
+        "reason": "Skipped: requires Large scope (configured Small)"
+      }
+    }
+  ],
+  "summary": {
+    "total": 9,
+    "passed": 1,
+    "failed": 1,
+    "skipped": 7
+  },
+  "project_type": "open_source",
+  "project_scope": "small"
+}

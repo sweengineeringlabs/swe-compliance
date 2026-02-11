@@ -31,74 +31,7 @@ keywords = ["test"]
 categories = ["development-tools"]
 
 [lib]
-path = "src/lib.rs"
-"#);
-
-    write_file(root, "src/lib.rs", r#"pub mod utils;
-
-pub fn add(a: i32, b: i32) -> i32 {
-    a + b
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_add() {
-        assert_eq!(add(1, 2), 3);
-    }
-}
-"#);
-
-    write_file(root, "src/utils.rs", r#"pub fn helper() -> String {
-    "hello".to_string()
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_helper() {
-        assert_eq!(helper(), "hello");
-    }
-}
-"#);
-
-    write_file(root, "tests/integration.rs", r#"#[test]
-fn test_integration() {
-    assert!(true);
-}
-"#);
-
-    write_file(root, "README.md", "# Test Project\n\nA test project.\n");
-    write_file(root, "CHANGELOG.md", "# Changelog\n\n## 0.1.0\n- Initial release\n");
-    write_file(root, ".gitignore", "target/\n*.swp\n");
-
-    tmp
-}
-
-fn create_rustboot_project() -> TempDir {
-    let tmp = tempfile::Builder::new().prefix("test_rb_").tempdir().unwrap();
-    let root = tmp.path();
-
-    write_file(root, "Cargo.toml", r#"[package]
-name = "rustboot_example"
-version = "0.1.0"
-edition = "2021"
-description = "A rustboot test project"
-license = "MIT"
-repository = "https://github.com/example/rustboot_example"
-authors = ["Test Author"]
-rust-version = "1.70"
-
-[lib]
 path = "main/src/lib.rs"
-
-[[test]]
-name = "api_int_test"
-path = "tests/src/api_int_test.rs"
 "#);
 
     write_file(root, "main/src/lib.rs", r#"pub mod utils;
@@ -133,7 +66,74 @@ mod tests {
 }
 "#);
 
-    write_file(root, "tests/src/api_int_test.rs", r#"#[test]
+    write_file(root, "tests/test_project_int_test.rs", r#"#[test]
+fn test_integration_happy() {
+    assert!(true);
+}
+"#);
+
+    write_file(root, "README.md", "# Test Project\n\nA test project.\n");
+    write_file(root, "CHANGELOG.md", "# Changelog\n\n## 0.1.0\n- Initial release\n");
+    write_file(root, ".gitignore", "target/\n*.swp\n");
+
+    tmp
+}
+
+fn create_rustboot_project() -> TempDir {
+    let tmp = tempfile::Builder::new().prefix("test_rb_").tempdir().unwrap();
+    let root = tmp.path();
+
+    write_file(root, "Cargo.toml", r#"[package]
+name = "rustboot_example"
+version = "0.1.0"
+edition = "2021"
+description = "A rustboot test project"
+license = "MIT"
+repository = "https://github.com/example/rustboot_example"
+authors = ["Test Author"]
+rust-version = "1.70"
+
+[lib]
+path = "main/src/lib.rs"
+
+[[test]]
+name = "rustboot_example_int_test"
+path = "tests/rustboot_example_int_test.rs"
+"#);
+
+    write_file(root, "main/src/lib.rs", r#"pub mod utils;
+
+pub fn add(a: i32, b: i32) -> i32 {
+    a + b
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_add() {
+        assert_eq!(add(1, 2), 3);
+    }
+}
+"#);
+
+    write_file(root, "main/src/utils.rs", r#"pub fn helper() -> String {
+    "hello".to_string()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_helper() {
+        assert_eq!(helper(), "hello");
+    }
+}
+"#);
+
+    write_file(root, "tests/rustboot_example_int_test.rs", r#"#[test]
 fn test_api_integration_happy() {
     assert!(true);
 }
@@ -278,7 +278,8 @@ fn test_documentation_checks() {
 #[test]
 fn test_project_kind_skip() {
     let tmp = create_minimal_project();
-    // Check 4 (rustboot main/src/) is workspace-only; with Library, it should skip
+    // Checks 4 and 5 no longer have project_kind restriction — they run for all projects.
+    // Since the minimal project uses main/src/ layout, both should pass.
     let config = ScanConfig {
         project_kind: Some(ProjectKind::Library),
         checks: Some(vec![4, 5]),
@@ -287,8 +288,8 @@ fn test_project_kind_skip() {
     let report = scan_with_config(tmp.path(), &config).unwrap();
     for entry in &report.results {
         assert!(
-            matches!(entry.result, CheckResult::Skip { .. }),
-            "Check {} should be skipped but got {:?}", entry.id.0, entry.result
+            matches!(entry.result, CheckResult::Pass),
+            "Check {} should pass but got {:?}", entry.id.0, entry.result
         );
     }
 }

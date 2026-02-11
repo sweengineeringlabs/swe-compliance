@@ -982,16 +982,9 @@ These requirements define new checks for recognized directories per the [backlog
 | **State** | Implemented |
 | **Verification** | Inspection |
 | **Traces to** | STK-04 -> module structure |
-| **Acceptance** | Code review confirms 3-layer SEA: API (public types/traits) <- Core (private implementations) <- SAF (re-exports) <- CLI |
+| **Acceptance** | Code review confirms layered SEA with no upward dependencies; see `docs/3-design/architecture.md` for layer definitions |
 
-The crate shall follow Single-Crate Modular SEA:
-
-| Layer | Visibility | Contents |
-|-------|-----------|----------|
-| L3: SAF | `pub` | Re-exports for library consumers |
-| L2: CLI | binary only | `main.rs` with clap |
-| L1: API | `pub` | `FileScanner`, `CheckRunner`, `ComplianceEngine`, `Reporter` traits; config/report types |
-| L0: Core | `pub(crate)` | All implementations |
+The crate shall follow the Stratified Encapsulation Architecture pattern, separating public interfaces from private implementation with clearly defined layer boundaries.
 
 #### NFR-101: Dependency direction
 
@@ -1001,7 +994,7 @@ The crate shall follow Single-Crate Modular SEA:
 | **State** | Implemented |
 | **Verification** | Inspection |
 | **Traces to** | STK-04 -> module structure |
-| **Acceptance** | No `use core::` in api/; core depends on api, not vice versa |
+| **Acceptance** | No module depends on a layer above it; see `docs/3-design/architecture.md` for layer ordering |
 
 No layer shall depend on a layer above it.
 
@@ -1191,7 +1184,7 @@ IO errors and missing files shall produce `Skip` results or clear error messages
 | FR-750-752 | `config/rules.toml` (proposed) |
 | FR-760-763 | `core/builtins/` (proposed) |
 | FR-770-771 | `core/builtins/` (proposed) |
-| NFR-100-101 | Module structure (api/, core/, saf/) |
+| NFR-100-101 | Module structure — see `docs/3-design/architecture.md` |
 | NFR-400-401 | `config/rules.toml`, `core/declarative.rs`, `core/builtins/` |
 | NFR-500-501 | `core/engine.rs`, `core/rules.rs` |
 

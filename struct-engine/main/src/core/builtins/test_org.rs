@@ -26,11 +26,12 @@ impl CheckRunner for TestFileSuffixes {
 
     fn run(&self, ctx: &ScanContext) -> CheckResult {
         let valid_suffixes = [
-            "_test.rs",
             "_int_test.rs",
-            "_sec_test.rs",
-            "_feat_test.rs",
+            "_stress_test.rs",
+            "_perf_test.rs",
+            "_load_test.rs",
             "_e2e_test.rs",
+            "_security_test.rs",
         ];
 
         let test_files: Vec<_> = ctx.files.iter()

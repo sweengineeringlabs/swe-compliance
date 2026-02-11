@@ -1,0 +1,28 @@
+# Manual Test Execution: AI Subsystem (feature-gated)
+
+> **TLDR:** Manual test checklist for AI Subsystem (feature-gated) — step-by-step procedures with expected outcomes.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](ai_subsystem_feature_gated.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Steps | Expected |
+|----|------|-------|----------|
+| TC-001 | NFR-600: AI feature is opt-in (Demonstration) | Execute `cargo build` and observe output | The default `cargo build` produces a binary with no `tokio`, `llm-provider`, or AI dependencies; `cargo test -p doc-engine-scan` and `cargo test -p doc-engine-cli` pass without the `ai` feature |
+| TC-002 | NFR-601: AI crate SEA compliance (Inspection) | Review `ai/src/` module structure` | The `doc-engine-ai` crate follows SEA layering: `spi/` (L2, config), `api/` (L1, service trait and types), `core/` (L0, tools, agents, factory); no upward dependency violations |
+| TC-003 | NFR-602: Graceful AI degradation (Demonstration) | _TODO_ | Missing or invalid API key produces a clear `DocEngineAiError::NotEnabled` message and exit code 2; LLM API failures produce `DocEngineAiError::Llm` with the provider's error message; neither case panics or corrupts scan results |
+
+---
+
+## Execution Log
+
+| TC | Tester | Date | Pass/Fail | Notes |
+|----|--------|------|-----------|-------|
+| TC-001 | | | | |
+| TC-002 | | | | |
+| TC-003 | | | | |
+

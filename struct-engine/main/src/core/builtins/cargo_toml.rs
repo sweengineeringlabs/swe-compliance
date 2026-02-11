@@ -12,7 +12,7 @@ fn make_violation(def: &RuleDef, path: Option<&Path>, message: &str) -> Violatio
     }
 }
 
-/// Check 3: src/lib.rs or src/main.rs exists (standard layout).
+/// Check 3: main/src/lib.rs or main/src/main.rs exists (default layout).
 pub struct CrateRootExists {
     pub def: RuleDef,
 }
@@ -23,16 +23,16 @@ impl CheckRunner for CrateRootExists {
     fn description(&self) -> &str { &self.def.description }
 
     fn run(&self, ctx: &ScanContext) -> CheckResult {
-        let lib_rs = ctx.root.join("src/lib.rs");
-        let main_rs = ctx.root.join("src/main.rs");
+        let lib_rs = ctx.root.join("main/src/lib.rs");
+        let main_rs = ctx.root.join("main/src/main.rs");
         if lib_rs.exists() || main_rs.exists() {
             CheckResult::Pass
         } else {
             CheckResult::Fail {
                 violations: vec![make_violation(
                     &self.def,
-                    Some(Path::new("src/")),
-                    "Neither src/lib.rs nor src/main.rs exists",
+                    Some(Path::new("main/src/")),
+                    "Neither main/src/lib.rs nor main/src/main.rs exists",
                 )],
             }
         }
@@ -187,15 +187,15 @@ impl CheckRunner for LibPathCorrect {
                 }
             }
             None => {
-                // Default lib path is src/lib.rs
-                if ctx.root.join("src/lib.rs").exists() {
+                // Default lib path is main/src/lib.rs
+                if ctx.root.join("main/src/lib.rs").exists() {
                     CheckResult::Pass
                 } else {
                     CheckResult::Fail {
                         violations: vec![make_violation(
                             &self.def,
-                            Some(Path::new("src/lib.rs")),
-                            "Default lib path src/lib.rs does not exist",
+                            Some(Path::new("main/src/lib.rs")),
+                            "Default lib path main/src/lib.rs does not exist",
                         )],
                     }
                 }

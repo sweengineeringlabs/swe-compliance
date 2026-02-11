@@ -1,0 +1,26 @@
+# Manual Test Execution: Scan Filters
+
+> **TLDR:** Manual test checklist for Scan Filters — step-by-step procedures with expected outcomes.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](scan_filters.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Steps | Expected |
+|----|------|-------|----------|
+| TC-001 | FR-835: Scan phase filter (Test) | _TODO_ | The `scan` command accepts a `--phase` flag with a comma-separated list of SDLC phase/category names (e.g. `--phase testing,module`). When specified, only checks whose category matches one of the given phases appear in results; non-matching checks are silently excluded. Unknown phase names cause exit code 2 with an error message listing valid phases. |
+| TC-002 | FR-836: Scan module filter (Test) | _TODO_ | The `scan` command accepts a `--module` flag with a comma-separated list of module names (e.g. `--module scan,cli`). When specified, module checks (77-81) only run against the named modules. The CLI flag overrides any per-rule `module_filter` default in `rules.toml`. Module names are case-sensitive filesystem names and are not validated against discovered modules. |
+
+---
+
+## Execution Log
+
+| TC | Tester | Date | Pass/Fail | Notes |
+|----|--------|------|-----------|-------|
+| TC-001 | | | | |
+| TC-002 | | | | |
+

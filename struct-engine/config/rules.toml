@@ -1,5 +1,5 @@
 # struct-engine rules: Standard Rust project conventions
-# 44 checks across 7 categories
+# 45 checks across 7 categories
 
 # =============================================================================
 # Category 1: structure (Checks 1-8) — Directory Layout
@@ -16,10 +16,10 @@ path = "Cargo.toml"
 [[rules]]
 id = 2
 category = "structure"
-description = "src/ directory exists"
+description = "main/src/ directory exists"
 severity = "error"
 type = "dir_exists"
-path = "src"
+path = "main/src"
 
 [[rules]]
 id = 3
@@ -36,7 +36,6 @@ description = "main/src/ directory exists (rustboot)"
 severity = "error"
 type = "dir_exists"
 path = "main/src"
-project_kind = "workspace"
 
 [[rules]]
 id = 5
@@ -45,7 +44,6 @@ description = "main/src/lib.rs or main/src/main.rs exists (rustboot)"
 severity = "error"
 type = "builtin"
 handler = "rustboot_crate_root_exists"
-project_kind = "workspace"
 
 [[rules]]
 id = 6
@@ -58,11 +56,11 @@ path = "tests"
 [[rules]]
 id = 7
 category = "structure"
-description = "No nested src/ dirs (src/src/)"
+description = "No nested src/ dirs (main/src/src/)"
 severity = "error"
 type = "dir_not_exists"
-path = "src/src"
-message = "Nested src/src/ directory detected; this is likely a mistake"
+path = "main/src/src"
+message = "Nested main/src/src/ directory detected; this is likely a mistake"
 
 [[rules]]
 id = 8
@@ -290,11 +288,10 @@ handler = "bin_names_valid"
 [[rules]]
 id = 33
 category = "test_org"
-description = "Test files use correct suffixes (_test.rs, _int_test.rs, etc.)"
+description = "Test files use correct suffixes (_int_test.rs, _e2e_test.rs, etc.)"
 severity = "warning"
 type = "builtin"
 handler = "test_file_suffixes"
-project_kind = "workspace"
 
 [[rules]]
 id = 34
@@ -376,7 +373,7 @@ type = "file_exists"
 path = "CHANGELOG.md"
 
 # =============================================================================
-# Category 7: hygiene (Checks 43-44) — Project Hygiene
+# Category 7: hygiene (Checks 43-45) — Project Hygiene
 # =============================================================================
 
 [[rules]]
@@ -396,3 +393,12 @@ severity = "error"
 type = "dir_not_exists"
 path = "target"
 message = "target/ directory should not be committed to version control"
+
+[[rules]]
+id = 45
+category = "hygiene"
+description = "Legacy src/ layout detected"
+severity = "warning"
+type = "dir_not_exists"
+path = "src"
+message = "Legacy src/ detected — should be main/src/"

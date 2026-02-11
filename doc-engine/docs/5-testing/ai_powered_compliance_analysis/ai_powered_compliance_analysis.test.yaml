@@ -1,0 +1,41 @@
+kind: test_plan
+domain: AI-Powered Compliance Analysis
+section: '4.15'
+specRef: docs/1-requirements/ai_powered_compliance_analysis/ai_powered_compliance_analysis.spec.yaml
+testCases:
+- id: TC-001
+  test: 'FR-900: AI feature gate (Demonstration)'
+  verifies: REQ-001
+  priority: Must
+- id: TC-002
+  test: 'FR-901: AI configuration from environment (Test)'
+  verifies: REQ-002
+  priority: Must
+- id: TC-003
+  test: 'FR-902: ComplianceScanTool (Test)'
+  verifies: REQ-003
+  priority: Must
+- id: TC-004
+  test: 'FR-903: Agent configuration from embedded YAML (Test)'
+  verifies: REQ-004
+  priority: Must
+- id: TC-005
+  test: 'FR-904: DocEngineAgent descriptor (Test)'
+  verifies: REQ-005
+  priority: Must
+- id: TC-006
+  test: 'FR-905: DocEngineFactory (Inspection)'
+  verifies: REQ-006
+  priority: Must
+- id: TC-007
+  test: 'FR-906: DocEngineAiService trait (Inspection)'
+  verifies: REQ-007
+  priority: Must
+- id: TC-008
+  test: 'FR-907: DefaultDocEngineAiService (Test)'
+  verifies: REQ-008
+  priority: Must
+- id: TC-009
+  test: 'FR-908: AI CLI subcommands (Demonstration)'
+  verifies: REQ-009
+  priority: Must

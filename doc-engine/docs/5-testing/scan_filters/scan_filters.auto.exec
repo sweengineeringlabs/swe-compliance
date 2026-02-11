@@ -1,0 +1,17 @@
+# Automated Test Execution: Scan Filters
+
+> **TLDR:** CI/automated test tracker for Scan Filters — maps each test case to a CI job and build.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](scan_filters.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Verifies | CI Job | Build | Status | Last Run |
+|----|------|----------|--------|-------|--------|----------|
+| TC-001 | FR-835: Scan phase filter (Test) | REQ-001 | | | Pending | |
+| TC-002 | FR-836: Scan module filter (Test) | REQ-002 | | | Pending | |
+

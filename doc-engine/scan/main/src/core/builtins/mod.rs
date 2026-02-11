@@ -57,6 +57,7 @@ pub fn get_handler(name: &str, def: &RuleDef) -> Option<Box<dyn CheckRunner>> {
 
         // Content handlers (new)
         "readme_line_count" => Some(Box::new(content::ReadmeLineCount { def: def.clone() })),
+        "hardcoded_path_detection" => Some(Box::new(content::HardcodedPathDetection { def: def.clone() })),
 
         // Naming handlers (new)
         "fr_naming" => Some(Box::new(naming::FrNaming { def: def.clone() })),
@@ -83,6 +84,8 @@ pub fn get_handler(name: &str, def: &RuleDef) -> Option<Box<dyn CheckRunner>> {
         "test_design_29119_sections" => Some(Box::new(requirements::TestDesign29119Sections { def: def.clone() })),
         "test_cases_29119_sections" => Some(Box::new(requirements::TestCases29119Sections { def: def.clone() })),
         "verification_report_29119_sections" => Some(Box::new(requirements::VerificationReport29119Sections { def: def.clone() })),
+        "srs_no_tech_details" => Some(Box::new(requirements::SrsNoTechDetails { def: def.clone() })),
+        "srs_no_downstream_refs" => Some(Box::new(requirements::SrsNoDownstreamRefs { def: def.clone() })),
 
         _ => None,
     }

@@ -8,7 +8,7 @@
 
 | Component | Traces To | Description |
 |-----------|-----------|-------------|
-| NFR-100 handler | STK-04 -> module structure | The crate shall follow Single-Crate Modular SEA: |
+| NFR-100 handler | STK-04 -> module structure | The crate shall follow the Stratified Encapsulation Architecture pattern. |
 | NFR-101 handler | STK-04 -> module structure | No layer shall depend on a layer above it. |
 
 ## Related Documents

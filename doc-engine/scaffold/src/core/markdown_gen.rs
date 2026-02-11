@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::api::types::{SrsDomain, SrsRequirement};
 
 /// Escape pipe characters for markdown table cells.
@@ -121,8 +123,8 @@ fn is_command_like(span: &str) -> bool {
 }
 
 /// Generate a step description for a Test-verified requirement.
-fn generate_test_steps(req: &SrsRequirement) -> String {
-    if let Some(ref cmd) = req.command {
+fn generate_test_steps(req: &SrsRequirement, command_map: &HashMap<String, String>) -> String {
+    if let Some(cmd) = command_map.get(&req.id) {
         return format!("Run `{}`", cmd);
     }
     if let Some(ref acceptance) = req.acceptance {
@@ -137,8 +139,8 @@ fn generate_test_steps(req: &SrsRequirement) -> String {
 ///
 /// Only emits a step when a runnable command is found in acceptance.
 /// Prose acceptance is never used — it already appears in the Expected column.
-fn generate_demonstration_steps(req: &SrsRequirement) -> String {
-    if let Some(ref cmd) = req.command {
+fn generate_demonstration_steps(req: &SrsRequirement, command_map: &HashMap<String, String>) -> String {
+    if let Some(cmd) = command_map.get(&req.id) {
         return format!("Execute `{}` and observe output", cmd);
     }
     if let Some(ref acceptance) = req.acceptance {
@@ -183,13 +185,13 @@ fn generate_analysis_steps(req: &SrsRequirement) -> String {
 }
 
 /// Dispatch to the appropriate step generator based on verification method.
-fn generate_steps(req: &SrsRequirement) -> String {
+fn generate_steps(req: &SrsRequirement, command_map: &HashMap<String, String>) -> String {
     match req.verification.as_deref().unwrap_or("Test") {
-        "Test" => generate_test_steps(req),
-        "Demonstration" => generate_demonstration_steps(req),
+        "Test" => generate_test_steps(req, command_map),
+        "Demonstration" => generate_demonstration_steps(req, command_map),
         "Inspection" => generate_inspection_steps(req),
         "Analysis" => generate_analysis_steps(req),
-        _ => generate_test_steps(req),
+        _ => generate_test_steps(req, command_map),
     }
 }
 
@@ -342,7 +344,7 @@ pub(crate) fn generate_test_spec_md(domain: &SrsDomain) -> String {
 }
 
 /// Generate a `.manual.exec` markdown file for a domain.
-pub(crate) fn generate_manual_exec_md(domain: &SrsDomain) -> String {
+pub(crate) fn generate_manual_exec_md(domain: &SrsDomain, command_map: &HashMap<String, String>) -> String {
     let mut out = String::new();
     out.push_str(&format!("# Manual Test Execution: {}\n\n", domain.title));
     out.push_str(&format!(
@@ -364,8 +366,9 @@ pub(crate) fn generate_manual_exec_md(domain: &SrsDomain) -> String {
         let tc_id = format!("TC-{:03}", idx + 1);
         let method = req.verification.as_deref().unwrap_or("Test");
         let acceptance = req.acceptance.as_deref().unwrap_or("To be defined");
-        let steps_raw = generate_steps(req);
-        let expected = clean_expected(acceptance, &steps_raw, req.command.as_deref());
+        let steps_raw = generate_steps(req, command_map);
+        let cmd_from_map = command_map.get(&req.id).map(|s| s.as_str());
+        let expected = clean_expected(acceptance, &steps_raw, cmd_from_map);
         let steps = escape_pipe(&steps_raw);
         out.push_str(&format!(
             "| {} | {}: {} ({}) | {} | {} |\n",
@@ -585,7 +588,6 @@ mod tests {
                 verification: Some("Test".to_string()),
                 traces_to: Some("STK-01".to_string()),
                 acceptance: Some("Engine loads embedded rules".to_string()),
-                command: None,
                 description: "Embed rules in binary.".to_string(),
             }],
             feature_gate: None,
@@ -646,7 +648,7 @@ mod tests {
     }
 
     #[test]
-    fn test_generate_steps_prefers_command_field() {
+    fn test_generate_steps_prefers_command_map() {
         let req = SrsRequirement {
             id: "FR-500".to_string(),
             title: "Scan command".to_string(),
@@ -656,13 +658,14 @@ mod tests {
             verification: Some("Test".to_string()),
             traces_to: None,
             acceptance: Some("`--verbose` flag causes `doc-engine scan --verbose` to run".to_string()),
-            command: Some("doc-engine scan <PATH>".to_string()),
             description: String::new(),
         };
-        let steps = generate_test_steps(&req);
+        let mut map = HashMap::new();
+        map.insert("FR-500".to_string(), "doc-engine scan <PATH>".to_string());
+        let steps = generate_test_steps(&req, &map);
         assert_eq!(
             steps, "Run `doc-engine scan <PATH>`",
-            "Steps should use explicit command field, not heuristic from acceptance"
+            "Steps should use command map entry, not heuristic from acceptance"
         );
     }
 

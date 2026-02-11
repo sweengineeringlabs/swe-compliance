@@ -1,0 +1,20 @@
+[package]
+name = "doc-engine-ai"
+version = "0.1.0"
+edition = "2021"
+description = "AI-powered compliance analysis for doc-engine"
+license = "MIT"
+
+[dependencies]
+doc-engine-scan = { path = "../scan" }
+chat-engine = { package = "chat", version = "0.1.0", registry = "local" }
+llm-provider = { version = "0.1.0", registry = "local" }
+react = { version = "0.1.0", registry = "local" }
+tool = { version = "0.1.0", registry = "local" }
+agent-controller = { version = "0.1.0", registry = "local", features = ["yaml"] }
+agent-cache = { version = "0.1.0", registry = "local" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_yml = "0.0.12"
+tokio = { version = "1", features = ["full"] }
+async-trait = "0.1"

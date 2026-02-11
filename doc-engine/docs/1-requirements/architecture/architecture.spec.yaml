@@ -8,11 +8,11 @@ requirements:
   priority: Must
   status: Approved
   verification: Inspection
-  acceptance: 'Code review confirms 5-layer SEA: SPI (no deps) <- API <- Core (private) <- SAF (re-exports) <- CLI'
+  acceptance: Code review confirms layered SEA with no upward dependencies; see docs/3-design/architecture.md for layer definitions
 - id: REQ-002
   sourceId: NFR-101
   title: Dependency direction
   priority: Must
   status: Approved
   verification: Inspection
-  acceptance: No `use core::` in spi/ or api/; no `use api::` in spi/
+  acceptance: No module depends on a layer above it; see docs/3-design/architecture.md for layer ordering

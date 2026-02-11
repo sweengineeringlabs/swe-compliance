@@ -1845,8 +1845,7 @@ All requirements in this section are feature-gated behind `#[cfg(feature = "ai")
 | **State** | Implemented |
 | **Verification** | Test |
 | **Traces to** | STK-12 -> `ai/src/spi/config.rs` |
-| **Command** | `cargo test -p doc-engine-ai config` |
-| **Acceptance** | `cargo test -p doc-engine-ai config` passes; environment variables `DOC_ENGINE_AI_ENABLED`, `LLM_PROVIDER`, `LLM_DEFAULT_MODEL`, and `DOC_ENGINE_AI_HISTORY_SIZE` are read with sensible defaults (enabled=true, provider=anthropic, model=claude-sonnet-4-20250514, history_size=20); setting `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, or `GEMINI_API_KEY` to a non-empty value is detected as key-present |
+| **Acceptance** | Environment variables `DOC_ENGINE_AI_ENABLED`, `LLM_PROVIDER`, `LLM_DEFAULT_MODEL`, and `DOC_ENGINE_AI_HISTORY_SIZE` are read with sensible defaults (enabled=true, provider=anthropic, model=claude-sonnet-4-20250514, history_size=20); setting `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, or `GEMINI_API_KEY` to a non-empty value is detected as key-present |
 
 #### FR-902: ComplianceScanTool
 
@@ -1856,8 +1855,7 @@ All requirements in this section are feature-gated behind `#[cfg(feature = "ai")
 | **State** | Implemented |
 | **Verification** | Test |
 | **Traces to** | STK-12 -> `ai/src/core/tools/compliance_scan_tool.rs` |
-| **Command** | `cargo test -p doc-engine-ai compliance_scan` |
-| **Acceptance** | `cargo test -p doc-engine-ai compliance_scan` passes; the tool is registered as `compliance_scan` with read-only risk level; it accepts a `path` (required), `scope` (small/medium/large), and `format` (json/text) parameter; executing the tool on a valid project path returns a compliance scan report |
+| **Acceptance** | The tool is registered as `compliance_scan` with read-only risk level; it accepts a `path` (required), `scope` (small/medium/large), and `format` (json/text) parameter; executing the tool on a valid project path returns a compliance scan report |
 
 #### FR-903: Agent configuration from embedded YAML
 
@@ -1867,8 +1865,7 @@ All requirements in this section are feature-gated behind `#[cfg(feature = "ai")
 | **State** | Implemented |
 | **Verification** | Test |
 | **Traces to** | STK-12 -> `ai/src/core/agents/default_agents.yaml`, `ai/src/core/agents/manager.rs` |
-| **Command** | `cargo test -p doc-engine-ai loads_embedded_agents` |
-| **Acceptance** | `cargo test -p doc-engine-ai loads_embedded_agents` passes; the embedded agent configuration defines a `compliance-auditor` agent with trigger keywords (`audit`, `compliance`, `scan`, `check`, `iso`) and the `compliance_scan` tool; the agent manager loads all agents at construction without errors |
+| **Acceptance** | The embedded agent configuration defines a `compliance-auditor` agent with trigger keywords (`audit`, `compliance`, `scan`, `check`, `iso`) and the `compliance_scan` tool; the agent manager loads all agents at construction without errors |
 
 #### FR-904: DocEngineAgent descriptor
 
@@ -1878,8 +1875,7 @@ All requirements in this section are feature-gated behind `#[cfg(feature = "ai")
 | **State** | Implemented |
 | **Verification** | Test |
 | **Traces to** | STK-12 -> `ai/src/core/agents/manager.rs` |
-| **Command** | `cargo test -p doc-engine-ai agent` |
-| **Acceptance** | `cargo test -p doc-engine-ai agent` passes; each loaded agent exposes an id, display name, description, system prompt, and trigger keywords derived from the embedded YAML configuration |
+| **Acceptance** | Each loaded agent exposes an id, display name, description, system prompt, and trigger keywords derived from the embedded YAML configuration |
 
 #### FR-905: DocEngineFactory
 
@@ -1909,8 +1905,7 @@ All requirements in this section are feature-gated behind `#[cfg(feature = "ai")
 | **State** | Implemented |
 | **Verification** | Test |
 | **Traces to** | STK-12 -> `ai/src/api/service.rs` |
-| **Command** | `cargo test -p doc-engine-ai service` |
-| **Acceptance** | `cargo test -p doc-engine-ai service` passes; construction fails with a configuration error when AI is disabled or no API key is set; `chat` sends a message to the LLM and returns the response; `audit` runs a compliance scan, sends results to the LLM, and returns a summary with recommendations |
+| **Acceptance** | Construction fails with a configuration error when AI is disabled or no API key is set; `chat` sends a message to the LLM and returns the response; `audit` runs a compliance scan, sends results to the LLM, and returns a summary with recommendations |
 
 #### FR-908: AI CLI subcommands
 
