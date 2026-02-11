@@ -556,6 +556,7 @@ mod tests {
                 acceptance: Some("Engine loads embedded rules".to_string()),
                 description: "Embed rules in binary.".to_string(),
             }],
+            feature_gate: None,
         }
     }
 

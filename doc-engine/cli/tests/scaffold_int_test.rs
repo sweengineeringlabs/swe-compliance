@@ -21,6 +21,8 @@ fn scaffold_to_tmp(srs_content: &str) -> (tempfile::TempDir, PathBuf, ScaffoldCo
         force: false,
         phases: vec![],
         file_types: vec![],
+        features: vec![],
+        exclude_features: None,
     };
     (tmp, output_dir, config)
 }
@@ -41,6 +43,8 @@ fn test_parser_crlf_line_endings() {
         force: false,
         phases: vec![],
         file_types: vec![],
+        features: vec![],
+        exclude_features: None,
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -79,6 +83,8 @@ Additional narrative after the inner table.
         force: false,
         phases: vec![],
         file_types: vec![],
+        features: vec![],
+        exclude_features: None,
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -109,6 +115,8 @@ Description with accented characters: éàü.
         force: false,
         phases: vec![],
         file_types: vec![],
+        features: vec![],
+        exclude_features: None,
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -144,6 +152,8 @@ Desc B.
         force: false,
         phases: vec![],
         file_types: vec![],
+        features: vec![],
+        exclude_features: None,
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -182,6 +192,8 @@ All checks in a single traversal.
         force: false,
         phases: vec![],
         file_types: vec![],
+        features: vec![],
+        exclude_features: None,
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -219,6 +231,8 @@ fn test_parser_many_domains_file_count() {
         force: false,
         phases: vec![],
         file_types: vec![],
+        features: vec![],
+        exclude_features: None,
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -247,6 +261,8 @@ fn test_parse_real_project_srs() {
         force: false,
         phases: vec![],
         file_types: vec![],
+        features: vec![],
+        exclude_features: None,
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -337,6 +353,8 @@ Support 128 checks.
         force: false,
         phases: vec![],
         file_types: vec![],
+        features: vec![],
+        exclude_features: None,
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -382,6 +400,8 @@ Desc B.
         force: false,
         phases: vec![],
         file_types: vec![],
+        features: vec![],
+        exclude_features: None,
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -404,6 +424,8 @@ fn test_error_empty_srs() {
         force: false,
         phases: vec![],
         file_types: vec![],
+        features: vec![],
+        exclude_features: None,
     };
 
     let err = scaffold_from_srs(&config).unwrap_err();
@@ -435,6 +457,8 @@ No FR/NFR blocks at all.
         force: false,
         phases: vec![],
         file_types: vec![],
+        features: vec![],
+        exclude_features: None,
     };
 
     let err = scaffold_from_srs(&config).unwrap_err();
@@ -449,6 +473,8 @@ fn test_error_nonexistent_srs_path() {
         force: false,
         phases: vec![],
         file_types: vec![],
+        features: vec![],
+        exclude_features: None,
     };
 
     let err = scaffold_from_srs(&config).unwrap_err();
@@ -1014,6 +1040,8 @@ Report.
         force: false,
         phases: vec![],
         file_types: vec![],
+        features: vec![],
+        exclude_features: None,
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -1144,6 +1172,8 @@ Exit code behavior.
         force: false,
         phases: vec![],
         file_types: vec![],
+        features: vec![],
+        exclude_features: None,
     };
     scaffold_from_srs(&config).unwrap();
 
@@ -1429,6 +1459,8 @@ fn test_force_overwrite_updates_content() {
         force: false,
         phases: vec![],
         file_types: vec![],
+        features: vec![],
+        exclude_features: None,
     };
 
     // First run
@@ -1470,6 +1502,8 @@ fn test_skip_existing_mixed_scenario() {
         force: false,
         phases: vec![],
         file_types: vec![],
+        features: vec![],
+        exclude_features: None,
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -1498,6 +1532,8 @@ fn test_output_dir_created_automatically() {
         force: false,
         phases: vec![],
         file_types: vec![],
+        features: vec![],
+        exclude_features: None,
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -1520,6 +1556,8 @@ fn test_phase_filter_single_testing() {
         force: false,
         phases: vec!["testing".to_string()],
         file_types: vec![],
+        features: vec![],
+        exclude_features: None,
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -1557,6 +1595,8 @@ fn test_phase_filter_requirements_includes_brd() {
         force: false,
         phases: vec!["requirements".to_string()],
         file_types: vec![],
+        features: vec![],
+        exclude_features: None,
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -1582,6 +1622,8 @@ fn test_phase_filter_multiple_phases() {
         force: false,
         phases: vec!["design".to_string(), "deployment".to_string()],
         file_types: vec![],
+        features: vec![],
+        exclude_features: None,
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -1612,6 +1654,8 @@ fn test_phase_filter_deployment_only() {
         force: false,
         phases: vec!["deployment".to_string()],
         file_types: vec![],
+        features: vec![],
+        exclude_features: None,
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -1636,6 +1680,8 @@ fn test_phase_filter_with_force() {
         force: false,
         phases: vec![],
         file_types: vec![],
+        features: vec![],
+        exclude_features: None,
     };
     scaffold_from_srs(&config_all).unwrap();
 
@@ -1646,6 +1692,8 @@ fn test_phase_filter_with_force() {
         force: true,
         phases: vec!["testing".to_string()],
         file_types: vec![],
+        features: vec![],
+        exclude_features: None,
     };
     let result = scaffold_from_srs(&config_phase).unwrap();
 
@@ -1667,6 +1715,8 @@ fn test_phase_filter_design_only() {
         force: false,
         phases: vec!["design".to_string()],
         file_types: vec![],
+        features: vec![],
+        exclude_features: None,
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -1698,6 +1748,8 @@ fn test_phase_filter_all_four_equals_no_filter() {
         force: false,
         phases: vec![],
         file_types: vec![],
+        features: vec![],
+        exclude_features: None,
     };
     let result_all = scaffold_from_srs(&config_all).unwrap();
 
@@ -1713,6 +1765,8 @@ fn test_phase_filter_all_four_equals_no_filter() {
             "deployment".to_string(),
         ],
         file_types: vec![],
+        features: vec![],
+        exclude_features: None,
     };
     let result_explicit = scaffold_from_srs(&config_explicit).unwrap();
 
@@ -1807,6 +1861,8 @@ fn test_phase_filter_skip_existing_in_filtered_phase() {
         force: false,
         phases: vec!["testing".to_string()],
         file_types: vec![],
+        features: vec![],
+        exclude_features: None,
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -1835,6 +1891,8 @@ fn test_phase_filter_skip_then_force() {
         force: false,
         phases: vec!["design".to_string()],
         file_types: vec![],
+        features: vec![],
+        exclude_features: None,
     };
     let r1 = scaffold_from_srs(&config1).unwrap();
     assert_eq!(r1.created.len(), 4);
@@ -1846,6 +1904,8 @@ fn test_phase_filter_skip_then_force() {
         force: false,
         phases: vec!["design".to_string()],
         file_types: vec![],
+        features: vec![],
+        exclude_features: None,
     };
     let r2 = scaffold_from_srs(&config2).unwrap();
     assert_eq!(r2.skipped.len(), 4);
@@ -1858,6 +1918,8 @@ fn test_phase_filter_skip_then_force() {
         force: true,
         phases: vec!["design".to_string()],
         file_types: vec![],
+        features: vec![],
+        exclude_features: None,
     };
     let r3 = scaffold_from_srs(&config3).unwrap();
     assert_eq!(r3.created.len(), 4);
@@ -1879,6 +1941,8 @@ fn test_phase_filter_yaml_files_valid() {
             force: false,
             phases: vec![phase.to_string()],
         file_types: vec![],
+        features: vec![],
+        exclude_features: None,
         };
         let result = scaffold_from_srs(&config).unwrap();
 
@@ -2019,6 +2083,8 @@ Scans complete in under one second.
         force: false,
         phases: vec!["testing".to_string()],
         file_types: vec![],
+        features: vec![],
+        exclude_features: None,
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -2050,6 +2116,8 @@ fn test_phase_filter_mixed_attrs_design() {
         force: false,
         phases: vec!["design".to_string()],
         file_types: vec![],
+        features: vec![],
+        exclude_features: None,
     };
 
     let result = scaffold_from_srs(&config).unwrap();
@@ -2086,6 +2154,8 @@ fn test_phase_filter_result_counts_formula() {
             force: false,
             phases: vec![phase.to_string()],
         file_types: vec![],
+        features: vec![],
+        exclude_features: None,
         };
         let result = scaffold_from_srs(&config).unwrap();
 
@@ -2110,6 +2180,8 @@ fn test_type_filter_exec_only() {
         force: false,
         phases: vec![],
         file_types: vec!["exec".to_string()],
+        features: vec![],
+        exclude_features: None,
     };
     let result = scaffold_from_srs(&config).unwrap();
 
@@ -2136,6 +2208,8 @@ fn test_type_filter_yaml_only() {
         force: false,
         phases: vec![],
         file_types: vec!["yaml".to_string()],
+        features: vec![],
+        exclude_features: None,
     };
     let result = scaffold_from_srs(&config).unwrap();
 
@@ -2163,6 +2237,8 @@ fn test_type_filter_multiple() {
         force: false,
         phases: vec![],
         file_types: vec!["yaml".to_string(), "exec".to_string()],
+        features: vec![],
+        exclude_features: None,
     };
     let result = scaffold_from_srs(&config).unwrap();
 
@@ -2189,6 +2265,8 @@ fn test_type_filter_empty_means_all() {
         force: false,
         phases: vec![],
         file_types: vec![],
+        features: vec![],
+        exclude_features: None,
     };
     let result = scaffold_from_srs(&config).unwrap();
 
@@ -2208,6 +2286,8 @@ fn test_type_filter_combined_with_phase() {
         force: false,
         phases: vec!["testing".to_string()],
         file_types: vec!["exec".to_string()],
+        features: vec![],
+        exclude_features: None,
     };
     let result = scaffold_from_srs(&config).unwrap();
 
@@ -2248,6 +2328,8 @@ fn test_phase_filter_metadata_unchanged() {
             force: false,
             phases: phases.clone(),
         file_types: vec![],
+        features: vec![],
+        exclude_features: None,
         };
         let result = scaffold_from_srs(&config).unwrap();
 
@@ -2300,6 +2382,8 @@ fn test_scaffold_result_json_with_phase_filter() {
         force: true,
         phases: vec!["testing".to_string(), "design".to_string()],
         file_types: vec![],
+        features: vec![],
+        exclude_features: None,
     };
     let result = scaffold_from_srs(&config).unwrap();
     let json = serde_json::to_string_pretty(&result).unwrap();
@@ -2310,4 +2394,108 @@ fn test_scaffold_result_json_with_phase_filter() {
         .iter().map(|v| v.as_str().unwrap()).collect();
     assert_eq!(phases, vec!["testing", "design"]);
     assert_eq!(val["force"], true);
+}
+
+// === TC-010: FR-838: Feature-gate domain filter ============================
+
+#[test]
+fn test_exclude_features_blanket_excludes_all_gated() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let srs_path = tmp.path().join("srs.md");
+    fs::write(&srs_path, FEATURE_GATED_FIXTURE_SRS).unwrap();
+    let output_dir = tmp.path().join("output");
+
+    let config = ScaffoldConfig {
+        srs_path,
+        output_dir: output_dir.clone(),
+        force: false,
+        phases: vec![],
+        file_types: vec![],
+        features: vec![],
+        exclude_features: Some(vec![]),
+    };
+
+    let result = scaffold_from_srs(&config).unwrap();
+    assert_eq!(result.domain_count, 2, "blanket exclude should keep only 2 non-gated domains");
+    // Verify only rule_loading and file_discovery
+    assert!(output_dir.join("docs/1-requirements/rule_loading").is_dir());
+    assert!(output_dir.join("docs/1-requirements/file_discovery").is_dir());
+    assert!(!output_dir.join("docs/1-requirements/ai_powered_compliance_analysis").exists());
+    assert!(!output_dir.join("docs/1-requirements/experimental_subsystem").exists());
+}
+
+#[test]
+fn test_exclude_features_targeted_excludes_specific() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let srs_path = tmp.path().join("srs.md");
+    fs::write(&srs_path, FEATURE_GATED_FIXTURE_SRS).unwrap();
+    let output_dir = tmp.path().join("output");
+
+    let config = ScaffoldConfig {
+        srs_path,
+        output_dir: output_dir.clone(),
+        force: false,
+        phases: vec![],
+        file_types: vec![],
+        features: vec![],
+        exclude_features: Some(vec!["ai".into()]),
+    };
+
+    let result = scaffold_from_srs(&config).unwrap();
+    // 4 total - 1 "ai"-gated = 3 (rule_loading, file_discovery, experimental_subsystem)
+    assert_eq!(result.domain_count, 3, "targeted exclude should remove only ai-gated domain");
+    assert!(output_dir.join("docs/1-requirements/rule_loading").is_dir());
+    assert!(output_dir.join("docs/1-requirements/file_discovery").is_dir());
+    assert!(!output_dir.join("docs/1-requirements/ai_powered_compliance_analysis").exists());
+    assert!(output_dir.join("docs/1-requirements/experimental_subsystem").is_dir());
+}
+
+#[test]
+fn test_features_positive_filter_only_ai() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let srs_path = tmp.path().join("srs.md");
+    fs::write(&srs_path, FEATURE_GATED_FIXTURE_SRS).unwrap();
+    let output_dir = tmp.path().join("output");
+
+    let config = ScaffoldConfig {
+        srs_path,
+        output_dir: output_dir.clone(),
+        force: false,
+        phases: vec![],
+        file_types: vec![],
+        features: vec!["ai".into()],
+        exclude_features: None,
+    };
+
+    let result = scaffold_from_srs(&config).unwrap();
+    assert_eq!(result.domain_count, 1, "positive filter should keep only ai-gated domain");
+    assert!(output_dir.join("docs/1-requirements/ai_powered_compliance_analysis").is_dir());
+    assert!(!output_dir.join("docs/1-requirements/rule_loading").exists());
+    assert!(!output_dir.join("docs/1-requirements/file_discovery").exists());
+    assert!(!output_dir.join("docs/1-requirements/experimental_subsystem").exists());
+}
+
+#[test]
+fn test_features_filter_default_includes_all() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let srs_path = tmp.path().join("srs.md");
+    fs::write(&srs_path, FEATURE_GATED_FIXTURE_SRS).unwrap();
+    let output_dir = tmp.path().join("output");
+
+    let config = ScaffoldConfig {
+        srs_path,
+        output_dir: output_dir.clone(),
+        force: false,
+        phases: vec![],
+        file_types: vec![],
+        features: vec![],
+        exclude_features: None,
+    };
+
+    let result = scaffold_from_srs(&config).unwrap();
+    assert_eq!(result.domain_count, 4, "default should include all domains");
+    assert!(output_dir.join("docs/1-requirements/rule_loading").is_dir());
+    assert!(output_dir.join("docs/1-requirements/file_discovery").is_dir());
+    assert!(output_dir.join("docs/1-requirements/ai_powered_compliance_analysis").is_dir());
+    assert!(output_dir.join("docs/1-requirements/experimental_subsystem").is_dir());
 }

@@ -49,6 +49,9 @@ pub struct SrsDomain {
     pub slug: String,
     /// Requirements found in this section.
     pub requirements: Vec<SrsRequirement>,
+    /// Feature gate name if this domain is feature-gated (e.g. "ai").
+    /// Empty string means feature-gated but feature name unknown.
+    pub feature_gate: Option<String>,
 }
 
 /// Configuration for the scaffold operation.
@@ -67,6 +70,10 @@ pub struct ScaffoldConfig {
     /// Valid values: "yaml", "spec", "arch", "test", "exec", "deploy".
     /// When empty, all file types are generated.
     pub file_types: Vec<String>,
+    /// Include ONLY domains gated behind these features (e.g. vec!["ai"]). Empty = no positive filter.
+    pub features: Vec<String>,
+    /// Exclude feature-gated domains. None = no filter, Some(vec![]) = exclude ALL, Some(vec!["ai"]) = exclude specific.
+    pub exclude_features: Option<Vec<String>>,
 }
 
 /// Result of a scaffold operation (ISO/IEC/IEEE 15289:2019 clause 9).

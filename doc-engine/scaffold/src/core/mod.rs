@@ -24,6 +24,24 @@ pub fn scaffold_from_srs(config: &ScaffoldConfig) -> Result<ScaffoldResult, Scaf
 
     let domains = parser::parse_srs(&content)?;
 
+    let domains: Vec<_> = if !config.features.is_empty() {
+        domains.into_iter().filter(|d| {
+            d.feature_gate.as_ref().map_or(false, |g| config.features.iter().any(|f| f == g))
+        }).collect()
+    } else if let Some(ref targets) = config.exclude_features {
+        domains.into_iter().filter(|d| {
+            match &d.feature_gate {
+                None => true,
+                Some(gate) => {
+                    if targets.is_empty() { false }
+                    else { !targets.iter().any(|t| t == gate) }
+                }
+            }
+        }).collect()
+    } else {
+        domains
+    };
+
     if domains.is_empty() {
         return Err(ScaffoldError::Parse(
             "no domains with requirements found in SRS".to_string(),
@@ -231,6 +249,8 @@ The binary embeds rules.
             force: false,
             phases: vec![],
             file_types: vec![],
+            features: vec![],
+            exclude_features: None,
         };
         (config, output_dir)
     }
@@ -316,6 +336,8 @@ The binary embeds rules.
             force: false,
             phases: vec![],
             file_types: vec![],
+            features: vec![],
+            exclude_features: None,
         };
 
         let err = scaffold_from_srs(&config).unwrap_err();

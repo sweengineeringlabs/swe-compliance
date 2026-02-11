@@ -1143,3 +1143,119 @@ fn e2e_scaffold_report_force_false() {
 
     assert_eq!(parsed["force"], false);
 }
+
+// === TC-010: FR-838: Feature-gate domain filter ============================
+
+#[test]
+fn e2e_scaffold_exclude_feature_blanket() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let srs_path = tmp.path().join("srs.md");
+    fs::write(&srs_path, FEATURE_GATED_FIXTURE_SRS).unwrap();
+
+    let output_dir = tmp.path().join("output");
+
+    cmd()
+        .arg("scaffold")
+        .arg(&srs_path)
+        .arg("--output")
+        .arg(&output_dir)
+        .arg("--exclude-feature")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("2 domains"));
+
+    assert!(output_dir.join("docs/1-requirements/rule_loading").is_dir());
+    assert!(output_dir.join("docs/1-requirements/file_discovery").is_dir());
+    assert!(!output_dir.join("docs/1-requirements/ai_powered_compliance_analysis").exists());
+    assert!(!output_dir.join("docs/1-requirements/experimental_subsystem").exists());
+}
+
+#[test]
+fn e2e_scaffold_exclude_feature_targeted() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let srs_path = tmp.path().join("srs.md");
+    fs::write(&srs_path, FEATURE_GATED_FIXTURE_SRS).unwrap();
+
+    let output_dir = tmp.path().join("output");
+
+    cmd()
+        .arg("scaffold")
+        .arg(&srs_path)
+        .arg("--output")
+        .arg(&output_dir)
+        .arg("--exclude-feature")
+        .arg("ai")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("3 domains"));
+
+    assert!(output_dir.join("docs/1-requirements/rule_loading").is_dir());
+    assert!(output_dir.join("docs/1-requirements/file_discovery").is_dir());
+    assert!(!output_dir.join("docs/1-requirements/ai_powered_compliance_analysis").exists());
+    assert!(output_dir.join("docs/1-requirements/experimental_subsystem").is_dir());
+}
+
+#[test]
+fn e2e_scaffold_feature_positive() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let srs_path = tmp.path().join("srs.md");
+    fs::write(&srs_path, FEATURE_GATED_FIXTURE_SRS).unwrap();
+
+    let output_dir = tmp.path().join("output");
+
+    cmd()
+        .arg("scaffold")
+        .arg(&srs_path)
+        .arg("--output")
+        .arg(&output_dir)
+        .arg("--feature")
+        .arg("ai")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("1 domains"));
+
+    assert!(!output_dir.join("docs/1-requirements/rule_loading").exists());
+    assert!(!output_dir.join("docs/1-requirements/file_discovery").exists());
+    assert!(output_dir.join("docs/1-requirements/ai_powered_compliance_analysis").is_dir());
+    assert!(!output_dir.join("docs/1-requirements/experimental_subsystem").exists());
+}
+
+#[test]
+fn e2e_scaffold_feature_conflicts_exclude() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let srs_path = tmp.path().join("srs.md");
+    fs::write(&srs_path, FEATURE_GATED_FIXTURE_SRS).unwrap();
+
+    cmd()
+        .arg("scaffold")
+        .arg(&srs_path)
+        .arg("--feature")
+        .arg("ai")
+        .arg("--exclude-feature")
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("cannot be used with"));
+}
+
+#[test]
+fn e2e_scaffold_without_exclude_includes_gated() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let srs_path = tmp.path().join("srs.md");
+    fs::write(&srs_path, FEATURE_GATED_FIXTURE_SRS).unwrap();
+
+    let output_dir = tmp.path().join("output");
+
+    cmd()
+        .arg("scaffold")
+        .arg(&srs_path)
+        .arg("--output")
+        .arg(&output_dir)
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("4 domains"));
+
+    assert!(output_dir.join("docs/1-requirements/rule_loading").is_dir());
+    assert!(output_dir.join("docs/1-requirements/file_discovery").is_dir());
+    assert!(output_dir.join("docs/1-requirements/ai_powered_compliance_analysis").is_dir());
+    assert!(output_dir.join("docs/1-requirements/experimental_subsystem").is_dir());
+}

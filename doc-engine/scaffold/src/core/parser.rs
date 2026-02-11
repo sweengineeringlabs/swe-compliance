@@ -35,6 +35,7 @@ pub fn parse_srs(content: &str) -> Result<Vec<SrsDomain>, ScaffoldError> {
     let section_heading_re = Regex::new(r"^###\s+(\d+\.\d+)\s+(.+)$").unwrap();
     let fr_heading_re = Regex::new(r"^####\s+((?:FR|NFR)-\d+):\s+(.+)$").unwrap();
     let any_heading_re = Regex::new(r"^#{1,4}\s+").unwrap();
+    let feature_cfg_re = Regex::new(r#"#\[cfg\(feature\s*=\s*"([^"]+)"\)\]"#).unwrap();
 
     let priority_re = Regex::new(r"\|\s*\*\*Priority\*\*\s*\|\s*(.+)\s*\|").unwrap();
     let state_re = Regex::new(r"\|\s*\*\*State\*\*\s*\|\s*(.+)\s*\|").unwrap();
@@ -60,16 +61,32 @@ pub fn parse_srs(content: &str) -> Result<Vec<SrsDomain>, ScaffoldError> {
                 }
             }
             let section = caps[1].to_string();
-            let title = caps[2].trim().to_string();
+            let raw_title = caps[2].trim().to_string();
+            let feature_gate = if raw_title.contains("(feature-gated)") {
+                Some(String::new())
+            } else {
+                None
+            };
+            let title = raw_title.replace(" (feature-gated)", "").replace("(feature-gated)", "");
             let slug = slugify(&title);
             current_domain = Some(SrsDomain {
                 section,
                 title,
                 slug,
                 requirements: Vec::new(),
+                feature_gate,
             });
             i += 1;
             continue;
+        }
+
+        // Scan narrative lines (before first FR/NFR) for cfg(feature) annotations
+        if let Some(ref mut domain) = current_domain {
+            if domain.requirements.is_empty() && domain.feature_gate.is_none() {
+                if let Some(caps) = feature_cfg_re.captures(line) {
+                    domain.feature_gate = Some(caps[1].to_string());
+                }
+            }
         }
 
         // Check for FR/NFR heading: #### FR-100: Title
@@ -411,6 +428,63 @@ Third desc.
         assert_eq!(domains[0].requirements[0].id, "FR-100");
         assert_eq!(domains[0].requirements[1].id, "FR-101");
         assert_eq!(domains[0].requirements[2].id, "FR-102");
+    }
+
+    #[test]
+    fn test_parse_feature_gate_title_based() {
+        let srs = "\
+### 5.6 Some Feature (feature-gated)
+
+#### FR-900: Gated req
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Should |
+
+A gated feature.
+";
+        let domains = parse_srs(srs).unwrap();
+        assert_eq!(domains.len(), 1);
+        assert_eq!(domains[0].title, "Some Feature");
+        assert_eq!(domains[0].feature_gate, Some(String::new()));
+    }
+
+    #[test]
+    fn test_parse_feature_gate_narrative_based() {
+        let srs = "\
+### 4.15 AI-Powered Analysis
+
+This domain is feature-gated behind `#[cfg(feature = \"ai\")]`.
+
+#### FR-850: AI analysis
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Should |
+
+AI analysis desc.
+";
+        let domains = parse_srs(srs).unwrap();
+        assert_eq!(domains.len(), 1);
+        assert_eq!(domains[0].feature_gate, Some("ai".to_string()));
+    }
+
+    #[test]
+    fn test_parse_feature_gate_non_gated() {
+        let srs = "\
+### 4.1 Rule Loading
+
+#### FR-100: Default rules
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Must |
+
+Normal domain.
+";
+        let domains = parse_srs(srs).unwrap();
+        assert_eq!(domains.len(), 1);
+        assert!(domains[0].feature_gate.is_none());
     }
 
     #[test]

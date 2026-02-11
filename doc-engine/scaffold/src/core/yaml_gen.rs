@@ -258,6 +258,7 @@ mod tests {
                     description: "Load external file.".to_string(),
                 },
             ],
+            feature_gate: None,
         }
     }
 

@@ -303,3 +303,56 @@ All operations synchronous.
 
 The --json flag enables JSON output.
 ";
+
+/// Fixture with 4 domains: 2 regular + 1 title-based feature-gated + 1 narrative-based feature-gated.
+pub const FEATURE_GATED_FIXTURE_SRS: &str = "\
+### 4.1 Rule Loading
+
+#### FR-100: Default rules
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Must |
+| **State** | Approved |
+| **Verification** | Test |
+
+The binary embeds rules.
+
+### 4.2 File Discovery
+
+#### FR-200: Recursive scanning
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Must |
+| **State** | Approved |
+| **Verification** | Test |
+
+Recursively discover files.
+
+### 4.15 AI-Powered Compliance Analysis
+
+This domain is feature-gated behind `#[cfg(feature = \"ai\")]`.
+
+#### FR-850: AI compliance analysis
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Should |
+| **State** | Proposed |
+| **Verification** | Test |
+
+AI-powered analysis.
+
+### 5.6 Experimental Subsystem (feature-gated)
+
+#### NFR-300: Experimental feature
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Could |
+| **State** | Proposed |
+| **Verification** | Test |
+
+Experimental subsystem.
+";

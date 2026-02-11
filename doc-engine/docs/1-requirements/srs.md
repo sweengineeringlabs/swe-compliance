@@ -1805,6 +1805,24 @@ When `--report <path>` is provided, the scaffold command shall serialize a `Scaf
 | `testing` | `test` | No | Yes |
 | `requirements` | _(empty)_ | No | No |
 
+#### FR-838: Feature-gate domain filter
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Should |
+| **State** | Implemented |
+| **Verification** | Test |
+| **Traces to** | STK-11 -> `scaffold/src/core/parser.rs`, `scaffold/src/core/mod.rs`, `cli/src/main.rs` |
+| **Acceptance** | `--feature ai` scaffolds only "ai"-gated domains; `--exclude-feature` excludes all feature-gated domains; `--exclude-feature ai` excludes only "ai"-gated; flags are mutually exclusive; without flags, all domains included (backward compatible) |
+
+| Scenario | Command | Behavior |
+|----------|---------|----------|
+| Positive include | `--feature ai` | Scaffold ONLY domains gated behind `#[cfg(feature = "ai")]` |
+| Blanket exclude | `--exclude-feature` | Exclude ALL feature-gated domains |
+| Targeted exclude | `--exclude-feature ai` | Exclude only domains gated behind `#[cfg(feature = "ai")]` |
+| Conflict | `--feature ai --exclude-feature` | Error: flags are mutually exclusive |
+| No flag (default) | _(omitted)_ | Include all domains (backward compatible) |
+
 ### 4.15 AI-Powered Compliance Analysis
 
 All requirements in this section are feature-gated behind `#[cfg(feature = "ai")]` and implemented in the `doc-engine-ai` crate. The default build is unaffected.

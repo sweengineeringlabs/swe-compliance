@@ -82,6 +82,14 @@ enum Commands {
         #[arg(long = "type", value_name = "TYPE")]
         file_type: Option<String>,
 
+        /// Include ONLY feature-gated domains (comma-separated, e.g. --feature ai)
+        #[arg(long, conflicts_with = "exclude_feature")]
+        feature: Option<String>,
+
+        /// Exclude feature-gated domains (optionally specify features, e.g. --exclude-feature ai)
+        #[arg(long, num_args = 0..=1, default_missing_value = "", conflicts_with = "feature")]
+        exclude_feature: Option<String>,
+
         /// Save scaffold report as JSON
         #[arg(long)]
         report: Option<PathBuf>,
@@ -358,7 +366,7 @@ fn main() {
                 }
             });
         }
-        Commands::Scaffold { srs_path, output, force, phase, file_type, report } => {
+        Commands::Scaffold { srs_path, output, force, phase, file_type, feature, exclude_feature, report } => {
             let srs_resolved = match srs_path.canonicalize() {
                 Ok(p) => p,
                 Err(e) => {
@@ -399,12 +407,22 @@ fn main() {
                 None => vec![],
             };
 
+            let features: Vec<String> = feature
+                .map(|s| s.split(',').map(|t| t.trim().to_string()).collect())
+                .unwrap_or_default();
+            let exclude_features: Option<Vec<String>> = exclude_feature.map(|s| {
+                if s.is_empty() { vec![] }
+                else { s.split(',').map(|t| t.trim().to_string()).collect() }
+            });
+
             let config = ScaffoldConfig {
                 srs_path: srs_resolved,
                 output_dir,
                 force,
                 phases,
                 file_types,
+                features,
+                exclude_features,
             };
 
             match scaffold_from_srs(&config) {
