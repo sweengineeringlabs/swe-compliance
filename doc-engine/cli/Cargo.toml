@@ -1,0 +1,51 @@
+[package]
+name = "doc-engine-cli"
+version = "0.1.0"
+edition = "2021"
+description = "CLI for the doc-engine compliance scanning and scaffold tools"
+license = "MIT"
+
+[[bin]]
+name = "doc-engine"
+path = "src/main.rs"
+
+[[test]]
+name = "scan_api"
+path = "tests/scan_api.rs"
+
+[[test]]
+name = "cli_e2e"
+path = "tests/cli_e2e.rs"
+
+[[test]]
+name = "config_filtering"
+path = "tests/config_filtering.rs"
+
+[[test]]
+name = "error_handling"
+path = "tests/error_handling.rs"
+
+[[test]]
+name = "report_format"
+path = "tests/report_format.rs"
+
+[[test]]
+name = "scaffold_int_test"
+path = "tests/scaffold_int_test.rs"
+
+[[test]]
+name = "scaffold_e2e_test"
+path = "tests/scaffold_e2e_test.rs"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+serde_json = "1"
+doc-engine-scan = { path = "../scan" }
+doc-engine-scaffold = { path = "../scaffold" }
+
+[dev-dependencies]
+tempfile = "3"
+assert_cmd = "2"
+predicates = "3"
+serde_yml = "0.0.12"
+walkdir = "2"
