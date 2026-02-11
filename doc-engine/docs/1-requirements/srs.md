@@ -1845,7 +1845,8 @@ All requirements in this section are feature-gated behind `#[cfg(feature = "ai")
 | **State** | Implemented |
 | **Verification** | Test |
 | **Traces to** | STK-12 -> `ai/src/spi/config.rs` |
-| **Acceptance** | `DocEngineAiConfig::from_env()` reads `DOC_ENGINE_AI_ENABLED`, `LLM_PROVIDER`, `LLM_DEFAULT_MODEL`, and `DOC_ENGINE_AI_HISTORY_SIZE` from environment variables with sensible defaults (enabled=true, provider=anthropic, model=claude-sonnet-4-20250514, history_size=20); `has_api_key()` returns true when `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, or `GEMINI_API_KEY` is set and non-empty |
+| **Command** | `cargo test -p doc-engine-ai config` |
+| **Acceptance** | `cargo test -p doc-engine-ai config` passes; environment variables `DOC_ENGINE_AI_ENABLED`, `LLM_PROVIDER`, `LLM_DEFAULT_MODEL`, and `DOC_ENGINE_AI_HISTORY_SIZE` are read with sensible defaults (enabled=true, provider=anthropic, model=claude-sonnet-4-20250514, history_size=20); setting `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, or `GEMINI_API_KEY` to a non-empty value is detected as key-present |
 
 #### FR-902: ComplianceScanTool
 
@@ -1855,7 +1856,8 @@ All requirements in this section are feature-gated behind `#[cfg(feature = "ai")
 | **State** | Implemented |
 | **Verification** | Test |
 | **Traces to** | STK-12 -> `ai/src/core/tools/compliance_scan_tool.rs` |
-| **Acceptance** | `ComplianceScanTool` implements rustratify's `Tool` trait; `name()` returns `"compliance_scan"`; `risk_level()` returns `ReadOnly`; `parameters_schema()` returns a JSON Schema with `path` (required string), `scope` (enum: small/medium/large), and `format` (enum: json/text); `execute()` delegates to `doc_engine_scan::scan_with_config()` and returns a `ToolOutput` with the scan report as JSON or text |
+| **Command** | `cargo test -p doc-engine-ai compliance_scan` |
+| **Acceptance** | `cargo test -p doc-engine-ai compliance_scan` passes; the tool is registered as `compliance_scan` with read-only risk level; it accepts a `path` (required), `scope` (small/medium/large), and `format` (json/text) parameter; executing the tool on a valid project path returns a compliance scan report |
 
 #### FR-903: Agent configuration from embedded YAML
 
@@ -1865,7 +1867,8 @@ All requirements in this section are feature-gated behind `#[cfg(feature = "ai")
 | **State** | Implemented |
 | **Verification** | Test |
 | **Traces to** | STK-12 -> `ai/src/core/agents/default_agents.yaml`, `ai/src/core/agents/manager.rs` |
-| **Acceptance** | `default_agents.yaml` is embedded via `include_str!`; it defines a `compliance-auditor` agent with trigger keywords (`audit`, `compliance`, `scan`, `check`, `iso`), the `compliance_scan` tool, and a system prompt instructing the LLM to analyse ISO compliance results; `DocEngineAgentManager` parses the YAML at construction and registers agents in an `AgentRegistry<DocEngineAgent>` |
+| **Command** | `cargo test -p doc-engine-ai loads_embedded_agents` |
+| **Acceptance** | `cargo test -p doc-engine-ai loads_embedded_agents` passes; the embedded agent configuration defines a `compliance-auditor` agent with trigger keywords (`audit`, `compliance`, `scan`, `check`, `iso`) and the `compliance_scan` tool; the agent manager loads all agents at construction without errors |
 
 #### FR-904: DocEngineAgent descriptor
 
@@ -1875,7 +1878,8 @@ All requirements in this section are feature-gated behind `#[cfg(feature = "ai")
 | **State** | Implemented |
 | **Verification** | Test |
 | **Traces to** | STK-12 -> `ai/src/core/agents/manager.rs` |
-| **Acceptance** | `DocEngineAgent` implements rustratify's `AgentDescriptor` trait, providing `id()`, `display_name()`, `description()`, `system_prompt()`, and `trigger_keywords()` from the parsed YAML entry |
+| **Command** | `cargo test -p doc-engine-ai agent` |
+| **Acceptance** | `cargo test -p doc-engine-ai agent` passes; each loaded agent exposes an id, display name, description, system prompt, and trigger keywords derived from the embedded YAML configuration |
 
 #### FR-905: DocEngineFactory
 
@@ -1885,7 +1889,7 @@ All requirements in this section are feature-gated behind `#[cfg(feature = "ai")
 | **State** | Implemented |
 | **Verification** | Inspection |
 | **Traces to** | STK-12 -> `ai/src/core/agents/factory.rs` |
-| **Acceptance** | `DocEngineFactory` implements rustratify's `EngineFactory<DocEngineAgent>` with `type Engine = dyn ChatEngine`; `create()` builds a `ToolRegistry` with `ComplianceScanTool` (when the agent's tool list includes `compliance_scan`), constructs a `ChatConfig` from `DocEngineAiConfig` and agent metadata, and returns a `ToolAwareChatEngine` |
+| **Acceptance** | The factory builds a tool-aware chat engine for a given agent; when the agent's tool list includes `compliance_scan`, the engine has access to the scan tool; the engine is configured with the agent's system prompt and the AI provider settings from environment |
 
 #### FR-906: DocEngineAiService trait
 
@@ -1895,7 +1899,7 @@ All requirements in this section are feature-gated behind `#[cfg(feature = "ai")
 | **State** | Implemented |
 | **Verification** | Inspection |
 | **Traces to** | STK-12 -> `ai/src/api/types.rs` |
-| **Acceptance** | The `DocEngineAiService` async trait defines `chat(&self, message: &str) -> Result<String, DocEngineAiError>` and `audit(&self, path: &str, scope: &str) -> Result<AuditResponse, DocEngineAiError>`; `AuditResponse` contains `summary` (String), `scan_results` (JSON Value), and `recommendations` (Vec<String>) |
+| **Acceptance** | The AI service trait exposes `chat` and `audit` operations; `chat` accepts a message and returns an LLM response or an error; `audit` accepts a path and scope, returns a summary, raw scan results, and a list of recommendations; errors are typed as configuration, provider, or scan failures |
 
 #### FR-907: DefaultDocEngineAiService
 
@@ -1905,7 +1909,8 @@ All requirements in this section are feature-gated behind `#[cfg(feature = "ai")
 | **State** | Implemented |
 | **Verification** | Test |
 | **Traces to** | STK-12 -> `ai/src/api/service.rs` |
-| **Acceptance** | `DefaultDocEngineAiService::new(config)` validates that AI is enabled and an API key is present, initialises the LLM provider via `llm_provider::create_service()`, and constructs a `DocEngineAgentManager`; `chat()` sends the message through `CompletionBuilder` with the active agent's system prompt; `audit()` runs `ComplianceScanTool::execute()`, sends the scan JSON to the LLM for analysis, and returns an `AuditResponse` with the LLM summary, raw scan results, and extracted recommendations |
+| **Command** | `cargo test -p doc-engine-ai service` |
+| **Acceptance** | `cargo test -p doc-engine-ai service` passes; construction fails with a configuration error when AI is disabled or no API key is set; `chat` sends a message to the LLM and returns the response; `audit` runs a compliance scan, sends results to the LLM, and returns a summary with recommendations |
 
 #### FR-908: AI CLI subcommands
 
