@@ -224,8 +224,8 @@ fn test_parser_many_domains_file_count() {
     let result = scaffold_from_srs(&config).unwrap();
     assert_eq!(result.domain_count, 8);
     assert_eq!(result.requirement_count, 8);
-    // 8 domains × 10 files + 2 BRD = 82
-    assert_eq!(result.created.len(), 82);
+    // 8 domains × 10 files + 2 BRD + 1 test plan = 83
+    assert_eq!(result.created.len(), 83);
 }
 
 #[test]
@@ -462,8 +462,8 @@ fn test_scaffold_file_tree() {
     let (_tmp, output_dir, config) = scaffold_to_tmp(FIXTURE_SRS);
     let result = scaffold_from_srs(&config).unwrap();
 
-    // 2 domains × 10 files + 2 BRD = 22
-    assert_eq!(result.created.len(), 22);
+    // 2 domains × 10 files + 2 BRD + 1 test plan = 23
+    assert_eq!(result.created.len(), 23);
     assert_eq!(result.domain_count, 2);
     assert_eq!(result.requirement_count, 3);
 
@@ -503,8 +503,8 @@ fn test_scaffold_large_multi_domain() {
     assert_eq!(result.domain_count, 5);
     // 3 + 2 + 2 + 1 + 2 = 10 requirements
     assert_eq!(result.requirement_count, 10);
-    // 5 domains × 10 files + 2 BRD = 52
-    assert_eq!(result.created.len(), 52);
+    // 5 domains × 10 files + 2 BRD + 1 test plan = 53
+    assert_eq!(result.created.len(), 53);
     assert!(result.skipped.is_empty());
     // ISO metadata populated
     assert_eq!(result.standard, "ISO/IEC/IEEE 15289:2019");
@@ -1019,8 +1019,8 @@ Report.
     let result = scaffold_from_srs(&config).unwrap();
     // Only 2 domains should have files (4.1 and 4.3)
     assert_eq!(result.domain_count, 2);
-    // 2 × 10 + 2 BRD = 22
-    assert_eq!(result.created.len(), 22);
+    // 2 × 10 + 2 BRD + 1 test plan = 23
+    assert_eq!(result.created.len(), 23);
 
     // No directories for empty domains
     assert!(!output_dir.join("docs/1-requirements/purpose").exists());
@@ -1035,7 +1035,7 @@ fn test_result_counts_consistent_with_files() {
 
     // created + skipped = total expected files
     let total = result.created.len() + result.skipped.len();
-    let expected = result.domain_count * 10 + 2; // 10 per domain + 2 BRD
+    let expected = result.domain_count * 10 + 3; // 10 per domain + 2 BRD + 1 test plan
     assert_eq!(total, expected);
 
     // All created files actually exist
@@ -1065,16 +1065,24 @@ fn test_yaml_and_markdown_parity() {
         .filter(|p| p.to_string_lossy().ends_with(".yaml"))
         .collect();
     let md_files: Vec<_> = result.created.iter()
-        .filter(|p| !p.to_string_lossy().ends_with(".yaml") && !p.to_string_lossy().ends_with(".exec"))
+        .filter(|p| {
+            let s = p.to_string_lossy();
+            !s.ends_with(".yaml") && !s.ends_with(".exec") && !s.ends_with(".md")
+        })
         .collect();
     let exec_files: Vec<_> = result.created.iter()
         .filter(|p| p.to_string_lossy().ends_with(".exec"))
         .collect();
+    let project_files: Vec<_> = result.created.iter()
+        .filter(|p| p.to_string_lossy().ends_with(".md"))
+        .collect();
 
-    // Equal number of YAML and paired markdown files (exec files are markdown-only)
+    // Equal number of YAML and paired markdown files (exec and project-level files excluded)
     assert_eq!(yaml_files.len(), md_files.len());
     // 2 exec files per domain (manual + auto)
     assert_eq!(exec_files.len(), result.domain_count * 2);
+    // 1 project-level test plan
+    assert_eq!(project_files.len(), 1);
 
     // For each YAML file there should be a corresponding markdown file
     for yaml_path in &yaml_files {
@@ -1400,7 +1408,7 @@ fn test_skip_existing_preserves_content() {
 
     // Second run without --force
     let r2 = scaffold_from_srs(&config).unwrap();
-    assert_eq!(r2.skipped.len(), 22);
+    assert_eq!(r2.skipped.len(), 23);
     assert!(r2.created.is_empty());
     assert!(!r2.force); // force=false reflected in result
 
@@ -1433,7 +1441,7 @@ fn test_force_overwrite_updates_content() {
     // Second run WITH --force
     config.force = true;
     let r2 = scaffold_from_srs(&config).unwrap();
-    assert_eq!(r2.created.len(), 22);
+    assert_eq!(r2.created.len(), 23);
     assert!(r2.skipped.is_empty());
     assert!(r2.force); // force=true reflected in result
 
@@ -1465,8 +1473,8 @@ fn test_skip_existing_mixed_scenario() {
     };
 
     let result = scaffold_from_srs(&config).unwrap();
-    // 20 domain files created, 2 BRD files skipped
-    assert_eq!(result.created.len(), 20);
+    // 20 domain files + 1 test plan created, 2 BRD files skipped
+    assert_eq!(result.created.len(), 21);
     assert_eq!(result.skipped.len(), 2);
     assert!(result.skipped.iter().any(|p| p.to_string_lossy().contains("brd.spec.yaml")));
     assert!(result.skipped.iter().any(|p| p.to_string_lossy().contains("brd.spec")));
@@ -1493,7 +1501,7 @@ fn test_output_dir_created_automatically() {
     };
 
     let result = scaffold_from_srs(&config).unwrap();
-    assert_eq!(result.created.len(), 22);
+    assert_eq!(result.created.len(), 23);
     assert!(output_dir.join("docs/1-requirements/brd.spec.yaml").exists());
 }
 
@@ -1516,8 +1524,8 @@ fn test_phase_filter_single_testing() {
 
     let result = scaffold_from_srs(&config).unwrap();
 
-    // 2 domains × 4 testing files = 8 (no BRD)
-    assert_eq!(result.created.len(), 8);
+    // 2 domains × 4 testing files + 1 test plan = 9 (no BRD)
+    assert_eq!(result.created.len(), 9);
     assert_eq!(result.domain_count, 2);
     assert_eq!(result.requirement_count, 3);
     // Phase filter reflected in result
@@ -1642,7 +1650,7 @@ fn test_phase_filter_with_force() {
     let result = scaffold_from_srs(&config_phase).unwrap();
 
     // Only testing files created (force applies only to filtered set)
-    assert_eq!(result.created.len(), 8);
+    assert_eq!(result.created.len(), 9);
     assert!(result.skipped.is_empty());
 }
 
@@ -1729,8 +1737,8 @@ fn test_phase_filter_large_srs_testing_only() {
 
     assert_eq!(result.domain_count, 5);
     assert_eq!(result.requirement_count, 10);
-    // 5 domains × 4 testing files = 20
-    assert_eq!(result.created.len(), 20);
+    // 5 domains × 4 testing files + 1 test plan = 21
+    assert_eq!(result.created.len(), 21);
 
     for slug in &["rule_loading", "file_discovery", "check_execution", "reporting", "architecture"] {
         assert!(
@@ -1777,8 +1785,8 @@ fn test_phase_filter_large_srs_three_phases() {
 
     let result = scaffold_from_srs(&config).unwrap();
 
-    // 5 domains × (2 req + 2 design + 4 testing) + 2 BRD = 42
-    assert_eq!(result.created.len(), 42);
+    // 5 domains × (2 req + 2 design + 4 testing) + 2 BRD + 1 test plan = 43
+    assert_eq!(result.created.len(), 43);
 }
 
 #[test]
@@ -1803,8 +1811,8 @@ fn test_phase_filter_skip_existing_in_filtered_phase() {
 
     let result = scaffold_from_srs(&config).unwrap();
 
-    // 8 total testing files: 1 skipped, 7 created
-    assert_eq!(result.created.len(), 7);
+    // 9 total testing files (incl. test plan): 1 skipped, 8 created
+    assert_eq!(result.created.len(), 8);
     assert_eq!(result.skipped.len(), 1);
     assert!(result.skipped.iter().any(|p| p.to_string_lossy().contains("rule_loading.test.yaml")));
 
@@ -2015,8 +2023,8 @@ Scans complete in under one second.
 
     let result = scaffold_from_srs(&config).unwrap();
 
-    // 1 domain × 4 testing files = 4
-    assert_eq!(result.created.len(), 4);
+    // 1 domain × 4 testing files + 1 test plan = 5
+    assert_eq!(result.created.len(), 5);
     assert_eq!(result.domain_count, 1);
     assert_eq!(result.requirement_count, 1);
 
@@ -2062,15 +2070,15 @@ fn test_phase_filter_result_counts_formula() {
     let srs_path = tmp.path().join("srs.md");
     fs::write(&srs_path, LARGE_FIXTURE_SRS).unwrap();
 
-    // Each phase contributes a known number of files per domain
-    let phase_files: Vec<(&str, usize, bool)> = vec![
-        ("requirements", 2, true),  // 2 per domain + 2 BRD
-        ("design", 2, false),       // 2 per domain
-        ("testing", 4, false),      // 4 per domain
-        ("deployment", 2, false),   // 2 per domain
+    // Each phase contributes a known number of files per domain, plus extras
+    let phase_files: Vec<(&str, usize, usize)> = vec![
+        ("requirements", 2, 2),  // 2 per domain + 2 BRD
+        ("design", 2, 0),        // 2 per domain
+        ("testing", 4, 1),       // 4 per domain + 1 test plan
+        ("deployment", 2, 0),    // 2 per domain
     ];
 
-    for (phase, files_per_domain, has_brd) in &phase_files {
+    for (phase, files_per_domain, extra) in &phase_files {
         let output_dir = tmp.path().join(format!("out_{}", phase));
         let config = ScaffoldConfig {
             srs_path: srs_path.clone(),
@@ -2081,11 +2089,11 @@ fn test_phase_filter_result_counts_formula() {
         };
         let result = scaffold_from_srs(&config).unwrap();
 
-        let expected = result.domain_count * files_per_domain + if *has_brd { 2 } else { 0 };
+        let expected = result.domain_count * files_per_domain + extra;
         assert_eq!(
             result.created.len(), expected,
-            "Phase '{}': expected {} files ({}×{} + brd={}), got {}",
-            phase, expected, result.domain_count, files_per_domain, has_brd, result.created.len()
+            "Phase '{}': expected {} files ({}×{} + extra={}), got {}",
+            phase, expected, result.domain_count, files_per_domain, extra, result.created.len()
         );
     }
 }
@@ -2184,8 +2192,8 @@ fn test_type_filter_empty_means_all() {
     };
     let result = scaffold_from_srs(&config).unwrap();
 
-    // Empty file_types = all types: 2 domains × 10 + 2 BRD = 22
-    assert_eq!(result.created.len(), 22);
+    // Empty file_types = all types: 2 domains × 10 + 2 BRD + 1 test plan = 23
+    assert_eq!(result.created.len(), 23);
 }
 
 #[test]

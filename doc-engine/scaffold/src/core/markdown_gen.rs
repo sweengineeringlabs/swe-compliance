@@ -465,6 +465,76 @@ pub(crate) fn generate_brd_md(domains: &[SrsDomain]) -> String {
     out
 }
 
+/// Generate a project-level `test_plan.md` conforming to ISO/IEC/IEEE 29119-3:2021 Clause 7.
+///
+/// Aggregates all SRS domains into a master test plan with sections that
+/// satisfy scan check 125 (`test_plan_29119_sections`):
+/// - Objectives, Scope, Schedule, Environment, Test Specifications.
+pub(crate) fn generate_test_plan_project_md(domains: &[SrsDomain]) -> String {
+    let mut out = String::new();
+    out.push_str("# Project Test Plan\n\n");
+    out.push_str("> ISO/IEC/IEEE 29119-3:2021 Clause 7 — Master Test Plan\n\n");
+    out.push_str("**Version:** 1.0\n");
+    out.push_str("**Status:** Draft\n\n");
+
+    // Objectives
+    out.push_str("## Objectives\n\n");
+    out.push_str("Verify that all functional and non-functional requirements defined in the SRS are satisfied.\n");
+    out.push_str("Validate compliance with ISO/IEC/IEEE 29119-3:2021 testing standards.\n\n");
+
+    // Scope
+    out.push_str("## Scope\n\n");
+    out.push_str("This test plan covers the following domains extracted from the SRS:\n\n");
+    out.push_str("| Section | Domain | Requirements | Test Spec |\n");
+    out.push_str("|---------|--------|-------------|-----------|\n");
+    for d in domains {
+        out.push_str(&format!(
+            "| {} | {} | {} | [test](docs/5-testing/{slug}/{slug}.test) |\n",
+            d.section,
+            escape_pipe(&d.title),
+            d.requirements.len(),
+            slug = d.slug,
+        ));
+    }
+    let total_reqs: usize = domains.iter().map(|d| d.requirements.len()).sum();
+    out.push_str(&format!(
+        "\n**Total domains:** {}  \n**Total requirements:** {}\n\n",
+        domains.len(),
+        total_reqs,
+    ));
+
+    // Schedule
+    out.push_str("## Schedule\n\n");
+    out.push_str("| Milestone | Target Date | Status |\n");
+    out.push_str("|-----------|-------------|--------|\n");
+    out.push_str("| Test plan approved | _TBD_ | Pending |\n");
+    out.push_str("| Unit tests complete | _TBD_ | Pending |\n");
+    out.push_str("| Integration tests complete | _TBD_ | Pending |\n");
+    out.push_str("| System tests complete | _TBD_ | Pending |\n");
+    out.push_str("| Acceptance tests complete | _TBD_ | Pending |\n\n");
+
+    // Environment
+    out.push_str("## Environment\n\n");
+    out.push_str("| Resource | Description | Status |\n");
+    out.push_str("|----------|-------------|--------|\n");
+    out.push_str("| CI server | _TODO_ | Pending |\n");
+    out.push_str("| Test data | _TODO_ | Pending |\n");
+    out.push_str("| Test tools | _TODO_ | Pending |\n\n");
+
+    // Test Specifications
+    out.push_str("## Test Specifications\n\n");
+    for d in domains {
+        out.push_str(&format!(
+            "- [{}](docs/5-testing/{slug}/{slug}.test) — {} requirements\n",
+            d.title,
+            d.requirements.len(),
+            slug = d.slug,
+        ));
+    }
+    out.push('\n');
+    out
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -528,5 +598,27 @@ mod tests {
         assert!(md.contains("# Business Requirements Document"));
         assert!(md.contains("| 4.1 |"));
         assert!(md.contains("rule_loading"));
+    }
+
+    #[test]
+    fn test_test_plan_project_md_has_29119_sections() {
+        let domains = vec![sample_domain()];
+        let md = generate_test_plan_project_md(&domains);
+        assert!(md.contains("# Project Test Plan"));
+        assert!(md.contains("## Objectives"));
+        assert!(md.contains("## Scope"));
+        assert!(md.contains("## Schedule"));
+        assert!(md.contains("## Environment"));
+        assert!(md.contains("## Test Specifications"));
+    }
+
+    #[test]
+    fn test_test_plan_project_md_has_domain_inventory() {
+        let domains = vec![sample_domain()];
+        let md = generate_test_plan_project_md(&domains);
+        assert!(md.contains("| 4.1 |"));
+        assert!(md.contains("rule_loading"));
+        assert!(md.contains("**Total domains:** 1"));
+        assert!(md.contains("**Total requirements:** 1"));
     }
 }

@@ -1783,6 +1783,28 @@ Generated files per domain:
 
 When `--report <path>` is provided, the scaffold command shall serialize a `ScaffoldStatusReport` as pretty-printed JSON. The report wraps `ScaffoldResult` fields (promoted to top level) with ISO 15289:2019 clause 9 identification metadata: standard identifier, clause reference, tool name, tool version (from `Cargo.toml`), ISO 8601 UTC timestamp, canonicalized SRS source path, phase filter, and force flag. Parent directories are created automatically. No new dependencies are introduced — the timestamp uses Howard Hinnant's `civil_from_days` algorithm on `std::time::SystemTime`.
 
+#### FR-837: Project-level test plan generation (ISO/IEC/IEEE 29119-3)
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Should |
+| **State** | Implemented |
+| **Verification** | Test |
+| **Traces to** | STK-11 -> `core/scaffold/markdown_gen.rs`, `core/scaffold/mod.rs` |
+| **Acceptance** | When `--phase testing` is included (or no `--phase` filter) and `--type plan` is included (or no `--type` filter), scaffold generates `docs/5-testing/test_plan.md` conforming to ISO/IEC/IEEE 29119-3:2021 Clause 7 with sections: Objectives, Scope (domain inventory table), Schedule (milestones), and Environment (resources). The file aggregates data from all parsed SRS domains. `--type test` alone does NOT generate the test plan; `--type plan` alone generates ONLY the test plan. |
+
+**Behavior matrix:**
+
+| `--phase` | `--type` | `test_plan.md`? | Per-domain `.test`? |
+|-----------|----------|-----------------|---------------------|
+| _(empty)_ | _(empty)_ | Yes | Yes |
+| `testing` | _(empty)_ | Yes | Yes |
+| _(empty)_ | `plan` | Yes | No |
+| _(empty)_ | `test` | No | Yes |
+| `testing` | `plan` | Yes | No |
+| `testing` | `test` | No | Yes |
+| `requirements` | _(empty)_ | No | No |
+
 ### 4.15 AI-Powered Compliance Analysis
 
 All requirements in this section are feature-gated behind `#[cfg(feature = "ai")]` and implemented in the `doc-engine-ai` crate. The default build is unaffected.

@@ -47,7 +47,7 @@ fn e2e_scaffold_basic() {
         .stdout(predicate::str::contains("Scaffold complete"))
         .stdout(predicate::str::contains("2 domains"))
         .stdout(predicate::str::contains("3 requirements"))
-        .stdout(predicate::str::contains("22 files created"))
+        .stdout(predicate::str::contains("23 files created"))
         .stdout(predicate::str::contains("0 skipped"));
 }
 
@@ -106,7 +106,7 @@ fn e2e_scaffold_shows_skipped_files() {
 
     let stdout = String::from_utf8(output.stdout).unwrap();
     assert!(stdout.contains("~ docs/1-requirements/rule_loading/rule_loading.spec.yaml"));
-    assert!(stdout.contains("22 skipped"));
+    assert!(stdout.contains("23 skipped"));
     assert!(stdout.contains("0 files created"));
 }
 
@@ -136,7 +136,7 @@ fn e2e_scaffold_force_flag() {
         .arg("--force")
         .assert()
         .success()
-        .stdout(predicate::str::contains("22 files created"))
+        .stdout(predicate::str::contains("23 files created"))
         .stdout(predicate::str::contains("0 skipped"));
 }
 
@@ -204,7 +204,7 @@ fn e2e_scaffold_large_srs() {
         .success()
         .stdout(predicate::str::contains("5 domains"))
         .stdout(predicate::str::contains("10 requirements"))
-        .stdout(predicate::str::contains("52 files created"));
+        .stdout(predicate::str::contains("53 files created"));
 }
 
 // === TC-004: FR-SCA-004: Manual test execution plan =======================
@@ -271,7 +271,7 @@ fn e2e_scaffold_phase_flag() {
         .arg("testing")
         .assert()
         .success()
-        .stdout(predicate::str::contains("8 files created"))
+        .stdout(predicate::str::contains("9 files created"))
         .stdout(predicate::str::contains("0 skipped"));
 
     assert!(output_dir.join("docs/5-testing/rule_loading/rule_loading.test.yaml").exists());
@@ -343,7 +343,7 @@ fn e2e_scaffold_phase_case_insensitive() {
         .arg("Testing")
         .assert()
         .success()
-        .stdout(predicate::str::contains("8 files created"));
+        .stdout(predicate::str::contains("9 files created"));
 
     assert!(output_dir.join("docs/5-testing/rule_loading/rule_loading.test.yaml").exists());
 }
@@ -389,7 +389,7 @@ fn e2e_scaffold_phase_all_four_explicit() {
         .arg("requirements,design,testing,deployment")
         .assert()
         .success()
-        .stdout(predicate::str::contains("22 files created"));
+        .stdout(predicate::str::contains("23 files created"));
 }
 
 #[test]
@@ -592,7 +592,7 @@ fn e2e_scaffold_report_content() {
     assert_eq!(parsed["requirement_count"], 3);
     assert!(parsed["created"].is_array());
     assert!(parsed["skipped"].is_array());
-    assert_eq!(parsed["created"].as_array().unwrap().len(), 22);
+    assert_eq!(parsed["created"].as_array().unwrap().len(), 23);
     assert_eq!(parsed["skipped"].as_array().unwrap().len(), 0);
     // ISO 15289 metadata fields present
     assert_eq!(parsed["standard"], "ISO/IEC/IEEE 15289:2019");
@@ -673,7 +673,7 @@ fn e2e_scaffold_report_skipped_files() {
     let parsed: serde_json::Value = serde_json::from_str(&content).unwrap();
 
     assert_eq!(parsed["created"].as_array().unwrap().len(), 0);
-    assert_eq!(parsed["skipped"].as_array().unwrap().len(), 22);
+    assert_eq!(parsed["skipped"].as_array().unwrap().len(), 23);
     assert_eq!(parsed["domain_count"], 2);
     assert_eq!(parsed["requirement_count"], 3);
 }
@@ -711,7 +711,7 @@ fn e2e_scaffold_report_with_force() {
     let content = fs::read_to_string(&report_path).unwrap();
     let parsed: serde_json::Value = serde_json::from_str(&content).unwrap();
 
-    assert_eq!(parsed["created"].as_array().unwrap().len(), 22);
+    assert_eq!(parsed["created"].as_array().unwrap().len(), 23);
     assert_eq!(parsed["skipped"].as_array().unwrap().len(), 0);
 }
 
@@ -739,8 +739,8 @@ fn e2e_scaffold_report_with_phase_filter() {
     let content = fs::read_to_string(&report_path).unwrap();
     let parsed: serde_json::Value = serde_json::from_str(&content).unwrap();
 
-    // 2 domains × 4 testing files = 8
-    assert_eq!(parsed["created"].as_array().unwrap().len(), 8);
+    // 2 domains × 4 testing files + 1 test plan = 9
+    assert_eq!(parsed["created"].as_array().unwrap().len(), 9);
     assert_eq!(parsed["skipped"].as_array().unwrap().len(), 0);
     assert_eq!(parsed["domain_count"], 2);
     assert_eq!(parsed["requirement_count"], 3);
@@ -798,8 +798,8 @@ fn e2e_scaffold_report_large_srs() {
 
     assert_eq!(parsed["domain_count"], 5);
     assert_eq!(parsed["requirement_count"], 10);
-    // 5 domains × 10 files + 2 BRD = 52
-    assert_eq!(parsed["created"].as_array().unwrap().len(), 52);
+    // 5 domains × 10 files + 2 BRD + 1 test plan = 53
+    assert_eq!(parsed["created"].as_array().unwrap().len(), 53);
     assert_eq!(parsed["skipped"].as_array().unwrap().len(), 0);
 }
 
@@ -894,7 +894,7 @@ fn e2e_scaffold_report_overwritten_on_rerun() {
 
     let content1 = fs::read_to_string(&report_path).unwrap();
     let parsed1: serde_json::Value = serde_json::from_str(&content1).unwrap();
-    assert_eq!(parsed1["created"].as_array().unwrap().len(), 22);
+    assert_eq!(parsed1["created"].as_array().unwrap().len(), 23);
 
     // Second run: all skipped, same report path
     cmd()
@@ -910,7 +910,7 @@ fn e2e_scaffold_report_overwritten_on_rerun() {
     let content2 = fs::read_to_string(&report_path).unwrap();
     let parsed2: serde_json::Value = serde_json::from_str(&content2).unwrap();
     assert_eq!(parsed2["created"].as_array().unwrap().len(), 0);
-    assert_eq!(parsed2["skipped"].as_array().unwrap().len(), 22);
+    assert_eq!(parsed2["skipped"].as_array().unwrap().len(), 23);
 }
 
 #[test]
@@ -942,8 +942,8 @@ fn e2e_scaffold_report_phase_filter_skipped_mix() {
     let content = fs::read_to_string(&report_path).unwrap();
     let parsed: serde_json::Value = serde_json::from_str(&content).unwrap();
 
-    // 8 total testing files: 1 skipped, 7 created
-    assert_eq!(parsed["created"].as_array().unwrap().len(), 7);
+    // 9 total testing files (incl. test plan): 1 skipped, 8 created
+    assert_eq!(parsed["created"].as_array().unwrap().len(), 8);
     assert_eq!(parsed["skipped"].as_array().unwrap().len(), 1);
 
     let skipped: Vec<&str> = parsed["skipped"].as_array().unwrap()

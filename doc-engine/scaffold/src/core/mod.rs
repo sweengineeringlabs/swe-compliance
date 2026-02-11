@@ -154,6 +154,12 @@ pub fn scaffold_from_srs(config: &ScaffoldConfig) -> Result<ScaffoldResult, Scaf
         }
     }
 
+    // Project-level test plan (only when testing phase is included)
+    if include_phase("testing") && include_type("plan") {
+        let content = markdown_gen::generate_test_plan_project_md(&domains);
+        write_file(&config.output_dir, "docs/5-testing/test_plan.md", &content, config.force, &mut result)?;
+    }
+
     Ok(result)
 }
 
@@ -249,8 +255,8 @@ The binary embeds rules.
         let (config, output_dir) = setup_config(tmp.path());
         let result = scaffold_from_srs(&config).unwrap();
 
-        // 10 per domain + 2 BRD = 12
-        assert_eq!(result.created.len(), 12);
+        // 10 per domain + 2 BRD + 1 test plan = 13
+        assert_eq!(result.created.len(), 13);
         assert!(result.skipped.is_empty());
 
         // Check specific files
@@ -266,6 +272,7 @@ The binary embeds rules.
         assert!(output_dir.join("docs/6-deployment/rule_loading/rule_loading.deploy").exists());
         assert!(output_dir.join("docs/1-requirements/brd.spec.yaml").exists());
         assert!(output_dir.join("docs/1-requirements/brd.spec").exists());
+        assert!(output_dir.join("docs/5-testing/test_plan.md").exists());
     }
 
     #[test]
@@ -278,7 +285,7 @@ The binary embeds rules.
 
         // Second run without --force
         let result = scaffold_from_srs(&config).unwrap();
-        assert_eq!(result.skipped.len(), 12);
+        assert_eq!(result.skipped.len(), 13);
         assert!(result.created.is_empty());
     }
 
@@ -293,7 +300,7 @@ The binary embeds rules.
         // Second run with --force
         config.force = true;
         let result = scaffold_from_srs(&config).unwrap();
-        assert_eq!(result.created.len(), 12);
+        assert_eq!(result.created.len(), 13);
         assert!(result.skipped.is_empty());
     }
 
@@ -323,8 +330,8 @@ The binary embeds rules.
 
         let result = scaffold_from_srs(&config).unwrap();
 
-        // 1 domain × 4 testing files (test.yaml, test, manual.exec, auto.exec) = 4
-        assert_eq!(result.created.len(), 4);
+        // 1 domain × 4 testing files (test.yaml, test, manual.exec, auto.exec) + 1 test plan = 5
+        assert_eq!(result.created.len(), 5);
         assert!(output_dir.join("docs/5-testing/rule_loading/rule_loading.test.yaml").exists());
         assert!(output_dir.join("docs/5-testing/rule_loading/rule_loading.test").exists());
         assert!(output_dir.join("docs/5-testing/rule_loading/rule_loading.manual.exec").exists());
@@ -363,7 +370,7 @@ The binary embeds rules.
         let (config, _output_dir) = setup_config(tmp.path());
 
         let result = scaffold_from_srs(&config).unwrap();
-        // Empty phases = all phases: 1 domain × 10 + 2 BRD = 12
-        assert_eq!(result.created.len(), 12);
+        // Empty phases = all phases: 1 domain × 10 + 2 BRD + 1 test plan = 13
+        assert_eq!(result.created.len(), 13);
     }
 }

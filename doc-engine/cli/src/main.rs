@@ -78,7 +78,7 @@ enum Commands {
         #[arg(long)]
         phase: Option<String>,
 
-        /// Generate only specific file types (comma-separated: yaml,spec,arch,test,exec,deploy)
+        /// Generate only specific file types (comma-separated: yaml,spec,arch,test,exec,deploy,plan)
         #[arg(long = "type", value_name = "TYPE")]
         file_type: Option<String>,
 
@@ -384,7 +384,7 @@ fn main() {
                 None => vec![],
             };
 
-            let valid_types = ["yaml", "spec", "arch", "test", "exec", "deploy"];
+            let valid_types = ["yaml", "spec", "arch", "test", "exec", "deploy", "plan"];
             let file_types: Vec<String> = match file_type {
                 Some(ref s) => {
                     let parsed: Vec<String> = s.split(',').map(|t| t.trim().to_lowercase()).collect();
