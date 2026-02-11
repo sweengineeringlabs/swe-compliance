@@ -121,6 +121,7 @@ mod tests {
             rule_type: RuleType::Builtin { handler: "link_resolution".to_string() },
             project_type: None,
             scope: None,
+            depends_on: vec![],
         }
     }
 

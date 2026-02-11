@@ -31,6 +31,7 @@ struct RawRule {
     message: Option<String>,
     project_type: Option<String>,
     scope: Option<String>,
+    depends_on: Option<Vec<u8>>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -162,6 +163,7 @@ fn convert_raw_rule(raw: RawRule) -> Result<RuleDef, ScanError> {
         rule_type,
         project_type,
         scope,
+        depends_on: raw.depends_on.unwrap_or_default(),
     })
 }
 
@@ -172,6 +174,25 @@ pub fn parse_rules(toml_str: &str) -> Result<RuleSet, ScanError> {
     let mut rules = Vec::with_capacity(raw.rules.len());
     for raw_rule in raw.rules {
         rules.push(convert_raw_rule(raw_rule)?);
+    }
+
+    // Validate depends_on references
+    let rule_ids: std::collections::HashSet<u8> = rules.iter().map(|r| r.id).collect();
+    for rule in &rules {
+        for &dep_id in &rule.depends_on {
+            if !rule_ids.contains(&dep_id) {
+                return Err(ScanError::Config(format!(
+                    "Rule {}: depends_on references non-existent rule {}",
+                    rule.id, dep_id
+                )));
+            }
+            if dep_id >= rule.id {
+                return Err(ScanError::Config(format!(
+                    "Rule {}: depends_on references rule {} which is not a lower ID (would create cycle)",
+                    rule.id, dep_id
+                )));
+            }
+        }
     }
 
     Ok(RuleSet { rules })
@@ -435,6 +456,7 @@ path = "x"
             rule_type: RuleType::FileExists { path: "x".to_string() },
             project_type: None,
             scope: None,
+            depends_on: vec![],
         }];
         let reg = build_registry(&rules).unwrap();
         assert_eq!(reg.len(), 1);
@@ -451,6 +473,7 @@ path = "x"
             rule_type: RuleType::Builtin { handler: "module_docs_plural".to_string() },
             project_type: None,
             scope: None,
+            depends_on: vec![],
         }];
         let reg = build_registry(&rules).unwrap();
         assert_eq!(reg.len(), 1);
@@ -467,6 +490,7 @@ path = "x"
             rule_type: RuleType::Builtin { handler: "nonexistent".to_string() },
             project_type: None,
             scope: None,
+            depends_on: vec![],
         }];
         let result = build_registry(&rules);
         assert!(result.is_err());
@@ -484,6 +508,7 @@ path = "x"
                 rule_type: RuleType::FileExists { path: "x".to_string() },
                 project_type: None,
                 scope: None,
+                depends_on: vec![],
             },
             RuleDef {
                 id: 1,
@@ -493,6 +518,7 @@ path = "x"
                 rule_type: RuleType::DirExists { path: "y".to_string() },
                 project_type: None,
                 scope: None,
+                depends_on: vec![],
             },
         ];
         let reg = build_registry(&rules).unwrap();
@@ -576,5 +602,120 @@ scope = "tiny"
                 "Rule {} should have a scope annotation", rule.id
             );
         }
+    }
+
+    #[test]
+    fn test_parse_depends_on() {
+        let toml = r#"
+[[rules]]
+id = 1
+category = "structure"
+description = "parent"
+severity = "error"
+type = "file_exists"
+path = "x"
+
+[[rules]]
+id = 2
+category = "structure"
+description = "child"
+severity = "error"
+type = "file_exists"
+path = "y"
+depends_on = [1]
+"#;
+        let rs = parse_rules(toml).unwrap();
+        assert_eq!(rs.rules[0].depends_on, Vec::<u8>::new());
+        assert_eq!(rs.rules[1].depends_on, vec![1]);
+    }
+
+    #[test]
+    fn test_parse_depends_on_empty() {
+        let toml = r#"
+[[rules]]
+id = 1
+category = "a"
+description = "d"
+severity = "error"
+type = "file_exists"
+path = "x"
+"#;
+        let rs = parse_rules(toml).unwrap();
+        assert!(rs.rules[0].depends_on.is_empty());
+    }
+
+    #[test]
+    fn test_parse_depends_on_cycle_self_reference() {
+        let toml = r#"
+[[rules]]
+id = 1
+category = "a"
+description = "d"
+severity = "error"
+type = "file_exists"
+path = "x"
+depends_on = [1]
+"#;
+        let result = parse_rules(toml);
+        assert!(result.is_err());
+        let err = format!("{}", result.unwrap_err());
+        assert!(err.contains("not a lower ID"), "Expected cycle error, got: {}", err);
+    }
+
+    #[test]
+    fn test_parse_depends_on_higher_id() {
+        let toml = r#"
+[[rules]]
+id = 1
+category = "a"
+description = "d"
+severity = "error"
+type = "file_exists"
+path = "x"
+depends_on = [2]
+
+[[rules]]
+id = 2
+category = "a"
+description = "d"
+severity = "error"
+type = "file_exists"
+path = "y"
+"#;
+        let result = parse_rules(toml);
+        assert!(result.is_err());
+        let err = format!("{}", result.unwrap_err());
+        assert!(err.contains("not a lower ID"), "Expected cycle error, got: {}", err);
+    }
+
+    #[test]
+    fn test_parse_depends_on_nonexistent() {
+        let toml = r#"
+[[rules]]
+id = 5
+category = "a"
+description = "d"
+severity = "error"
+type = "file_exists"
+path = "x"
+depends_on = [99]
+"#;
+        let result = parse_rules(toml);
+        assert!(result.is_err());
+        let err = format!("{}", result.unwrap_err());
+        assert!(err.contains("non-existent"), "Expected non-existent error, got: {}", err);
+    }
+
+    #[test]
+    fn test_default_rules_depends_on_valid() {
+        // The embedded rules.toml should pass all depends_on validation
+        let rs = parse_rules(DEFAULT_RULES).unwrap();
+        // Verify some known dependencies exist
+        let rule7 = rs.rules.iter().find(|r| r.id == 7).unwrap();
+        assert_eq!(rule7.depends_on, vec![6]);
+        let rule37 = rs.rules.iter().find(|r| r.id == 37).unwrap();
+        assert_eq!(rule37.depends_on, vec![3]);
+        let rule73 = rs.rules.iter().find(|r| r.id == 73).unwrap();
+        assert_eq!(rule73.depends_on, vec![72]);
     }
 }

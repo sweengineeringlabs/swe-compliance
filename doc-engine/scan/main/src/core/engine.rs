@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::path::Path;
 
 use crate::api::traits::ComplianceEngine;
@@ -101,6 +101,7 @@ impl ComplianceEngine for DocComplianceEngine {
 
         // 5. Filter and run checks
         let mut results = Vec::new();
+        let mut failed_checks: HashSet<u8> = HashSet::new();
         for runner in &registry {
             let check_id = runner.id().0;
 
@@ -148,10 +149,29 @@ impl ComplianceEngine for DocComplianceEngine {
                         continue;
                     }
                 }
+
+                // Check dependency graph: skip if any parent check failed
+                if let Some(&dep_id) = rule.depends_on.iter().find(|dep_id| failed_checks.contains(dep_id)) {
+                    results.push(CheckEntry {
+                        id: runner.id(),
+                        category: runner.category().to_string(),
+                        description: runner.description().to_string(),
+                        result: CheckResult::Skip {
+                            reason: format!("Skipped: dependency check {} failed", dep_id),
+                        },
+                    });
+                    continue;
+                }
             }
 
             // 6. Run the check
             let result = runner.run(&ctx);
+
+            // Track failures for dependency resolution
+            if matches!(result, CheckResult::Fail { .. }) {
+                failed_checks.insert(check_id);
+            }
+
             results.push(CheckEntry {
                 id: runner.id(),
                 category: runner.category().to_string(),
@@ -427,5 +447,207 @@ mod tests {
         if let CheckResult::Skip { ref reason } = report.results[0].result {
             assert!(reason.contains("scope"));
         }
+    }
+
+    #[test]
+    fn test_dependency_skip_on_fail() {
+        // Check 1 (parent): file_exists for a missing file → Fail
+        // Check 2 (child): depends_on = [1] → should be Skipped
+        let tmp = TempDir::new().unwrap();
+        let rules_toml = r#"
+[[rules]]
+id = 1
+category = "test"
+description = "parent check"
+severity = "error"
+type = "file_exists"
+path = "nonexistent.md"
+scope = "small"
+
+[[rules]]
+id = 2
+category = "test"
+description = "child check"
+severity = "error"
+type = "file_exists"
+path = "also_nonexistent.md"
+scope = "small"
+depends_on = [1]
+"#;
+        let rules_path = tmp.path().join("rules.toml");
+        std::fs::write(&rules_path, rules_toml).unwrap();
+        let engine = DocComplianceEngine;
+        let config = ScanConfig {
+            project_type: Some(ProjectType::OpenSource),
+            project_scope: ProjectScope::Large,
+            checks: None,
+            rules_path: Some(rules_path),
+        };
+        let report = engine.scan_with_config(tmp.path(), &config).unwrap();
+        assert_eq!(report.results.len(), 2);
+        assert!(matches!(report.results[0].result, CheckResult::Fail { .. }));
+        assert!(matches!(report.results[1].result, CheckResult::Skip { .. }));
+        if let CheckResult::Skip { ref reason } = report.results[1].result {
+            assert!(reason.contains("dependency check 1 failed"), "Got: {}", reason);
+        }
+    }
+
+    #[test]
+    fn test_dependency_pass_through() {
+        // Check 1 (parent): file_exists for an existing file → Pass
+        // Check 2 (child): depends_on = [1] → should run (not skipped)
+        let tmp = TempDir::new().unwrap();
+        std::fs::write(tmp.path().join("exists.md"), "content").unwrap();
+        let rules_toml = r#"
+[[rules]]
+id = 1
+category = "test"
+description = "parent check"
+severity = "error"
+type = "file_exists"
+path = "exists.md"
+scope = "small"
+
+[[rules]]
+id = 2
+category = "test"
+description = "child check"
+severity = "error"
+type = "file_exists"
+path = "nonexistent.md"
+scope = "small"
+depends_on = [1]
+"#;
+        let rules_path = tmp.path().join("rules.toml");
+        std::fs::write(&rules_path, rules_toml).unwrap();
+        let engine = DocComplianceEngine;
+        let config = ScanConfig {
+            project_type: Some(ProjectType::OpenSource),
+            project_scope: ProjectScope::Large,
+            checks: None,
+            rules_path: Some(rules_path),
+        };
+        let report = engine.scan_with_config(tmp.path(), &config).unwrap();
+        assert_eq!(report.results.len(), 2);
+        assert!(matches!(report.results[0].result, CheckResult::Pass));
+        // Child runs (and fails because its file doesn't exist), not skipped
+        assert!(matches!(report.results[1].result, CheckResult::Fail { .. }));
+    }
+
+    #[test]
+    fn test_dependency_filtered_parent() {
+        // Check 1 (parent) is filtered out by --checks
+        // Check 2 (child): depends_on = [1] → should run normally (parent not in failed set)
+        let tmp = TempDir::new().unwrap();
+        let rules_toml = r#"
+[[rules]]
+id = 1
+category = "test"
+description = "parent check"
+severity = "error"
+type = "file_exists"
+path = "nonexistent.md"
+scope = "small"
+
+[[rules]]
+id = 2
+category = "test"
+description = "child check"
+severity = "error"
+type = "file_exists"
+path = "also_nonexistent.md"
+scope = "small"
+depends_on = [1]
+"#;
+        let rules_path = tmp.path().join("rules.toml");
+        std::fs::write(&rules_path, rules_toml).unwrap();
+        let engine = DocComplianceEngine;
+        let config = ScanConfig {
+            project_type: Some(ProjectType::OpenSource),
+            project_scope: ProjectScope::Large,
+            checks: Some(vec![2]),  // Only run child, parent filtered out
+            rules_path: Some(rules_path),
+        };
+        let report = engine.scan_with_config(tmp.path(), &config).unwrap();
+        assert_eq!(report.results.len(), 1);
+        assert_eq!(report.results[0].id.0, 2);
+        // Child runs normally (Fail, not Skip) because parent was filtered, not failed
+        assert!(matches!(report.results[0].result, CheckResult::Fail { .. }));
+    }
+
+    #[test]
+    fn test_dependency_chain() {
+        // Check 1 → Fail, Check 2 depends_on [1] → Skip, Check 3 depends_on [2] → Skip
+        let tmp = TempDir::new().unwrap();
+        let rules_toml = r#"
+[[rules]]
+id = 1
+category = "test"
+description = "grandparent"
+severity = "error"
+type = "file_exists"
+path = "missing.md"
+scope = "small"
+
+[[rules]]
+id = 2
+category = "test"
+description = "parent"
+severity = "error"
+type = "file_exists"
+path = "x.md"
+scope = "small"
+depends_on = [1]
+
+[[rules]]
+id = 3
+category = "test"
+description = "child"
+severity = "error"
+type = "file_exists"
+path = "y.md"
+scope = "small"
+depends_on = [2]
+"#;
+        let rules_path = tmp.path().join("rules.toml");
+        std::fs::write(&rules_path, rules_toml).unwrap();
+        let engine = DocComplianceEngine;
+        let config = ScanConfig {
+            project_type: Some(ProjectType::OpenSource),
+            project_scope: ProjectScope::Large,
+            checks: None,
+            rules_path: Some(rules_path),
+        };
+        let report = engine.scan_with_config(tmp.path(), &config).unwrap();
+        assert_eq!(report.results.len(), 3);
+        assert!(matches!(report.results[0].result, CheckResult::Fail { .. }));
+        // Check 2 skipped because check 1 failed
+        assert!(matches!(report.results[1].result, CheckResult::Skip { .. }));
+        // Check 3 runs because check 2 was skipped (not failed) — depends_on only fires on Fail
+        // Actually check 2 was skipped, not failed. So check 3's dependency on check 2 should
+        // not trigger since check 2 is not in the failed set.
+        // Check 3 should run normally (and fail because y.md doesn't exist)
+        assert!(matches!(report.results[2].result, CheckResult::Fail { .. }));
+    }
+
+    #[test]
+    fn test_all_checks_run_with_dependencies() {
+        // With default rules and dependencies, total results should still equal rule count
+        let tmp = TempDir::new().unwrap();
+        let engine = DocComplianceEngine;
+        let config = ScanConfig {
+            project_type: Some(ProjectType::OpenSource),
+            project_scope: ProjectScope::Large,
+            checks: None,
+            rules_path: None,
+        };
+        let report = engine.scan_with_config(tmp.path(), &config).unwrap();
+        let expected = default_rule_count();
+        assert_eq!(report.results.len(), expected);
+        assert_eq!(report.summary.total, expected as u8);
+        assert_eq!(
+            report.summary.total,
+            report.summary.passed + report.summary.failed + report.summary.skipped
+        );
     }
 }

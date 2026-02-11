@@ -4,9 +4,9 @@
 
 ## TLDR
 
-All 15 compliance check backlog items (BL-01 through BL-15) are complete — 76 checks implemented covering all SDLC phases plus ISO/IEC/IEEE standards validation. All 10 production blocker items (PB-01 through PB-10) are complete: CI/CD pipeline, deprecated dep removal, clippy clean, dependency auditing, API docs, regex LazyLock, Cargo metadata, README enhancement, release automation, and missing_docs lint.
+All 17 backlog items (BL-01 through BL-17) are complete — 76 checks implemented covering all SDLC phases plus ISO/IEC/IEEE standards validation, with dependency graph and duplicate consolidation. All 10 production blocker items (PB-01 through PB-10) are complete: CI/CD pipeline, deprecated dep removal, clippy clean, dependency auditing, API docs, regex LazyLock, Cargo metadata, README enhancement, release automation, and missing_docs lint.
 
-## Status: All items complete
+## Status: 17/17 backlog items complete, 10/10 production blockers complete
 
 ## Overview
 
@@ -40,6 +40,11 @@ Gap analysis of compliance checks missing from doc-engine relative to the [templ
 - [x] **BL-13** — Planning phase artifacts: risk register, estimation, schedule, resource plan, communication plan, quality plan (checks 83-88, FR-804) — 2026-02-09
 - [x] **BL-14** — SRS 29148 attribute validation (check 89, FR-805) — 2026-02-09
 - [x] **BL-15** — ISO/IEC/IEEE standards validation: 42010 architecture + 29119-3 testing (checks 90-91, FR-806, FR-807) — 2026-02-09
+
+### Architecture — Check Engine
+
+- [x] **BL-16** — Check dependency graph: `depends_on` field in rules.toml, automatic skip-propagation (FR-305) — 2026-02-11
+- [x] **BL-17** — Duplicate check consolidation: merge 5 duplicate existence check pairs (FR-306, blocked by BL-16) — 2026-02-11
 
 ---
 
@@ -276,6 +281,65 @@ Gap analysis of compliance checks missing from doc-engine relative to the [templ
 
 ---
 
+### BL-16: Check Dependency Graph
+
+**SRS reference**: FR-305 (Check dependency graph)
+
+**What**: Checks currently execute independently with no awareness of prerequisite results. Content validation, naming convention, and cross-reference checks run even when the target file does not exist, producing misleading "file not found" violations that obscure the root cause. For example, when `README.md` is missing, checks 14 (naming), 26 (root_files), and 40 (navigation content) all fail independently — the user sees 3 failures when the actual problem is 1 missing file.
+
+**Design**: Add an optional `depends_on` field to the TOML rule schema — an array of check IDs that must pass before this check executes. The engine resolves the dependency graph before execution, topologically sorts checks, and automatically skips any check whose parent failed. Skipped checks report `"Skipped: dependency check {id} failed"` and count toward the `skipped` total. Cyclic dependencies are rejected at load time.
+
+**Known dependency pairs**:
+
+| Parent (existence) | Children (content/naming) | File |
+|---------------------|--------------------------|------|
+| 26 | 14, 40 | README.md |
+| 27 | 15 | CONTRIBUTING.md |
+| 28 | 16 | CHANGELOG.md |
+| 29 | 17 | SECURITY.md |
+| 30 | 18 | LICENSE |
+| 3 | 37, 38, 39 | docs/glossary.md |
+| 6 | 7 | docs/3-design/compliance/compliance_checklist.md |
+| 1 | 33, 34, 46, 47 | docs/ directory |
+| 72 | 73 | docs/templates/ |
+
+**Implementation scope**:
+1. Extend `Rule` struct with `depends_on: Vec<u8>` field (default empty)
+2. Add topological sort in engine before check execution
+3. Add cycle detection at rule load time
+4. Propagate parent Fail → child Skip in the execution loop
+5. Add `depends_on` to 15-20 existing rules in `rules.toml`
+
+**Priority**: High — eliminates misleading noise in scan reports, prerequisite for BL-17 (duplicate consolidation).
+
+**Estimated checks**: 0 new checks (engine infrastructure change). Affects ~15-20 existing rules via `depends_on` annotations.
+
+---
+
+### BL-17: Duplicate Check Consolidation
+
+**SRS reference**: FR-306 (Duplicate check consolidation)
+
+**Blocked by**: BL-16 (dependency graph must exist first)
+
+**What**: Five root files are each checked for existence in two separate categories — once in `naming` (checks 14-18) and once in `root_files` (checks 26-30). When a file is missing, both checks fail, doubling the noise in the report. With the dependency graph (BL-16), the `root_files` checks become the authoritative existence checks, and the `naming` checks can be converted to naming-convention validators (e.g., "README must be uppercase", "LICENSE must have no extension") or removed entirely.
+
+**Duplicate pairs to consolidate**:
+
+| Naming check | Root_files check | File | Resolution |
+|-------------|-----------------|------|------------|
+| 14 | 26 | README.md | 14 → naming convention (uppercase) with `depends_on = [26]` |
+| 15 | 27 | CONTRIBUTING.md | 15 → naming convention with `depends_on = [27]` |
+| 16 | 28 | CHANGELOG.md | 16 → naming convention with `depends_on = [28]` |
+| 17 | 29 | SECURITY.md | 17 → naming convention with `depends_on = [29]` |
+| 18 | 30 | LICENSE | 18 → naming convention (no extension) with `depends_on = [30]` |
+
+**Priority**: Medium — depends on BL-16. Reduces duplicate failures from 10 to 5 for projects missing all root files.
+
+**Estimated checks**: 0 new checks (refactors 5 existing checks).
+
+---
+
 ## Summary
 
 | ID | Gap | Framework Phase | Priority | Est. Checks | Severity |
@@ -295,6 +359,8 @@ Gap analysis of compliance checks missing from doc-engine relative to the [templ
 | BL-13 | Planning phase artifacts (FR-804) | Planning | Medium | 6 | info |
 | BL-14 | SRS 29148 attribute validation (FR-805) | Requirements | Medium | 1 | warning |
 | BL-15 | ISO standards: 42010 arch + 29119-3 testing (FR-806, FR-807) | Requirements | Medium | 2 | info |
+| BL-16 | Check dependency graph (FR-305) | Engine | High | 0 (infra) | — |
+| BL-17 | Duplicate check consolidation (FR-306) | Engine | Medium | 0 (refactor) | — |
 | | | **Total** | | **~26-34** | |
 
 ## Completed
@@ -489,3 +555,4 @@ Items to evaluate for potential adoption into backlog content validation standar
 - BL-03 through BL-06 all require module/crate discovery. Implementing a shared `ModuleDiscovery` component first would unblock all four items simultaneously.
 - Severity levels follow the framework's own language: Phase checklist items are warnings, best practices are info, governance requirements match existing patterns.
 - The framework states "Not all projects need all phases" (line 31). Checks for optional phases should skip gracefully when the phase directory doesn't exist.
+- BL-17 (duplicate consolidation) is blocked by BL-16 (dependency graph). The dependency graph must exist before duplicate existence checks can be safely consolidated — without it, removing a duplicate check would lose coverage.

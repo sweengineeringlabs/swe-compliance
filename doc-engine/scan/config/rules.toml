@@ -68,6 +68,7 @@ type = "file_content_matches"
 path = "docs/3-design/compliance/compliance_checklist.md"
 pattern = "architecture\\.md"
 scope = "large"
+depends_on = [6]
 
 [[rules]]
 id = 8
@@ -249,6 +250,7 @@ severity = "error"
 type = "file_exists"
 path = "README.md"
 scope = "small"
+depends_on = [14]
 
 [[rules]]
 id = 27
@@ -258,6 +260,7 @@ severity = "error"
 type = "file_exists"
 path = "CONTRIBUTING.md"
 scope = "medium"
+depends_on = [15]
 
 [[rules]]
 id = 28
@@ -267,6 +270,7 @@ severity = "warning"
 type = "file_exists"
 path = "CHANGELOG.md"
 scope = "medium"
+depends_on = [16]
 
 [[rules]]
 id = 29
@@ -276,6 +280,7 @@ severity = "error"
 type = "file_exists"
 path = "SECURITY.md"
 scope = "medium"
+depends_on = [17]
 
 [[rules]]
 id = 30
@@ -285,6 +290,7 @@ severity = "error"
 type = "file_exists"
 path = "LICENSE"
 scope = "small"
+depends_on = [18]
 
 [[rules]]
 id = 31
@@ -319,6 +325,7 @@ type = "glob_content_matches"
 glob = "docs/**/*.md"
 pattern = "\\*\\*Audience\\*\\*:"
 scope = "small"
+depends_on = [1]
 
 [[rules]]
 id = 34
@@ -329,6 +336,7 @@ type = "glob_content_matches"
 glob = "**/docs/README.md"
 pattern = "\\*\\*Audience\\*\\*:"
 scope = "small"
+depends_on = [1]
 
 [[rules]]
 id = 35
@@ -356,6 +364,7 @@ severity = "warning"
 type = "builtin"
 handler = "glossary_format"
 scope = "medium"
+depends_on = [3]
 
 [[rules]]
 id = 38
@@ -365,6 +374,7 @@ severity = "warning"
 type = "builtin"
 handler = "glossary_alphabetized"
 scope = "medium"
+depends_on = [3]
 
 [[rules]]
 id = 39
@@ -374,6 +384,7 @@ severity = "info"
 type = "builtin"
 handler = "glossary_acronyms"
 scope = "medium"
+depends_on = [3]
 
 # =============================================================================
 # Checks 40-43: Navigation
@@ -388,6 +399,7 @@ type = "file_content_matches"
 path = "README.md"
 pattern = "docs/README\\.md"
 scope = "small"
+depends_on = [14]
 
 [[rules]]
 id = 41
@@ -448,6 +460,7 @@ glob = "docs/**/*.md"
 pattern = "\\bdoc/"
 exclude_pattern = "docs/"
 scope = "small"
+depends_on = [1]
 
 [[rules]]
 id = 47
@@ -459,6 +472,7 @@ glob = "docs/**/*.md"
 pattern = "\\bguides/"
 exclude_pattern = "guide/"
 scope = "small"
+depends_on = [1]
 
 # =============================================================================
 # Checks 48-50: ADR
@@ -722,6 +736,7 @@ severity = "info"
 type = "builtin"
 handler = "templates_populated"
 scope = "large"
+depends_on = [72]
 
 [[rules]]
 id = 74

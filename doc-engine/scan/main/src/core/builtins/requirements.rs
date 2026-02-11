@@ -1149,6 +1149,7 @@ mod tests {
             rule_type: RuleType::Builtin { handler: "srs_29148_attributes".to_string() },
             project_type: None,
             scope: None,
+            depends_on: vec![],
         }
     }
 
@@ -1378,6 +1379,7 @@ mod tests {
             rule_type: RuleType::Builtin { handler: "arch_42010_sections".to_string() },
             project_type: None,
             scope: None,
+            depends_on: vec![],
         }
     }
 
@@ -1480,6 +1482,7 @@ mod tests {
             rule_type: RuleType::Builtin { handler: "test_29119_sections".to_string() },
             project_type: None,
             scope: None,
+            depends_on: vec![],
         }
     }
 
@@ -1679,6 +1682,7 @@ mod tests {
             rule_type: RuleType::Builtin { handler: "prod_readiness_exists".to_string() },
             project_type: None,
             scope: None,
+            depends_on: vec![],
         }
     }
 
@@ -1721,6 +1725,7 @@ mod tests {
             rule_type: RuleType::Builtin { handler: "prod_readiness_25010_sections".to_string() },
             project_type: None,
             scope: None,
+            depends_on: vec![],
         }
     }
 
@@ -1847,6 +1852,7 @@ mod tests {
             rule_type: RuleType::Builtin { handler: "dev_guide_26514_sections".to_string() },
             project_type: None,
             scope: None,
+            depends_on: vec![],
         }
     }
 
@@ -1952,6 +1958,7 @@ mod tests {
             rule_type: RuleType::Builtin { handler: "backlog_sections".to_string() },
             project_type: None,
             scope: None,
+            depends_on: vec![],
         }
     }
 
@@ -2135,6 +2142,7 @@ mod tests {
             rule_type: RuleType::Builtin { handler: "prod_readiness_12207_sections".to_string() },
             project_type: None,
             scope: None,
+            depends_on: vec![],
         }
     }
 
@@ -2267,6 +2275,7 @@ mod tests {
             rule_type: RuleType::Builtin { handler: "prod_readiness_25010_supp_sections".to_string() },
             project_type: None,
             scope: None,
+            depends_on: vec![],
         }
     }
 
@@ -2394,6 +2403,7 @@ mod tests {
             rule_type: RuleType::Builtin { handler: "prod_readiness_25040_sections".to_string() },
             project_type: None,
             scope: None,
+            depends_on: vec![],
         }
     }
 
@@ -2516,6 +2526,7 @@ mod tests {
             rule_type: RuleType::Builtin { handler: "audit_report_1028_sections".to_string() },
             project_type: None,
             scope: None,
+            depends_on: vec![],
         }
     }
 
@@ -2605,6 +2616,7 @@ mod tests {
             rule_type: RuleType::Builtin { handler: "test_plan_29119_sections".to_string() },
             project_type: None,
             scope: None,
+            depends_on: vec![],
         }
     }
 
@@ -2688,6 +2700,7 @@ mod tests {
             rule_type: RuleType::Builtin { handler: "test_design_29119_sections".to_string() },
             project_type: None,
             scope: None,
+            depends_on: vec![],
         }
     }
 
@@ -2771,6 +2784,7 @@ mod tests {
             rule_type: RuleType::Builtin { handler: "test_cases_29119_sections".to_string() },
             project_type: None,
             scope: None,
+            depends_on: vec![],
         }
     }
 
@@ -2854,6 +2868,7 @@ mod tests {
             rule_type: RuleType::Builtin { handler: "verification_report_29119_sections".to_string() },
             project_type: None,
             scope: None,
+            depends_on: vec![],
         }
     }
 

@@ -253,6 +253,8 @@ pub struct RuleDef {
     pub project_type: Option<ProjectType>,
     /// Optional scope tier; `None` means the rule applies at all scope levels.
     pub scope: Option<ProjectScope>,
+    /// Parent check IDs that must pass before this check runs.
+    pub depends_on: Vec<u8>,
 }
 
 /// The type of a rule -- declarative or builtin.

@@ -485,6 +485,7 @@ mod tests {
             rule_type,
             project_type: None,
             scope: None,
+            depends_on: vec![],
         }
     }
 
