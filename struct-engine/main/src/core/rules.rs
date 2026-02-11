@@ -1,12 +1,11 @@
 use serde::Deserialize;
 
-use crate::api::types::{RuleDef, RuleSet, RuleType};
-use crate::spi::traits::CheckRunner;
-use crate::spi::types::{ProjectKind, ScanError, Severity};
+use crate::api::traits::CheckRunner;
+use crate::api::types::{RuleDef, RuleSet, RuleType, ProjectKind, ScanError, Severity};
 use super::builtins;
 use super::declarative::DeclarativeCheck;
 
-pub const DEFAULT_RULES: &str = include_str!("../../rules.toml");
+pub const DEFAULT_RULES: &str = include_str!("../../../config/rules.toml");
 
 /// Return the number of rules defined in the embedded `rules.toml`.
 pub fn default_rule_count() -> usize {

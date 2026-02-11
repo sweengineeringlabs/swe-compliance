@@ -3,8 +3,8 @@ use std::path::{Path, PathBuf};
 
 use walkdir::WalkDir;
 
-use crate::spi::traits::FileScanner;
-use crate::spi::types::ScanError;
+use crate::api::traits::FileScanner;
+use crate::api::types::ScanError;
 
 pub struct FileSystemScanner;
 

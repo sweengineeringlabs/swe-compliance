@@ -11,11 +11,19 @@ categories = ["command-line-utilities", "development-tools"]
 
 [lib]
 name = "struct_engine"
-path = "src/lib.rs"
+path = "main/src/lib.rs"
 
 [[bin]]
 name = "struct-engine"
-path = "src/main.rs"
+path = "main/src/main.rs"
+
+[[test]]
+name = "struct_engine_e2e_test"
+path = "tests/struct_engine_e2e_test.rs"
+
+[[test]]
+name = "struct_engine_int_test"
+path = "tests/struct_engine_int_test.rs"
 
 [dependencies]
 clap = { version = "4", features = ["derive"] }

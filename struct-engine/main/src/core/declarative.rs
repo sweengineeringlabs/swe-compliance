@@ -3,10 +3,9 @@ use std::path::Path;
 
 use regex::Regex;
 
-use crate::api::types::{RuleDef, RuleType};
+use crate::api::traits::CheckRunner;
+use crate::api::types::{RuleDef, RuleType, CheckId, CheckResult, ScanContext, Violation};
 use crate::core::cargo_manifest::lookup_toml_key;
-use crate::spi::traits::CheckRunner;
-use crate::spi::types::{CheckId, CheckResult, ScanContext, Violation};
 
 pub struct DeclarativeCheck {
     pub def: RuleDef,
@@ -556,8 +555,7 @@ pub fn glob_to_regex(glob: &str) -> Option<Regex> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::api::types::CargoManifest;
-    use crate::spi::types::Severity;
+    use crate::api::types::{CargoManifest, Severity};
     use std::collections::HashMap;
     use tempfile::TempDir;
 
@@ -577,7 +575,7 @@ mod tests {
             root: root.to_path_buf(),
             files,
             file_contents: HashMap::new(),
-            project_kind: crate::spi::types::ProjectKind::Library,
+            project_kind: crate::api::types::ProjectKind::Library,
             cargo_manifest: None,
         }
     }
@@ -587,7 +585,7 @@ mod tests {
             root: root.to_path_buf(),
             files: vec![],
             file_contents: HashMap::new(),
-            project_kind: crate::spi::types::ProjectKind::Library,
+            project_kind: crate::api::types::ProjectKind::Library,
             cargo_manifest: Some(manifest),
         }
     }

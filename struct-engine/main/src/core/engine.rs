@@ -1,10 +1,8 @@
 use std::collections::HashMap;
 use std::path::Path;
 
-use crate::api::traits::ComplianceEngine;
-use crate::api::types::{ScanConfig, ScanReport, ScanSummary, CheckEntry};
-use crate::spi::traits::FileScanner;
-use crate::spi::types::{CheckResult, ProjectKind, ScanContext, ScanError};
+use crate::api::traits::{ComplianceEngine, FileScanner};
+use crate::api::types::{ScanConfig, ScanReport, ScanSummary, CheckEntry, CheckResult, ProjectKind, ScanContext, ScanError};
 use super::cargo_manifest;
 use super::rules::{self, DEFAULT_RULES};
 use super::scanner::FileSystemScanner;

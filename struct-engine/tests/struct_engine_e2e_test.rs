@@ -1,7 +1,148 @@
-mod common;
-
+use std::fs;
+use std::path::Path;
 use assert_cmd::Command;
 use struct_engine::default_rule_count;
+use tempfile::TempDir;
+
+fn write_file(root: &Path, relative: &str, content: &str) {
+    let full = root.join(relative);
+    if let Some(parent) = full.parent() {
+        fs::create_dir_all(parent).unwrap();
+    }
+    fs::write(&full, content).unwrap();
+}
+
+fn create_minimal_project() -> TempDir {
+    let tmp = tempfile::Builder::new().prefix("test_").tempdir().unwrap();
+    let root = tmp.path();
+
+    write_file(root, "Cargo.toml", r#"[package]
+name = "test_project"
+version = "0.1.0"
+edition = "2021"
+description = "A test project for struct-engine"
+license = "MIT"
+repository = "https://github.com/example/test_project"
+authors = ["Test Author"]
+rust-version = "1.70"
+keywords = ["test"]
+categories = ["development-tools"]
+
+[lib]
+path = "src/lib.rs"
+"#);
+
+    write_file(root, "src/lib.rs", r#"pub mod utils;
+
+pub fn add(a: i32, b: i32) -> i32 {
+    a + b
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_add() {
+        assert_eq!(add(1, 2), 3);
+    }
+}
+"#);
+
+    write_file(root, "src/utils.rs", r#"pub fn helper() -> String {
+    "hello".to_string()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_helper() {
+        assert_eq!(helper(), "hello");
+    }
+}
+"#);
+
+    write_file(root, "tests/integration.rs", r#"#[test]
+fn test_integration() {
+    assert!(true);
+}
+"#);
+
+    write_file(root, "README.md", "# Test Project\n\nA test project.\n");
+    write_file(root, "CHANGELOG.md", "# Changelog\n\n## 0.1.0\n- Initial release\n");
+    write_file(root, ".gitignore", "target/\n*.swp\n");
+
+    tmp
+}
+
+fn create_rustboot_project() -> TempDir {
+    let tmp = tempfile::Builder::new().prefix("test_rb_").tempdir().unwrap();
+    let root = tmp.path();
+
+    write_file(root, "Cargo.toml", r#"[package]
+name = "rustboot_example"
+version = "0.1.0"
+edition = "2021"
+description = "A rustboot test project"
+license = "MIT"
+repository = "https://github.com/example/rustboot_example"
+authors = ["Test Author"]
+rust-version = "1.70"
+
+[lib]
+path = "main/src/lib.rs"
+
+[[test]]
+name = "api_int_test"
+path = "tests/src/api_int_test.rs"
+"#);
+
+    write_file(root, "main/src/lib.rs", r#"pub mod utils;
+
+pub fn add(a: i32, b: i32) -> i32 {
+    a + b
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_add() {
+        assert_eq!(add(1, 2), 3);
+    }
+}
+"#);
+
+    write_file(root, "main/src/utils.rs", r#"pub fn helper() -> String {
+    "hello".to_string()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_helper() {
+        assert_eq!(helper(), "hello");
+    }
+}
+"#);
+
+    write_file(root, "tests/src/api_int_test.rs", r#"#[test]
+fn test_api_integration_happy() {
+    assert!(true);
+}
+"#);
+
+    write_file(root, "README.md", "# Rustboot Example\n\nA rustboot test project.\n");
+    write_file(root, "CHANGELOG.md", "# Changelog\n\n## 0.1.0\n- Initial release\n");
+    write_file(root, ".gitignore", "target/\n*.swp\n");
+
+    tmp
+}
 
 #[allow(deprecated)]
 fn cmd() -> Command {
@@ -19,7 +160,7 @@ fn test_cli_help() {
 
 #[test]
 fn test_cli_exit_0() {
-    let tmp = common::create_minimal_project();
+    let tmp = create_minimal_project();
     // Use only checks that our minimal project passes
     cmd()
         .arg("scan")
@@ -64,7 +205,7 @@ fn test_cli_exit_2_bad_checks() {
 
 #[test]
 fn test_cli_json() {
-    let tmp = common::create_minimal_project();
+    let tmp = create_minimal_project();
     let output = cmd()
         .arg("scan")
         .arg(tmp.path())
@@ -81,7 +222,7 @@ fn test_cli_json() {
 
 #[test]
 fn test_cli_checks_range() {
-    let tmp = common::create_minimal_project();
+    let tmp = create_minimal_project();
     let output = cmd()
         .arg("scan")
         .arg(tmp.path())
@@ -98,7 +239,7 @@ fn test_cli_checks_range() {
 
 #[test]
 fn test_cli_kind_library() {
-    let tmp = common::create_minimal_project();
+    let tmp = create_minimal_project();
     cmd()
         .arg("scan")
         .arg(tmp.path())
@@ -126,7 +267,7 @@ fn test_cli_total_checks() {
 
 #[test]
 fn test_cli_custom_rules() {
-    let tmp = common::create_minimal_project();
+    let tmp = create_minimal_project();
     let rules_path = tmp.path().join("custom_rules.toml");
     std::fs::write(&rules_path, r#"
 [[rules]]
@@ -149,7 +290,7 @@ path = "Cargo.toml"
 
 #[test]
 fn test_cli_text_format() {
-    let tmp = common::create_minimal_project();
+    let tmp = create_minimal_project();
     let output = cmd()
         .arg("scan")
         .arg(tmp.path())
@@ -165,7 +306,7 @@ fn test_cli_text_format() {
 
 #[test]
 fn test_cli_metadata_checks_json() {
-    let tmp = common::create_minimal_project();
+    let tmp = create_minimal_project();
     let output = cmd()
         .arg("scan")
         .arg(tmp.path())
@@ -188,7 +329,7 @@ fn test_cli_metadata_checks_json() {
 
 #[test]
 fn test_cli_hygiene_checks_json() {
-    let tmp = common::create_minimal_project();
+    let tmp = create_minimal_project();
     let output = cmd()
         .arg("scan")
         .arg(tmp.path())
@@ -211,9 +352,9 @@ fn test_cli_hygiene_checks_json() {
 
 #[test]
 fn test_cli_rustboot_rules() {
-    let tmp = common::create_rustboot_project();
+    let tmp = create_rustboot_project();
     let rules_path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("rules-rustboot.toml");
+        .join("config/rules-rustboot.toml");
     let output = cmd()
         .arg("scan")
         .arg(tmp.path())

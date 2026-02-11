@@ -1,7 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use super::types::{CheckId, CheckResult, ScanContext, ScanError};
-use crate::api::types::ScanReport;
+use super::types::{CheckId, CheckResult, ScanConfig, ScanContext, ScanError, ScanReport};
 
 /// Abstracts file system traversal for project scanning.
 ///
@@ -39,4 +38,15 @@ pub trait CheckRunner: Send + Sync {
 pub trait Reporter {
     /// Render the given report as a string.
     fn report(&self, report: &ScanReport) -> String;
+}
+
+/// Engine for running Rust package structure compliance scans.
+///
+/// Implementors walk a project directory, execute compliance checks, and
+/// produce a [`ScanReport`].
+pub trait ComplianceEngine {
+    /// Scan a project directory using the default [`ScanConfig`].
+    fn scan(&self, root: &Path) -> Result<ScanReport, ScanError>;
+    /// Scan a project directory with the supplied [`ScanConfig`].
+    fn scan_with_config(&self, root: &Path, config: &ScanConfig) -> Result<ScanReport, ScanError>;
 }

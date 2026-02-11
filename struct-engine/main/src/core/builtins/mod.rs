@@ -5,8 +5,8 @@ pub mod naming;
 pub mod metadata;
 pub mod documentation;
 
+use crate::api::traits::CheckRunner;
 use crate::api::types::RuleDef;
-use crate::spi::traits::CheckRunner;
 
 pub fn get_handler(name: &str, def: &RuleDef) -> Option<Box<dyn CheckRunner>> {
     match name {

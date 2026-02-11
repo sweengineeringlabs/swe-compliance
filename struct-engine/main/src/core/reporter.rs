@@ -1,8 +1,7 @@
 use std::collections::BTreeMap;
 
-use crate::api::types::ScanReport;
-use crate::spi::traits::Reporter;
-use crate::spi::types::CheckResult;
+use crate::api::traits::Reporter;
+use crate::api::types::{ScanReport, CheckResult};
 
 pub struct TextReporter;
 pub struct JsonReporter;
@@ -83,8 +82,7 @@ impl Reporter for JsonReporter {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::api::types::{ScanSummary, CheckEntry};
-    use crate::spi::types::{CheckId, ProjectKind, Violation, Severity};
+    use crate::api::types::{ScanSummary, CheckEntry, CheckId, ProjectKind, Violation, Severity};
 
     fn make_report(entries: Vec<CheckEntry>) -> ScanReport {
         let total = entries.len() as u8;

@@ -17,8 +17,6 @@
 
 #![warn(missing_docs)]
 
-/// Service Provider Interface: traits and types for extending the engine.
-pub mod spi;
 /// Application Programming Interface: public traits and configuration types.
 pub mod api;
 mod core;

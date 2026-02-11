@@ -1,17 +1,12 @@
 use std::path::Path;
 
-use crate::api::traits::ComplianceEngine;
+use crate::api::traits::{ComplianceEngine, Reporter};
 use crate::core::engine::StructComplianceEngine;
 use crate::core::reporter::{TextReporter, JsonReporter};
-use crate::spi::traits::Reporter;
-
-// Re-export all public types from SPI
-pub use crate::spi::types::{
-    CheckId, CheckResult, ProjectKind, Severity, Violation, ScanContext, ScanError,
-};
 
 // Re-export all public types from API
 pub use crate::api::types::{
+    CheckId, CheckResult, ProjectKind, Severity, Violation, ScanContext, ScanError,
     ScanConfig, ScanReport, ScanSummary, CheckEntry, RuleSet, RuleDef, RuleType,
     CargoManifest, BinTarget, TestTarget, BenchTarget, ExampleTarget,
 };

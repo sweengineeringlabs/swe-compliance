@@ -1,7 +1,6 @@
 use std::path::Path;
 
-use crate::api::types::{CargoManifest, BinTarget, TestTarget, BenchTarget, ExampleTarget};
-use crate::spi::types::ScanError;
+use crate::api::types::{CargoManifest, BinTarget, TestTarget, BenchTarget, ExampleTarget, ScanError};
 
 /// Parse a Cargo.toml file into a CargoManifest.
 pub fn parse_cargo_toml(root: &Path) -> Result<Option<CargoManifest>, ScanError> {

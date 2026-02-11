@@ -2,9 +2,8 @@ use std::path::Path;
 
 use regex::Regex;
 
-use crate::api::types::RuleDef;
-use crate::spi::traits::CheckRunner;
-use crate::spi::types::{CheckId, CheckResult, ScanContext, Violation};
+use crate::api::traits::CheckRunner;
+use crate::api::types::{RuleDef, CheckId, CheckResult, ScanContext, Violation};
 
 fn make_violation(def: &RuleDef, path: Option<&Path>, message: &str) -> Violation {
     Violation {
