@@ -34,6 +34,8 @@ pub struct SrsRequirement {
     pub traces_to: Option<String>,
     /// Acceptance criteria text.
     pub acceptance: Option<String>,
+    /// Explicit CLI command for test step generation.
+    pub command: Option<String>,
     /// Narrative description text after the attribute table.
     pub description: String,
 }

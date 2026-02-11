@@ -357,6 +357,62 @@ AI-powered analysis.
 Experimental subsystem.
 ";
 
+/// Fixture exercising the `| **Command** |` SRS attribute.
+///
+/// - FR-700: Has both Command and backtick-heavy acceptance → tests A overrides heuristic
+/// - FR-701: Has Command but no acceptance backticks → tests A standalone
+/// - FR-702: No Command, backtick acceptance → tests B fallback via heuristic
+/// - FR-703: No Command, no backticks → tests _TODO_ fallback
+pub const COMMAND_ATTR_FIXTURE_SRS: &str = "\
+### 4.1 CLI Interface
+
+#### FR-700: Explicit command overrides heuristic
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Must |
+| **State** | Approved |
+| **Verification** | Test |
+| **Command** | `doc-engine scan <PATH>` |
+| **Acceptance** | `--verbose` flag causes `doc-engine scan --verbose` to produce detailed output |
+
+The explicit command should override heuristic extraction.
+
+#### FR-701: Command standalone without acceptance backticks
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Must |
+| **State** | Approved |
+| **Verification** | Demonstration |
+| **Command** | `doc-engine scaffold srs.md` |
+| **Acceptance** | Scaffold generates all compliance documents |
+
+Command present, acceptance has no backtick commands.
+
+#### FR-702: No command with backtick acceptance (fallback)
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Must |
+| **State** | Approved |
+| **Verification** | Test |
+| **Acceptance** | `doc-engine scan --json` outputs valid JSON |
+
+No Command row — falls back to heuristic backtick scanning.
+
+#### FR-703: No command and no backticks (TODO fallback)
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Should |
+| **State** | Proposed |
+| **Verification** | Test |
+| **Acceptance** | All checks pass |
+
+No Command row and no backtick commands in acceptance.
+";
+
 /// Fixture with backtick spans that are NOT commands before the actual command.
 /// Exercises `find_command_span` scanning past non-command spans.
 pub const MULTI_BACKTICK_FIXTURE_SRS: &str = "\

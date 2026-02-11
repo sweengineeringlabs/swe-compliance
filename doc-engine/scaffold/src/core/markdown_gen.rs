@@ -5,44 +5,59 @@ fn escape_pipe(s: &str) -> String {
     s.replace('|', "\\|")
 }
 
+/// Iterator over single-backtick code spans in text.
+/// Skips double/triple backtick fences.
+struct BacktickScanner<'a> {
+    text: &'a str,
+    pos: usize,
+}
+
+impl<'a> BacktickScanner<'a> {
+    fn new(text: &'a str) -> Self {
+        Self { text, pos: 0 }
+    }
+}
+
+impl<'a> Iterator for BacktickScanner<'a> {
+    type Item = &'a str;
+
+    fn next(&mut self) -> Option<&'a str> {
+        let bytes = self.text.as_bytes();
+        let len = bytes.len();
+        while self.pos < len {
+            if bytes[self.pos] == b'`' {
+                let start = self.pos;
+                while self.pos < len && bytes[self.pos] == b'`' {
+                    self.pos += 1;
+                }
+                if self.pos - start != 1 {
+                    continue; // skip double/triple
+                }
+                let content_start = self.pos;
+                while self.pos < len && bytes[self.pos] != b'`' {
+                    self.pos += 1;
+                }
+                if self.pos < len {
+                    let span = &self.text[content_start..self.pos];
+                    self.pos += 1;
+                    if !span.is_empty() {
+                        return Some(span);
+                    }
+                }
+            } else {
+                self.pos += 1;
+            }
+        }
+        None
+    }
+}
+
 /// Extract the first single-backtick code span from text.
 ///
 /// Skips double/triple backtick fences. Returns the content between the
 /// first matched pair of single backticks, or `None` if no span is found.
 fn extract_first_backtick_span(text: &str) -> Option<&str> {
-    let bytes = text.as_bytes();
-    let len = bytes.len();
-    let mut i = 0;
-    while i < len {
-        if bytes[i] == b'`' {
-            // Count consecutive backticks
-            let start = i;
-            while i < len && bytes[i] == b'`' {
-                i += 1;
-            }
-            let tick_count = i - start;
-            if tick_count != 1 {
-                // Skip double/triple backtick sequences — advance past their closing fence
-                continue;
-            }
-            // Single backtick: find the closing one
-            let content_start = i;
-            while i < len && bytes[i] != b'`' {
-                i += 1;
-            }
-            if i < len {
-                // Found closing backtick
-                let span = &text[content_start..i];
-                i += 1; // skip closing backtick
-                if !span.is_empty() {
-                    return Some(span);
-                }
-            }
-        } else {
-            i += 1;
-        }
-    }
-    None
+    BacktickScanner::new(text).next()
 }
 
 /// Find the first single-backtick span that looks like a runnable CLI command.
@@ -51,36 +66,7 @@ fn extract_first_backtick_span(text: &str) -> Option<&str> {
 /// and returns the first span where `is_command_like` returns true.
 /// Returns `None` if no command-like span is found.
 fn find_command_span(text: &str) -> Option<&str> {
-    let bytes = text.as_bytes();
-    let len = bytes.len();
-    let mut i = 0;
-    while i < len {
-        if bytes[i] == b'`' {
-            let start = i;
-            while i < len && bytes[i] == b'`' {
-                i += 1;
-            }
-            let tick_count = i - start;
-            if tick_count != 1 {
-                continue;
-            }
-            let content_start = i;
-            while i < len && bytes[i] != b'`' {
-                i += 1;
-            }
-            if i < len {
-                let span = &text[content_start..i];
-                i += 1;
-                if !span.is_empty() && is_command_like(span) {
-                    return Some(span);
-                }
-                // Not command-like — continue scanning for more spans
-            }
-        } else {
-            i += 1;
-        }
-    }
-    None
+    BacktickScanner::new(text).find(|s| is_command_like(s))
 }
 
 /// Extract the first file path after `->` in a traces_to string.
@@ -136,6 +122,9 @@ fn is_command_like(span: &str) -> bool {
 
 /// Generate a step description for a Test-verified requirement.
 fn generate_test_steps(req: &SrsRequirement) -> String {
+    if let Some(ref cmd) = req.command {
+        return format!("Run `{}`", cmd);
+    }
     if let Some(ref acceptance) = req.acceptance {
         if let Some(cmd) = find_command_span(acceptance) {
             return format!("Run `{}`", cmd);
@@ -149,6 +138,9 @@ fn generate_test_steps(req: &SrsRequirement) -> String {
 /// Only emits a step when a runnable command is found in acceptance.
 /// Prose acceptance is never used — it already appears in the Expected column.
 fn generate_demonstration_steps(req: &SrsRequirement) -> String {
+    if let Some(ref cmd) = req.command {
+        return format!("Execute `{}` and observe output", cmd);
+    }
     if let Some(ref acceptance) = req.acceptance {
         if let Some(cmd) = find_command_span(acceptance) {
             return format!("Execute `{}` and observe output", cmd);
@@ -207,12 +199,17 @@ fn generate_steps(req: &SrsRequirement) -> String {
 /// starts with `` `X` `` (the same command wrapped in backticks), strip that
 /// prefix and capitalize the first letter of the remainder.
 ///
+/// When an explicit `command` is provided, use it directly for prefix matching
+/// instead of parsing from steps.
+///
 /// Returns `acceptance` unchanged when there is no match or steps is `_TODO_`.
-fn clean_expected(acceptance: &str, steps: &str) -> String {
+fn clean_expected(acceptance: &str, steps: &str, command: Option<&str>) -> String {
     if steps == "_TODO_" {
         return acceptance.to_string();
     }
-    if let Some(cmd) = extract_first_backtick_span(steps) {
+    // Prefer explicit command for prefix matching
+    let cmd = command.or_else(|| extract_first_backtick_span(steps));
+    if let Some(cmd) = cmd {
         let prefix = format!("`{}`", cmd);
         if let Some(rest) = acceptance.strip_prefix(&prefix) {
             let trimmed = rest.trim_start();
@@ -368,7 +365,7 @@ pub(crate) fn generate_manual_exec_md(domain: &SrsDomain) -> String {
         let method = req.verification.as_deref().unwrap_or("Test");
         let acceptance = req.acceptance.as_deref().unwrap_or("To be defined");
         let steps_raw = generate_steps(req);
-        let expected = clean_expected(acceptance, &steps_raw);
+        let expected = clean_expected(acceptance, &steps_raw, req.command.as_deref());
         let steps = escape_pipe(&steps_raw);
         out.push_str(&format!(
             "| {} | {}: {} ({}) | {} | {} |\n",
@@ -588,6 +585,7 @@ mod tests {
                 verification: Some("Test".to_string()),
                 traces_to: Some("STK-01".to_string()),
                 acceptance: Some("Engine loads embedded rules".to_string()),
+                command: None,
                 description: "Embed rules in binary.".to_string(),
             }],
             feature_gate: None,
@@ -645,6 +643,27 @@ mod tests {
         assert!(md.contains("## Schedule"));
         assert!(md.contains("## Environment"));
         assert!(md.contains("## Test Specifications"));
+    }
+
+    #[test]
+    fn test_generate_steps_prefers_command_field() {
+        let req = SrsRequirement {
+            id: "FR-500".to_string(),
+            title: "Scan command".to_string(),
+            kind: ReqKind::Functional,
+            priority: Some("Must".to_string()),
+            state: Some("Approved".to_string()),
+            verification: Some("Test".to_string()),
+            traces_to: None,
+            acceptance: Some("`--verbose` flag causes `doc-engine scan --verbose` to run".to_string()),
+            command: Some("doc-engine scan <PATH>".to_string()),
+            description: String::new(),
+        };
+        let steps = generate_test_steps(&req);
+        assert_eq!(
+            steps, "Run `doc-engine scan <PATH>`",
+            "Steps should use explicit command field, not heuristic from acceptance"
+        );
     }
 
     #[test]

@@ -42,6 +42,7 @@ pub fn parse_srs(content: &str) -> Result<Vec<SrsDomain>, ScaffoldError> {
     let verification_re = Regex::new(r"\|\s*\*\*Verification\*\*\s*\|\s*(.+)\s*\|").unwrap();
     let traces_re = Regex::new(r"\|\s*\*\*(?:Traces\s+to|Traceability)\*\*\s*\|\s*(.+)\s*\|").unwrap();
     let acceptance_re = Regex::new(r"\|\s*\*\*Acceptance(?:\s+criteria)?\*\*\s*\|\s*(.+)\s*\|").unwrap();
+    let command_re = Regex::new(r"\|\s*\*\*Command\*\*\s*\|\s*(.+)\s*\|").unwrap();
     let table_line_re = Regex::new(r"^\s*\|").unwrap();
 
     let lines: Vec<&str> = content.lines().collect();
@@ -106,6 +107,7 @@ pub fn parse_srs(content: &str) -> Result<Vec<SrsDomain>, ScaffoldError> {
             let mut verification = None;
             let mut traces_to = None;
             let mut acceptance = None;
+            let mut command = None;
             let mut narrative_lines: Vec<&str> = Vec::new();
             let mut past_table = false;
 
@@ -133,6 +135,9 @@ pub fn parse_srs(content: &str) -> Result<Vec<SrsDomain>, ScaffoldError> {
                     if acceptance.is_none() {
                         acceptance = extract_attr(bline, &acceptance_re);
                     }
+                    if command.is_none() {
+                        command = extract_attr(bline, &command_re);
+                    }
                 } else if !bline.trim().is_empty() {
                     past_table = true;
                 } else if past_table {
@@ -153,6 +158,8 @@ pub fn parse_srs(content: &str) -> Result<Vec<SrsDomain>, ScaffoldError> {
                 .trim()
                 .to_string();
 
+            let command = command.map(|c| c.trim_matches('`').to_string());
+
             let req = SrsRequirement {
                 id,
                 title,
@@ -162,6 +169,7 @@ pub fn parse_srs(content: &str) -> Result<Vec<SrsDomain>, ScaffoldError> {
                 verification,
                 traces_to,
                 acceptance,
+                command,
                 description,
             };
 
@@ -485,6 +493,52 @@ Normal domain.
         let domains = parse_srs(srs).unwrap();
         assert_eq!(domains.len(), 1);
         assert!(domains[0].feature_gate.is_none());
+    }
+
+    #[test]
+    fn test_parse_command_attribute() {
+        let srs = "\
+### 4.1 CLI Interface
+
+#### FR-500: Scan command
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Must |
+| **Command** | `doc-engine scan <PATH>` |
+| **Acceptance** | `doc-engine scan <PATH>` outputs a compliance report |
+
+The CLI scan command.
+";
+        let domains = parse_srs(srs).unwrap();
+        let req = &domains[0].requirements[0];
+        assert_eq!(
+            req.command.as_deref(),
+            Some("doc-engine scan <PATH>"),
+            "Command attribute should be parsed and backticks stripped"
+        );
+    }
+
+    #[test]
+    fn test_parse_command_attribute_absent() {
+        let srs = "\
+### 4.1 Rule Loading
+
+#### FR-100: Default rules
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Must |
+| **Acceptance** | Engine loads embedded rules |
+
+The binary shall embed a default rules.toml.
+";
+        let domains = parse_srs(srs).unwrap();
+        let req = &domains[0].requirements[0];
+        assert!(
+            req.command.is_none(),
+            "Command should be None when not present in SRS"
+        );
     }
 
     #[test]

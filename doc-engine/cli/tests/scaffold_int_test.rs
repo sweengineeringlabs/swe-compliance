@@ -2526,6 +2526,75 @@ fn test_features_positive_filter_only_ai() {
     assert!(!output_dir.join("docs/1-requirements/experimental_subsystem").exists());
 }
 
+// === TC-011: Command attribute tests ========================================
+
+#[test]
+fn test_manual_exec_steps_uses_command_attribute() {
+    let (_tmp, output_dir, config) = scaffold_to_tmp(COMMAND_ATTR_FIXTURE_SRS);
+    scaffold_from_srs(&config).unwrap();
+
+    let manual = fs::read_to_string(
+        output_dir.join("docs/5-testing/cli_interface/cli_interface.manual.exec"),
+    ).unwrap();
+
+    // FR-700: Has Command attribute + backtick-heavy acceptance → Steps uses explicit command
+    let tc001 = manual.lines().find(|l| l.contains("TC-001")).unwrap();
+    assert!(
+        tc001.contains("Run `doc-engine scan <PATH>`"),
+        "TC-001 should use explicit Command attribute, got: {}", tc001,
+    );
+
+    // FR-701: Has Command attribute, no acceptance backtick commands → Demonstration uses command
+    let tc002 = manual.lines().find(|l| l.contains("TC-002")).unwrap();
+    assert!(
+        tc002.contains("Execute `doc-engine scaffold srs.md` and observe output"),
+        "TC-002 should use explicit Command attribute for Demonstration, got: {}", tc002,
+    );
+
+    // FR-702: No Command, backtick acceptance → fallback to heuristic
+    let tc003 = manual.lines().find(|l| l.contains("TC-003")).unwrap();
+    assert!(
+        tc003.contains("Run `doc-engine scan --json`"),
+        "TC-003 should fall back to heuristic backtick scan, got: {}", tc003,
+    );
+
+    // FR-703: No Command, no backtick commands → _TODO_
+    let tc004 = manual.lines().find(|l| l.contains("TC-004")).unwrap();
+    assert!(
+        tc004.contains("_TODO_"),
+        "TC-004 should be _TODO_ when no command available, got: {}", tc004,
+    );
+}
+
+#[test]
+fn test_manual_exec_expected_strips_explicit_command() {
+    let (_tmp, output_dir, config) = scaffold_to_tmp(COMMAND_ATTR_FIXTURE_SRS);
+    scaffold_from_srs(&config).unwrap();
+
+    let manual = fs::read_to_string(
+        output_dir.join("docs/5-testing/cli_interface/cli_interface.manual.exec"),
+    ).unwrap();
+
+    // FR-701: Command="doc-engine scaffold srs.md", acceptance="Scaffold generates all compliance documents"
+    // Acceptance does not start with the command, so Expected should remain unchanged
+    let tc002 = manual.lines().find(|l| l.contains("TC-002")).unwrap();
+    let cols: Vec<&str> = tc002.split('|').collect();
+    let expected = cols[4].trim();
+    assert_eq!(
+        expected, "Scaffold generates all compliance documents",
+        "TC-002 Expected should remain unchanged when acceptance doesn't start with command, got: {}", expected,
+    );
+
+    // FR-702: No Command, heuristic finds `doc-engine scan --json`, acceptance starts with it
+    let tc003 = manual.lines().find(|l| l.contains("TC-003")).unwrap();
+    let cols: Vec<&str> = tc003.split('|').collect();
+    let expected = cols[4].trim();
+    assert_eq!(
+        expected, "Outputs valid JSON",
+        "TC-003 Expected should strip heuristic command prefix, got: {}", expected,
+    );
+}
+
 #[test]
 fn test_features_filter_default_includes_all() {
     let tmp = tempfile::TempDir::new().unwrap();
