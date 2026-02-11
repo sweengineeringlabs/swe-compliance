@@ -8,6 +8,8 @@ fn test_nonexistent_path() {
         project_scope: ProjectScope::Large,
         checks: None,
         rules_path: None,
+        phases: None,
+        module_filter: None,
     };
     let result = scan_with_config(Path::new("/nonexistent/path/xyz"), &config);
     assert!(result.is_err());
@@ -25,6 +27,8 @@ fn test_bad_rules_path() {
         project_scope: ProjectScope::Large,
         checks: None,
         rules_path: Some("/nonexistent/rules.toml".into()),
+        phases: None,
+        module_filter: None,
     };
     let result = scan_with_config(tmp.path(), &config);
     assert!(result.is_err());
@@ -45,6 +49,8 @@ fn test_malformed_rules() {
         project_scope: ProjectScope::Large,
         checks: None,
         rules_path: Some(rules_path),
+        phases: None,
+        module_filter: None,
     };
     let result = scan_with_config(tmp.path(), &config);
     assert!(result.is_err());

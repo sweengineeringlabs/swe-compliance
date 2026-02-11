@@ -120,11 +120,6 @@ fn generate_demonstration_steps(req: &SrsRequirement) -> String {
             }
         }
     }
-    if let Some(ref traces) = req.traces_to {
-        if let Some(file) = extract_trace_file(traces) {
-            return format!("Demonstrate via `{}`", file);
-        }
-    }
     "_TODO_".to_string()
 }
 

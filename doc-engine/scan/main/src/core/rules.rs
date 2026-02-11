@@ -32,6 +32,7 @@ struct RawRule {
     project_type: Option<String>,
     scope: Option<String>,
     depends_on: Option<Vec<u8>>,
+    module_filter: Option<Vec<String>>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -164,6 +165,7 @@ fn convert_raw_rule(raw: RawRule) -> Result<RuleDef, ScanError> {
         project_type,
         scope,
         depends_on: raw.depends_on.unwrap_or_default(),
+        module_filter: raw.module_filter,
     })
 }
 
@@ -457,6 +459,7 @@ path = "x"
             project_type: None,
             scope: None,
             depends_on: vec![],
+            module_filter: None,
         }];
         let reg = build_registry(&rules).unwrap();
         assert_eq!(reg.len(), 1);
@@ -474,6 +477,7 @@ path = "x"
             project_type: None,
             scope: None,
             depends_on: vec![],
+            module_filter: None,
         }];
         let reg = build_registry(&rules).unwrap();
         assert_eq!(reg.len(), 1);
@@ -491,6 +495,7 @@ path = "x"
             project_type: None,
             scope: None,
             depends_on: vec![],
+            module_filter: None,
         }];
         let result = build_registry(&rules);
         assert!(result.is_err());
@@ -509,6 +514,7 @@ path = "x"
                 project_type: None,
                 scope: None,
                 depends_on: vec![],
+                module_filter: None,
             },
             RuleDef {
                 id: 1,
@@ -519,6 +525,7 @@ path = "x"
                 project_type: None,
                 scope: None,
                 depends_on: vec![],
+                module_filter: None,
             },
         ];
         let reg = build_registry(&rules).unwrap();
@@ -717,5 +724,55 @@ depends_on = [99]
         assert_eq!(rule37.depends_on, vec![3]);
         let rule73 = rs.rules.iter().find(|r| r.id == 73).unwrap();
         assert_eq!(rule73.depends_on, vec![72]);
+    }
+
+    #[test]
+    fn test_parse_with_module_filter() {
+        let toml = r#"
+[[rules]]
+id = 77
+category = "module"
+description = "test"
+severity = "warning"
+type = "builtin"
+handler = "module_readme_w3h"
+scope = "small"
+module_filter = ["scan", "cli"]
+"#;
+        let rs = parse_rules(toml).unwrap();
+        assert_eq!(rs.rules[0].module_filter, Some(vec!["scan".to_string(), "cli".to_string()]));
+    }
+
+    #[test]
+    fn test_parse_without_module_filter() {
+        let toml = r#"
+[[rules]]
+id = 77
+category = "module"
+description = "test"
+severity = "warning"
+type = "builtin"
+handler = "module_readme_w3h"
+scope = "small"
+"#;
+        let rs = parse_rules(toml).unwrap();
+        assert_eq!(rs.rules[0].module_filter, None);
+    }
+
+    #[test]
+    fn test_parse_empty_module_filter() {
+        let toml = r#"
+[[rules]]
+id = 77
+category = "module"
+description = "test"
+severity = "warning"
+type = "builtin"
+handler = "module_readme_w3h"
+scope = "small"
+module_filter = []
+"#;
+        let rs = parse_rules(toml).unwrap();
+        assert_eq!(rs.rules[0].module_filter, Some(vec![]));
     }
 }

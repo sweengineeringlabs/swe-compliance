@@ -1131,6 +1131,209 @@ impl CheckRunner for BacklogSections {
     }
 }
 
+/// Check 130: srs_no_tech_details
+/// Validates that SRS requirement attribute table rows (FR-xxx, NFR-xxx) do not
+/// contain source-code file references (.rs, .py, .ts, .js, .go, .java, etc.).
+pub struct SrsNoTechDetails {
+    pub def: RuleDef,
+}
+
+impl CheckRunner for SrsNoTechDetails {
+    fn id(&self) -> CheckId { CheckId(self.def.id) }
+    fn category(&self) -> &str { &self.def.category }
+    fn description(&self) -> &str { &self.def.description }
+
+    fn run(&self, ctx: &ScanContext) -> CheckResult {
+        use crate::core::regex_utils::contains_source_file_ref;
+
+        let srs_path = ctx.root.join("docs/1-requirements/srs.md");
+        if !srs_path.exists() {
+            return CheckResult::Skip {
+                reason: "docs/1-requirements/srs.md not found".to_string(),
+            };
+        }
+
+        let content = match fs::read_to_string(&srs_path) {
+            Ok(c) => c,
+            Err(e) => {
+                return CheckResult::Skip {
+                    reason: format!("Cannot read srs.md: {}", e),
+                };
+            }
+        };
+
+        let heading_re = &*SRS_HEADING_RE;
+        let next_heading_re = &*SRS_NEXT_HEADING_RE;
+
+        // Collect requirement blocks: (id, block_lines)
+        let lines: Vec<&str> = content.lines().collect();
+        let mut blocks: Vec<(String, Vec<&str>)> = Vec::new();
+
+        let mut i = 0;
+        while i < lines.len() {
+            if let Some(caps) = heading_re.captures(lines[i]) {
+                let req_id = caps[1].to_string();
+                let mut block_lines = Vec::new();
+                i += 1;
+                while i < lines.len() {
+                    if next_heading_re.is_match(lines[i]) {
+                        break;
+                    }
+                    block_lines.push(lines[i]);
+                    i += 1;
+                }
+                blocks.push((req_id, block_lines));
+            } else {
+                i += 1;
+            }
+        }
+
+        if blocks.is_empty() {
+            return CheckResult::Skip {
+                reason: "No FR/NFR requirement blocks found in SRS".to_string(),
+            };
+        }
+
+        let mut violations = Vec::new();
+
+        for (req_id, block_lines) in &blocks {
+            // Extract only attribute table rows: lines containing `| **..** |`
+            for line in block_lines {
+                let trimmed = line.trim();
+                if trimmed.starts_with('|') && trimmed.contains("**") {
+                    // This is an attribute table row
+                    if contains_source_file_ref(trimmed) {
+                        // Extract the attribute name from **Name**
+                        let attr_name = trimmed
+                            .split("**")
+                            .nth(1)
+                            .unwrap_or("unknown");
+                        violations.push(Violation {
+                            check_id: CheckId(self.def.id),
+                            path: Some("docs/1-requirements/srs.md".into()),
+                            message: format!(
+                                "{}: attribute '{}' contains source-code file reference",
+                                req_id, attr_name
+                            ),
+                            severity: self.def.severity.clone(),
+                        });
+                        break; // one violation per block
+                    }
+                }
+            }
+        }
+
+        if violations.is_empty() {
+            CheckResult::Pass
+        } else {
+            CheckResult::Fail { violations }
+        }
+    }
+}
+
+/// Check 131: srs_no_downstream_refs
+/// Validates that SRS requirement attribute table rows (FR-xxx, NFR-xxx) do not
+/// contain references to downstream SDLC phase artifacts (phases 2-7).
+/// The **Acceptance** attribute row is exempt.
+pub struct SrsNoDownstreamRefs {
+    pub def: RuleDef,
+}
+
+impl CheckRunner for SrsNoDownstreamRefs {
+    fn id(&self) -> CheckId { CheckId(self.def.id) }
+    fn category(&self) -> &str { &self.def.category }
+    fn description(&self) -> &str { &self.def.description }
+
+    fn run(&self, ctx: &ScanContext) -> CheckResult {
+        use crate::core::regex_utils::contains_downstream_ref;
+
+        let srs_path = ctx.root.join("docs/1-requirements/srs.md");
+        if !srs_path.exists() {
+            return CheckResult::Skip {
+                reason: "docs/1-requirements/srs.md not found".to_string(),
+            };
+        }
+
+        let content = match fs::read_to_string(&srs_path) {
+            Ok(c) => c,
+            Err(e) => {
+                return CheckResult::Skip {
+                    reason: format!("Cannot read srs.md: {}", e),
+                };
+            }
+        };
+
+        let heading_re = &*SRS_HEADING_RE;
+        let next_heading_re = &*SRS_NEXT_HEADING_RE;
+        let acceptance_re = &*ATTR_ACCEPTANCE_RE;
+
+        // Collect requirement blocks: (id, block_lines)
+        let lines: Vec<&str> = content.lines().collect();
+        let mut blocks: Vec<(String, Vec<&str>)> = Vec::new();
+
+        let mut i = 0;
+        while i < lines.len() {
+            if let Some(caps) = heading_re.captures(lines[i]) {
+                let req_id = caps[1].to_string();
+                let mut block_lines = Vec::new();
+                i += 1;
+                while i < lines.len() {
+                    if next_heading_re.is_match(lines[i]) {
+                        break;
+                    }
+                    block_lines.push(lines[i]);
+                    i += 1;
+                }
+                blocks.push((req_id, block_lines));
+            } else {
+                i += 1;
+            }
+        }
+
+        if blocks.is_empty() {
+            return CheckResult::Skip {
+                reason: "No FR/NFR requirement blocks found in SRS".to_string(),
+            };
+        }
+
+        let mut violations = Vec::new();
+
+        for (req_id, block_lines) in &blocks {
+            for line in block_lines {
+                let trimmed = line.trim();
+                if trimmed.starts_with('|') && trimmed.contains("**") {
+                    // Skip Acceptance rows — they legitimately describe downstream paths
+                    if acceptance_re.is_match(trimmed) {
+                        continue;
+                    }
+                    if contains_downstream_ref(trimmed) {
+                        let attr_name = trimmed
+                            .split("**")
+                            .nth(1)
+                            .unwrap_or("unknown");
+                        violations.push(Violation {
+                            check_id: CheckId(self.def.id),
+                            path: Some("docs/1-requirements/srs.md".into()),
+                            message: format!(
+                                "{}: attribute '{}' references downstream SDLC artifact",
+                                req_id, attr_name
+                            ),
+                            severity: self.def.severity.clone(),
+                        });
+                        break; // one violation per block
+                    }
+                }
+            }
+        }
+
+        if violations.is_empty() {
+            CheckResult::Pass
+        } else {
+            CheckResult::Fail { violations }
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1150,6 +1353,7 @@ mod tests {
             project_type: None,
             scope: None,
             depends_on: vec![],
+            module_filter: None,
         }
     }
 
@@ -1160,6 +1364,7 @@ mod tests {
             file_contents: HashMap::new(),
             project_type: ProjectType::OpenSource,
             project_scope: ProjectScope::Large,
+            module_filter: None,
         }
     }
 
@@ -1380,6 +1585,7 @@ mod tests {
             project_type: None,
             scope: None,
             depends_on: vec![],
+            module_filter: None,
         }
     }
 
@@ -1483,6 +1689,7 @@ mod tests {
             project_type: None,
             scope: None,
             depends_on: vec![],
+            module_filter: None,
         }
     }
 
@@ -1683,6 +1890,7 @@ mod tests {
             project_type: None,
             scope: None,
             depends_on: vec![],
+            module_filter: None,
         }
     }
 
@@ -1726,6 +1934,7 @@ mod tests {
             project_type: None,
             scope: None,
             depends_on: vec![],
+            module_filter: None,
         }
     }
 
@@ -1853,6 +2062,7 @@ mod tests {
             project_type: None,
             scope: None,
             depends_on: vec![],
+            module_filter: None,
         }
     }
 
@@ -1959,6 +2169,7 @@ mod tests {
             project_type: None,
             scope: None,
             depends_on: vec![],
+            module_filter: None,
         }
     }
 
@@ -2143,6 +2354,7 @@ mod tests {
             project_type: None,
             scope: None,
             depends_on: vec![],
+            module_filter: None,
         }
     }
 
@@ -2276,6 +2488,7 @@ mod tests {
             project_type: None,
             scope: None,
             depends_on: vec![],
+            module_filter: None,
         }
     }
 
@@ -2404,6 +2617,7 @@ mod tests {
             project_type: None,
             scope: None,
             depends_on: vec![],
+            module_filter: None,
         }
     }
 
@@ -2527,6 +2741,7 @@ mod tests {
             project_type: None,
             scope: None,
             depends_on: vec![],
+            module_filter: None,
         }
     }
 
@@ -2617,6 +2832,7 @@ mod tests {
             project_type: None,
             scope: None,
             depends_on: vec![],
+            module_filter: None,
         }
     }
 
@@ -2701,6 +2917,7 @@ mod tests {
             project_type: None,
             scope: None,
             depends_on: vec![],
+            module_filter: None,
         }
     }
 
@@ -2785,6 +3002,7 @@ mod tests {
             project_type: None,
             scope: None,
             depends_on: vec![],
+            module_filter: None,
         }
     }
 
@@ -2869,6 +3087,7 @@ mod tests {
             project_type: None,
             scope: None,
             depends_on: vec![],
+            module_filter: None,
         }
     }
 
@@ -2938,5 +3157,327 @@ mod tests {
             }
             other => panic!("Expected Fail, got {:?}", other),
         }
+    }
+
+    // ── SrsNoTechDetails tests ──
+
+    fn make_srs_no_tech_def() -> RuleDef {
+        RuleDef {
+            id: 130,
+            category: "requirements".to_string(),
+            description: "SRS requirement attributes contain no source-code file references".to_string(),
+            severity: Severity::Warning,
+            rule_type: RuleType::Builtin { handler: "srs_no_tech_details".to_string() },
+            project_type: None,
+            scope: None,
+            depends_on: vec![89],
+            module_filter: None,
+        }
+    }
+
+    #[test]
+    fn test_srs_no_tech_skip_no_file() {
+        let tmp = TempDir::new().unwrap();
+        let handler = SrsNoTechDetails { def: make_srs_no_tech_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Skip { .. }));
+    }
+
+    #[test]
+    fn test_srs_no_tech_skip_no_blocks() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/1-requirements/srs.md",
+            "# SRS\n\nNo FR blocks here.\n");
+        let handler = SrsNoTechDetails { def: make_srs_no_tech_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Skip { .. }));
+    }
+
+    #[test]
+    fn test_srs_no_tech_pass_clean() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/1-requirements/srs.md",
+            "# SRS\n\n\
+             #### FR-001: Example requirement\n\n\
+             | Attribute | Value |\n\
+             |-----------|-------|\n\
+             | **Priority** | Must |\n\
+             | **Traces to** | STK-01 -> Check 1 |\n");
+        let handler = SrsNoTechDetails { def: make_srs_no_tech_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_srs_no_tech_pass_doc_extensions() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/1-requirements/srs.md",
+            "# SRS\n\n\
+             #### FR-001: Example requirement\n\n\
+             | Attribute | Value |\n\
+             |-----------|-------|\n\
+             | **Priority** | Must |\n\
+             | **Traces to** | STK-01 -> `rules.toml`, `srs.md` |\n");
+        let handler = SrsNoTechDetails { def: make_srs_no_tech_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_srs_no_tech_fail_rs_in_traces() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/1-requirements/srs.md",
+            "# SRS\n\n\
+             #### FR-001: Example requirement\n\n\
+             | Attribute | Value |\n\
+             |-----------|-------|\n\
+             | **Priority** | Must |\n\
+             | **Traces to** | STK-01 -> core/rules.rs |\n");
+        let handler = SrsNoTechDetails { def: make_srs_no_tech_def() };
+        let ctx = make_ctx(tmp.path());
+        match handler.run(&ctx) {
+            CheckResult::Fail { violations } => {
+                assert_eq!(violations.len(), 1);
+                assert!(violations[0].message.contains("FR-001"));
+                assert!(violations[0].message.contains("Traces to"));
+            }
+            other => panic!("Expected Fail, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_srs_no_tech_fail_py_in_traces() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/1-requirements/srs.md",
+            "# SRS\n\n\
+             #### NFR-002: Performance\n\n\
+             | Attribute | Value |\n\
+             |-----------|-------|\n\
+             | **Priority** | Should |\n\
+             | **Traces to** | scripts/bench.py |\n");
+        let handler = SrsNoTechDetails { def: make_srs_no_tech_def() };
+        let ctx = make_ctx(tmp.path());
+        match handler.run(&ctx) {
+            CheckResult::Fail { violations } => {
+                assert_eq!(violations.len(), 1);
+                assert!(violations[0].message.contains("NFR-002"));
+                assert!(violations[0].message.contains("Traces to"));
+            }
+            other => panic!("Expected Fail, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_srs_no_tech_fail_multiple_blocks() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/1-requirements/srs.md",
+            "# SRS\n\n\
+             #### FR-001: First\n\n\
+             | Attribute | Value |\n\
+             |-----------|-------|\n\
+             | **Traces to** | STK-01 -> core/rules.rs |\n\n\
+             #### FR-002: Second\n\n\
+             | Attribute | Value |\n\
+             |-----------|-------|\n\
+             | **Traces to** | STK-02 -> Check 2 |\n\n\
+             #### FR-003: Third\n\n\
+             | Attribute | Value |\n\
+             |-----------|-------|\n\
+             | **Traces to** | STK-03 -> handler.go |\n");
+        let handler = SrsNoTechDetails { def: make_srs_no_tech_def() };
+        let ctx = make_ctx(tmp.path());
+        match handler.run(&ctx) {
+            CheckResult::Fail { violations } => {
+                assert_eq!(violations.len(), 2);
+                assert!(violations[0].message.contains("FR-001"));
+                assert!(violations[1].message.contains("FR-003"));
+            }
+            other => panic!("Expected Fail, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_srs_no_tech_pass_source_outside_attr_table() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/1-requirements/srs.md",
+            "# SRS\n\n\
+             #### FR-001: Example requirement\n\n\
+             | Attribute | Value |\n\
+             |-----------|-------|\n\
+             | **Priority** | Must |\n\
+             | **Traces to** | STK-01 -> Check 1 |\n\n\
+             **Implementation**: `core/builtins/content.rs` delegates to `regex_utils.rs`.\n");
+        let handler = SrsNoTechDetails { def: make_srs_no_tech_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    // ── SrsNoDownstreamRefs tests ──
+
+    fn make_srs_no_downstream_def() -> RuleDef {
+        RuleDef {
+            id: 131,
+            category: "requirements".to_string(),
+            description: "SRS requirement attributes do not reference downstream SDLC artifacts".to_string(),
+            severity: Severity::Warning,
+            rule_type: RuleType::Builtin { handler: "srs_no_downstream_refs".to_string() },
+            project_type: None,
+            scope: None,
+            depends_on: vec![89],
+            module_filter: None,
+        }
+    }
+
+    #[test]
+    fn test_srs_no_downstream_skip_no_file() {
+        let tmp = TempDir::new().unwrap();
+        let handler = SrsNoDownstreamRefs { def: make_srs_no_downstream_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Skip { .. }));
+    }
+
+    #[test]
+    fn test_srs_no_downstream_skip_no_blocks() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/1-requirements/srs.md",
+            "# SRS\n\nNo FR blocks here.\n");
+        let handler = SrsNoDownstreamRefs { def: make_srs_no_downstream_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Skip { .. }));
+    }
+
+    #[test]
+    fn test_srs_no_downstream_pass_clean() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/1-requirements/srs.md",
+            "# SRS\n\n\
+             #### FR-001: Example requirement\n\n\
+             | Attribute | Value |\n\
+             |-----------|-------|\n\
+             | **Priority** | Must |\n\
+             | **Traces to** | STK-01 -> Check 1 |\n");
+        let handler = SrsNoDownstreamRefs { def: make_srs_no_downstream_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_srs_no_downstream_pass_upstream_refs() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/1-requirements/srs.md",
+            "# SRS\n\n\
+             #### FR-001: Example requirement\n\n\
+             | Attribute | Value |\n\
+             |-----------|-------|\n\
+             | **Priority** | Must |\n\
+             | **Traces to** | STK-01 -> `1-requirements/strs.md`, `0-ideation/conops.md` |\n");
+        let handler = SrsNoDownstreamRefs { def: make_srs_no_downstream_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_srs_no_downstream_pass_acceptance_exempt() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/1-requirements/srs.md",
+            "# SRS\n\n\
+             #### FR-001: Example requirement\n\n\
+             | Attribute | Value |\n\
+             |-----------|-------|\n\
+             | **Priority** | Must |\n\
+             | **Traces to** | STK-01 -> Check 1 |\n\
+             | **Acceptance** | Check 125 validates `docs/5-testing/test_plan.md` has sections |\n");
+        let handler = SrsNoDownstreamRefs { def: make_srs_no_downstream_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_srs_no_downstream_fail_design_in_traces() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/1-requirements/srs.md",
+            "# SRS\n\n\
+             #### FR-001: Example requirement\n\n\
+             | Attribute | Value |\n\
+             |-----------|-------|\n\
+             | **Priority** | Must |\n\
+             | **Traces to** | STK-01 -> `docs/3-design/architecture.md` |\n");
+        let handler = SrsNoDownstreamRefs { def: make_srs_no_downstream_def() };
+        let ctx = make_ctx(tmp.path());
+        match handler.run(&ctx) {
+            CheckResult::Fail { violations } => {
+                assert_eq!(violations.len(), 1);
+                assert!(violations[0].message.contains("FR-001"));
+                assert!(violations[0].message.contains("Traces to"));
+            }
+            other => panic!("Expected Fail, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_srs_no_downstream_fail_testing_in_traces() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/1-requirements/srs.md",
+            "# SRS\n\n\
+             #### NFR-002: Performance\n\n\
+             | Attribute | Value |\n\
+             |-----------|-------|\n\
+             | **Priority** | Should |\n\
+             | **Traces to** | `docs/5-testing/perf_tests.md` |\n");
+        let handler = SrsNoDownstreamRefs { def: make_srs_no_downstream_def() };
+        let ctx = make_ctx(tmp.path());
+        match handler.run(&ctx) {
+            CheckResult::Fail { violations } => {
+                assert_eq!(violations.len(), 1);
+                assert!(violations[0].message.contains("NFR-002"));
+                assert!(violations[0].message.contains("Traces to"));
+            }
+            other => panic!("Expected Fail, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_srs_no_downstream_fail_multiple_blocks() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/1-requirements/srs.md",
+            "# SRS\n\n\
+             #### FR-001: First\n\n\
+             | Attribute | Value |\n\
+             |-----------|-------|\n\
+             | **Traces to** | STK-01 -> `docs/3-design/arch.md` |\n\n\
+             #### FR-002: Second\n\n\
+             | Attribute | Value |\n\
+             |-----------|-------|\n\
+             | **Traces to** | STK-02 -> Check 2 |\n\n\
+             #### FR-003: Third\n\n\
+             | Attribute | Value |\n\
+             |-----------|-------|\n\
+             | **Traces to** | STK-03 -> `docs/5-testing/test.md` |\n");
+        let handler = SrsNoDownstreamRefs { def: make_srs_no_downstream_def() };
+        let ctx = make_ctx(tmp.path());
+        match handler.run(&ctx) {
+            CheckResult::Fail { violations } => {
+                assert_eq!(violations.len(), 2);
+                assert!(violations[0].message.contains("FR-001"));
+                assert!(violations[1].message.contains("FR-003"));
+            }
+            other => panic!("Expected Fail, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_srs_no_downstream_pass_downstream_outside_attr_table() {
+        let tmp = TempDir::new().unwrap();
+        write_file(tmp.path(), "docs/1-requirements/srs.md",
+            "# SRS\n\n\
+             #### FR-001: Example requirement\n\n\
+             | Attribute | Value |\n\
+             |-----------|-------|\n\
+             | **Priority** | Must |\n\
+             | **Traces to** | STK-01 -> Check 1 |\n\n\
+             **Implementation**: See `docs/3-design/architecture.md` for details.\n");
+        let handler = SrsNoDownstreamRefs { def: make_srs_no_downstream_def() };
+        let ctx = make_ctx(tmp.path());
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
     }
 }

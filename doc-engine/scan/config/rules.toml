@@ -1,4 +1,4 @@
-# doc-engine rules — 128 documentation compliance checks
+# doc-engine rules — 131 documentation compliance checks
 # Embedded in binary via include_str!("../../rules.toml")
 #
 # Scope policy (FR-505a): each rule must have scope = "small"|"medium"|"large".
@@ -1306,3 +1306,45 @@ severity = "info"
 type = "builtin"
 handler = "verification_report_29119_sections"
 scope = "large"
+
+# =============================================================================
+# Check 129: Content — Hardcoded Absolute Path Detection (FR-832)
+# =============================================================================
+
+# Check 129: No hardcoded absolute paths in documentation (FR-832)
+[[rules]]
+id = 129
+category = "content"
+description = "No hardcoded absolute paths in documentation"
+severity = "warning"
+type = "builtin"
+handler = "hardcoded_path_detection"
+scope = "small"
+
+# =============================================================================
+# Check 130: Requirements — SRS No Technical Details (FR-833)
+# =============================================================================
+
+[[rules]]
+id = 130
+category = "requirements"
+description = "SRS requirement attributes contain no source-code file references"
+severity = "warning"
+type = "builtin"
+handler = "srs_no_tech_details"
+scope = "large"
+depends_on = [89]
+
+# =============================================================================
+# Check 131: Requirements — SRS No Downstream References (FR-834)
+# =============================================================================
+
+[[rules]]
+id = 131
+category = "requirements"
+description = "SRS requirement attributes do not reference downstream SDLC artifacts"
+severity = "warning"
+type = "builtin"
+handler = "srs_no_downstream_refs"
+scope = "large"
+depends_on = [89]

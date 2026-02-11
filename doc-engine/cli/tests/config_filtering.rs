@@ -10,6 +10,8 @@ fn test_check_filter_single() {
         project_scope: ProjectScope::Large,
         checks: Some(vec![1]),
         rules_path: None,
+        phases: None,
+        module_filter: None,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     assert_eq!(report.results.len(), 1);
@@ -24,6 +26,8 @@ fn test_check_filter_range() {
         project_scope: ProjectScope::Large,
         checks: Some(vec![1, 2, 3]),
         rules_path: None,
+        phases: None,
+        module_filter: None,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     assert_eq!(report.results.len(), 3);
@@ -37,6 +41,8 @@ fn test_check_filter_none() {
         project_scope: ProjectScope::Large,
         checks: None,
         rules_path: None,
+        phases: None,
+        module_filter: None,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     assert_eq!(report.results.len(), default_rule_count());
@@ -50,6 +56,8 @@ fn test_project_type_internal_skips() {
         project_scope: ProjectScope::Large,
         checks: Some(vec![31, 32]),
         rules_path: None,
+        phases: None,
+        module_filter: None,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     // Checks 31 and 32 are open_source only, should be skipped for internal
@@ -77,6 +85,8 @@ path = "README.md"
         project_scope: ProjectScope::Large,
         checks: None,
         rules_path: Some(rules_path),
+        phases: None,
+        module_filter: None,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     assert_eq!(report.results.len(), 1);
@@ -91,6 +101,8 @@ fn test_scope_small_integration() {
         project_scope: ProjectScope::Small,
         checks: None,
         rules_path: None,
+        phases: None,
+        module_filter: None,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     // With scope=small, medium and large rules should be skipped
@@ -115,6 +127,8 @@ fn test_scope_medium_runs_small_and_medium() {
         project_scope: ProjectScope::Medium,
         checks: Some(vec![1, 11, 89]),  // small=1, medium=11, large=89
         rules_path: None,
+        phases: None,
+        module_filter: None,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     assert_eq!(report.results.len(), 3);
@@ -134,6 +148,8 @@ fn test_scope_report_field() {
         project_scope: ProjectScope::Small,
         checks: Some(vec![1]),
         rules_path: None,
+        phases: None,
+        module_filter: None,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     assert_eq!(report.project_scope, ProjectScope::Small);
@@ -147,6 +163,8 @@ fn test_scope_json_output() {
         project_scope: ProjectScope::Medium,
         checks: Some(vec![1]),
         rules_path: None,
+        phases: None,
+        module_filter: None,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     let json = doc_engine_scan::format_report_json(&report);

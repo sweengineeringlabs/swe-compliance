@@ -97,6 +97,16 @@ fn has_manifest(dir: &Path) -> bool {
     MANIFEST_FILES.iter().any(|f| dir.join(f).exists())
 }
 
+/// Filter discovered modules by name. CLI `--module` overrides per-rule `module_filter`.
+fn filter_modules(modules: Vec<ModuleInfo>, filter: Option<&Vec<String>>) -> Vec<ModuleInfo> {
+    match filter {
+        Some(names) if !names.is_empty() => {
+            modules.into_iter().filter(|m| names.contains(&m.name)).collect()
+        }
+        _ => modules,
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Check 77: module_readme_w3h — Module READMEs follow W3H structure
 // ---------------------------------------------------------------------------
@@ -112,6 +122,8 @@ impl CheckRunner for ModuleReadmeW3h {
 
     fn run(&self, ctx: &ScanContext) -> CheckResult {
         let modules = discover_modules(ctx);
+        let filter = ctx.module_filter.as_ref().or(self.def.module_filter.as_ref());
+        let modules = filter_modules(modules, filter);
         if modules.is_empty() {
             return CheckResult::Pass; // vacuously true
         }
@@ -174,6 +186,8 @@ impl CheckRunner for ModuleExamplesTests {
 
     fn run(&self, ctx: &ScanContext) -> CheckResult {
         let modules = discover_modules(ctx);
+        let filter = ctx.module_filter.as_ref().or(self.def.module_filter.as_ref());
+        let modules = filter_modules(modules, filter);
         if modules.is_empty() {
             return CheckResult::Pass; // vacuously true
         }
@@ -233,6 +247,8 @@ impl CheckRunner for ModuleToolchainDocs {
 
     fn run(&self, ctx: &ScanContext) -> CheckResult {
         let modules = discover_modules(ctx);
+        let filter = ctx.module_filter.as_ref().or(self.def.module_filter.as_ref());
+        let modules = filter_modules(modules, filter);
         if modules.is_empty() {
             return CheckResult::Pass;
         }
@@ -273,6 +289,8 @@ impl CheckRunner for ModuleDeploymentDocs {
 
     fn run(&self, ctx: &ScanContext) -> CheckResult {
         let modules = discover_modules(ctx);
+        let filter = ctx.module_filter.as_ref().or(self.def.module_filter.as_ref());
+        let modules = filter_modules(modules, filter);
         if modules.is_empty() {
             return CheckResult::Pass;
         }
@@ -340,6 +358,7 @@ mod tests {
             project_type: None,
             scope: None,
             depends_on: vec![],
+            module_filter: None,
         }
     }
 
@@ -350,6 +369,7 @@ mod tests {
             file_contents: HashMap::new(),
             project_type: ProjectType::OpenSource,
             project_scope: ProjectScope::Large,
+            module_filter: None,
         }
     }
 
@@ -600,5 +620,109 @@ mod tests {
         let handler = ModuleDeploymentDocs { def: make_def(81, "module_deployment_docs") };
         let ctx = make_ctx(tmp.path(), vec![]);
         assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    // --- filter_modules ---
+
+    #[test]
+    fn test_filter_modules_none() {
+        let modules = vec![
+            ModuleInfo { path: PathBuf::from("a"), name: "a".to_string() },
+            ModuleInfo { path: PathBuf::from("b"), name: "b".to_string() },
+        ];
+        let result = filter_modules(modules, None);
+        assert_eq!(result.len(), 2);
+    }
+
+    #[test]
+    fn test_filter_modules_empty_list() {
+        let modules = vec![
+            ModuleInfo { path: PathBuf::from("a"), name: "a".to_string() },
+        ];
+        let empty: Vec<String> = vec![];
+        let result = filter_modules(modules, Some(&empty));
+        assert_eq!(result.len(), 1);
+    }
+
+    #[test]
+    fn test_filter_modules_match() {
+        let modules = vec![
+            ModuleInfo { path: PathBuf::from("a"), name: "a".to_string() },
+            ModuleInfo { path: PathBuf::from("b"), name: "b".to_string() },
+            ModuleInfo { path: PathBuf::from("c"), name: "c".to_string() },
+        ];
+        let filter = vec!["a".to_string(), "c".to_string()];
+        let result = filter_modules(modules, Some(&filter));
+        assert_eq!(result.len(), 2);
+        assert_eq!(result[0].name, "a");
+        assert_eq!(result[1].name, "c");
+    }
+
+    #[test]
+    fn test_filter_modules_no_match() {
+        let modules = vec![
+            ModuleInfo { path: PathBuf::from("a"), name: "a".to_string() },
+        ];
+        let filter = vec!["z".to_string()];
+        let result = filter_modules(modules, Some(&filter));
+        assert!(result.is_empty());
+    }
+
+    #[test]
+    fn test_module_filter_cli_overrides_rule() {
+        // Set up two modules
+        let tmp = TempDir::new().unwrap();
+        fs::create_dir_all(tmp.path().join("crates/auth")).unwrap();
+        fs::write(tmp.path().join("crates/auth/Cargo.toml"), "[package]").unwrap();
+        fs::create_dir_all(tmp.path().join("crates/core")).unwrap();
+        fs::write(tmp.path().join("crates/core/Cargo.toml"), "[package]").unwrap();
+
+        // Rule says module_filter = ["auth"], but CLI says module_filter = ["core"]
+        let mut def = make_def(80, "module_toolchain_docs");
+        def.module_filter = Some(vec!["auth".to_string()]);
+        let handler = ModuleToolchainDocs { def };
+
+        // CLI filter wins: only "core" module checked
+        let ctx = ScanContext {
+            root: tmp.path().to_path_buf(),
+            files: vec![],
+            file_contents: HashMap::new(),
+            project_type: ProjectType::OpenSource,
+            project_scope: ProjectScope::Large,
+            module_filter: Some(vec!["core".to_string()]),
+        };
+        let result = handler.run(&ctx);
+        match result {
+            CheckResult::Fail { violations } => {
+                assert_eq!(violations.len(), 1);
+                assert!(violations[0].message.contains("core"));
+            }
+            other => panic!("Expected Fail for core only, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_module_filter_rule_default() {
+        // Set up two modules
+        let tmp = TempDir::new().unwrap();
+        fs::create_dir_all(tmp.path().join("crates/auth")).unwrap();
+        fs::write(tmp.path().join("crates/auth/Cargo.toml"), "[package]").unwrap();
+        fs::create_dir_all(tmp.path().join("crates/core")).unwrap();
+        fs::write(tmp.path().join("crates/core/Cargo.toml"), "[package]").unwrap();
+
+        // Rule says module_filter = ["auth"], no CLI filter
+        let mut def = make_def(80, "module_toolchain_docs");
+        def.module_filter = Some(vec!["auth".to_string()]);
+        let handler = ModuleToolchainDocs { def };
+
+        let ctx = make_ctx(tmp.path(), vec![]);
+        let result = handler.run(&ctx);
+        match result {
+            CheckResult::Fail { violations } => {
+                assert_eq!(violations.len(), 1);
+                assert!(violations[0].message.contains("auth"));
+            }
+            other => panic!("Expected Fail for auth only, got {:?}", other),
+        }
     }
 }

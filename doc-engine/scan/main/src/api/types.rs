@@ -126,6 +126,8 @@ pub struct ScanContext {
     pub project_type: ProjectType,
     /// The project scope tier used to filter checks by project size.
     pub project_scope: ProjectScope,
+    /// Optional module name filter from CLI `--module`; passed to module check handlers.
+    pub module_filter: Option<Vec<String>>,
 }
 
 /// Returns the current UTC time as an ISO 8601 string (e.g. "2026-02-10T14:30:00Z").
@@ -176,6 +178,10 @@ pub struct ScanConfig {
     pub checks: Option<Vec<u8>>,
     /// Optional path to a custom rules TOML file; `None` uses the built-in rules.
     pub rules_path: Option<PathBuf>,
+    /// Optional phase/category filter; `None` runs all categories.
+    pub phases: Option<Vec<String>>,
+    /// Optional module name filter; `None` checks all discovered modules.
+    pub module_filter: Option<Vec<String>>,
 }
 
 /// Enriched check entry with metadata per DR-01.
@@ -255,6 +261,8 @@ pub struct RuleDef {
     pub scope: Option<ProjectScope>,
     /// Parent check IDs that must pass before this check runs.
     pub depends_on: Vec<u8>,
+    /// Optional per-rule module name filter from rules.toml.
+    pub module_filter: Option<Vec<String>>,
 }
 
 /// The type of a rule -- declarative or builtin.

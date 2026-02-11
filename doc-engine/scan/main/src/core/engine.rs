@@ -97,6 +97,7 @@ impl ComplianceEngine for DocComplianceEngine {
             file_contents: HashMap::new(),
             project_type: resolved_pt.clone(),
             project_scope: config.project_scope,
+            module_filter: config.module_filter.clone(),
         };
 
         // 5. Filter and run checks
@@ -108,6 +109,13 @@ impl ComplianceEngine for DocComplianceEngine {
             // Filter by --checks if specified
             if let Some(ref check_ids) = config.checks {
                 if !check_ids.contains(&check_id) {
+                    continue;
+                }
+            }
+
+            // Filter by --phase if specified
+            if let Some(ref allowed_phases) = config.phases {
+                if !allowed_phases.contains(&runner.category().to_string()) {
                     continue;
                 }
             }
@@ -218,6 +226,8 @@ mod tests {
             project_scope: ProjectScope::Large,
             checks: None,
             rules_path: None,
+            phases: None,
+            module_filter: None,
         };
         let result = engine.scan_with_config(std::path::Path::new("/nonexistent/path/xyz"), &config);
         assert!(result.is_err());
@@ -233,6 +243,8 @@ mod tests {
             project_scope: ProjectScope::Large,
             checks: None,
             rules_path: None,
+            phases: None,
+            module_filter: None,
         };
         let report = engine.scan_with_config(tmp.path(), &config).unwrap();
         let expected = default_rule_count();
@@ -249,6 +261,8 @@ mod tests {
             project_scope: ProjectScope::Large,
             checks: Some(vec![1, 2, 3]),
             rules_path: None,
+            phases: None,
+            module_filter: None,
         };
         let report = engine.scan_with_config(tmp.path(), &config).unwrap();
         assert_eq!(report.results.len(), 3);
@@ -266,6 +280,8 @@ mod tests {
             project_scope: ProjectScope::Large,
             checks: Some(vec![31, 32]),
             rules_path: None,
+            phases: None,
+            module_filter: None,
         };
         let report = engine.scan_with_config(tmp.path(), &config).unwrap();
         assert_eq!(report.results.len(), 2);
@@ -283,6 +299,8 @@ mod tests {
             project_scope: ProjectScope::Large,
             checks: None,
             rules_path: None,
+            phases: None,
+            module_filter: None,
         };
         let report = engine.scan_with_config(tmp.path(), &config).unwrap();
         assert_eq!(
@@ -349,6 +367,8 @@ mod tests {
             project_scope: ProjectScope::Large,
             checks: Some(vec![1]),
             rules_path: None,
+            phases: None,
+            module_filter: None,
         };
         let report = engine.scan_with_config(tmp.path(), &config).unwrap();
         assert_eq!(report.project_type, ProjectType::OpenSource);
@@ -363,6 +383,8 @@ mod tests {
             project_scope: ProjectScope::Large,
             checks: Some(vec![1]),
             rules_path: None,
+            phases: None,
+            module_filter: None,
         };
         let report = engine.scan_with_config(tmp.path(), &config).unwrap();
         assert_eq!(report.project_type, ProjectType::Internal);
@@ -377,6 +399,8 @@ mod tests {
             project_scope: ProjectScope::Small,
             checks: Some(vec![11]),
             rules_path: None,
+            phases: None,
+            module_filter: None,
         };
         let report = engine.scan_with_config(tmp.path(), &config).unwrap();
         assert_eq!(report.results.len(), 1);
@@ -392,6 +416,8 @@ mod tests {
             project_scope: ProjectScope::Medium,
             checks: Some(vec![1]),
             rules_path: None,
+            phases: None,
+            module_filter: None,
         };
         let report = engine.scan_with_config(tmp.path(), &config).unwrap();
         assert_eq!(report.results.len(), 1);
@@ -407,6 +433,8 @@ mod tests {
             project_scope: ProjectScope::Large,
             checks: Some(vec![1, 11, 89]),
             rules_path: None,
+            phases: None,
+            module_filter: None,
         };
         let report = engine.scan_with_config(tmp.path(), &config).unwrap();
         assert_eq!(report.results.len(), 3);
@@ -426,6 +454,8 @@ mod tests {
             project_scope: ProjectScope::Medium,
             checks: Some(vec![1]),
             rules_path: None,
+            phases: None,
+            module_filter: None,
         };
         let report = engine.scan_with_config(tmp.path(), &config).unwrap();
         assert_eq!(report.project_scope, ProjectScope::Medium);
@@ -440,6 +470,8 @@ mod tests {
             project_scope: ProjectScope::Small,
             checks: Some(vec![89]),
             rules_path: None,
+            phases: None,
+            module_filter: None,
         };
         let report = engine.scan_with_config(tmp.path(), &config).unwrap();
         assert_eq!(report.results.len(), 1);
@@ -482,6 +514,8 @@ depends_on = [1]
             project_scope: ProjectScope::Large,
             checks: None,
             rules_path: Some(rules_path),
+            phases: None,
+            module_filter: None,
         };
         let report = engine.scan_with_config(tmp.path(), &config).unwrap();
         assert_eq!(report.results.len(), 2);
@@ -526,6 +560,8 @@ depends_on = [1]
             project_scope: ProjectScope::Large,
             checks: None,
             rules_path: Some(rules_path),
+            phases: None,
+            module_filter: None,
         };
         let report = engine.scan_with_config(tmp.path(), &config).unwrap();
         assert_eq!(report.results.len(), 2);
@@ -567,6 +603,8 @@ depends_on = [1]
             project_scope: ProjectScope::Large,
             checks: Some(vec![2]),  // Only run child, parent filtered out
             rules_path: Some(rules_path),
+            phases: None,
+            module_filter: None,
         };
         let report = engine.scan_with_config(tmp.path(), &config).unwrap();
         assert_eq!(report.results.len(), 1);
@@ -617,6 +655,8 @@ depends_on = [2]
             project_scope: ProjectScope::Large,
             checks: None,
             rules_path: Some(rules_path),
+            phases: None,
+            module_filter: None,
         };
         let report = engine.scan_with_config(tmp.path(), &config).unwrap();
         assert_eq!(report.results.len(), 3);
@@ -640,6 +680,8 @@ depends_on = [2]
             project_scope: ProjectScope::Large,
             checks: None,
             rules_path: None,
+            phases: None,
+            module_filter: None,
         };
         let report = engine.scan_with_config(tmp.path(), &config).unwrap();
         let expected = default_rule_count();
@@ -649,5 +691,77 @@ depends_on = [2]
             report.summary.total,
             report.summary.passed + report.summary.failed + report.summary.skipped
         );
+    }
+
+    #[test]
+    fn test_phase_filter() {
+        let tmp = TempDir::new().unwrap();
+        let engine = DocComplianceEngine;
+        let config = ScanConfig {
+            project_type: Some(ProjectType::OpenSource),
+            project_scope: ProjectScope::Large,
+            checks: None,
+            rules_path: None,
+            phases: Some(vec!["structure".to_string()]),
+            module_filter: None,
+        };
+        let report = engine.scan_with_config(tmp.path(), &config).unwrap();
+        assert!(!report.results.is_empty());
+        for entry in &report.results {
+            assert_eq!(entry.category, "structure", "Expected only structure checks, got {}", entry.category);
+        }
+    }
+
+    #[test]
+    fn test_phase_filter_empty_result() {
+        let tmp = TempDir::new().unwrap();
+        let engine = DocComplianceEngine;
+        let config = ScanConfig {
+            project_type: Some(ProjectType::OpenSource),
+            project_scope: ProjectScope::Large,
+            checks: None,
+            rules_path: None,
+            phases: Some(vec!["nonexistent_phase".to_string()]),
+            module_filter: None,
+        };
+        let report = engine.scan_with_config(tmp.path(), &config).unwrap();
+        assert!(report.results.is_empty());
+    }
+
+    #[test]
+    fn test_phase_filter_multiple() {
+        let tmp = TempDir::new().unwrap();
+        let engine = DocComplianceEngine;
+        let config = ScanConfig {
+            project_type: Some(ProjectType::OpenSource),
+            project_scope: ProjectScope::Large,
+            checks: None,
+            rules_path: None,
+            phases: Some(vec!["structure".to_string(), "naming".to_string()]),
+            module_filter: None,
+        };
+        let report = engine.scan_with_config(tmp.path(), &config).unwrap();
+        for entry in &report.results {
+            assert!(
+                entry.category == "structure" || entry.category == "naming",
+                "Expected structure or naming, got {}", entry.category
+            );
+        }
+    }
+
+    #[test]
+    fn test_module_filter_passthrough() {
+        let tmp = TempDir::new().unwrap();
+        let engine = DocComplianceEngine;
+        let config = ScanConfig {
+            project_type: Some(ProjectType::OpenSource),
+            project_scope: ProjectScope::Large,
+            checks: Some(vec![1]),
+            rules_path: None,
+            phases: None,
+            module_filter: Some(vec!["scan".to_string()]),
+        };
+        let report = engine.scan_with_config(tmp.path(), &config).unwrap();
+        assert_eq!(report.results.len(), 1);
     }
 }

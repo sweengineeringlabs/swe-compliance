@@ -486,6 +486,7 @@ mod tests {
             project_type: None,
             scope: None,
             depends_on: vec![],
+            module_filter: None,
         }
     }
 
@@ -496,6 +497,7 @@ mod tests {
             file_contents: HashMap::new(),
             project_type: crate::api::types::ProjectType::OpenSource,
             project_scope: crate::api::types::ProjectScope::Large,
+            module_filter: None,
         }
     }
 

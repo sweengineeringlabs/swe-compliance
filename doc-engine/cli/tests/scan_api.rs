@@ -10,6 +10,8 @@ fn test_scan_minimal_project() {
         project_scope: ProjectScope::Large,
         checks: None,
         rules_path: None,
+        phases: None,
+        module_filter: None,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     // A minimal compliant project should have many passes
@@ -32,6 +34,8 @@ fn test_scan_report_iso15289_metadata() {
         project_scope: ProjectScope::Large,
         checks: Some(vec![1]),
         rules_path: None,
+        phases: None,
+        module_filter: None,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
 
@@ -60,6 +64,8 @@ fn test_scan_report_project_root_matches_input() {
         project_scope: ProjectScope::Large,
         checks: Some(vec![1]),
         rules_path: None,
+        phases: None,
+        module_filter: None,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     // project_root should contain the temp dir path
@@ -80,6 +86,8 @@ fn test_scan_empty_dir() {
         project_scope: ProjectScope::Large,
         checks: None,
         rules_path: None,
+        phases: None,
+        module_filter: None,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     // Should have many failures but no panics
@@ -95,6 +103,8 @@ fn test_scan_returns_all_checks() {
         project_scope: ProjectScope::Large,
         checks: None,
         rules_path: None,
+        phases: None,
+        module_filter: None,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     assert_eq!(report.results.len(), default_rule_count());
@@ -108,6 +118,8 @@ fn test_traceability_checks_pass_minimal() {
         project_scope: ProjectScope::Large,
         checks: Some(vec![51, 52, 53]),
         rules_path: None,
+        phases: None,
+        module_filter: None,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     assert_eq!(report.results.len(), 3);
@@ -127,6 +139,8 @@ fn test_traceability_checks_skip_empty() {
         project_scope: ProjectScope::Large,
         checks: Some(vec![51, 52, 53]),
         rules_path: None,
+        phases: None,
+        module_filter: None,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     assert_eq!(report.results.len(), 3);
@@ -146,6 +160,8 @@ fn test_backlog_checks_pass_minimal() {
         project_scope: ProjectScope::Large,
         checks: Some(vec![69, 71, 72]),
         rules_path: None,
+        phases: None,
+        module_filter: None,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     assert_eq!(report.results.len(), 3);
@@ -165,6 +181,8 @@ fn test_module_checks_pass_no_modules() {
         project_scope: ProjectScope::Large,
         checks: Some(vec![77, 78, 79, 80, 81]),
         rules_path: None,
+        phases: None,
+        module_filter: None,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     assert_eq!(report.results.len(), 5);
@@ -184,6 +202,8 @@ fn test_internal_usage_skip_open_source() {
         project_scope: ProjectScope::Large,
         checks: Some(vec![70]),
         rules_path: None,
+        phases: None,
+        module_filter: None,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     assert_eq!(report.results.len(), 1);
@@ -201,6 +221,8 @@ fn test_planning_checks_pass_minimal() {
         project_scope: ProjectScope::Large,
         checks: Some(vec![83, 84, 85, 86, 87, 88]),
         rules_path: None,
+        phases: None,
+        module_filter: None,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     assert_eq!(report.results.len(), 6);
@@ -220,6 +242,8 @@ fn test_srs_29148_pass_minimal() {
         project_scope: ProjectScope::Large,
         checks: Some(vec![89]),
         rules_path: None,
+        phases: None,
+        module_filter: None,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     assert_eq!(report.results.len(), 1);
@@ -237,6 +261,8 @@ fn test_srs_29148_fail_empty() {
         project_scope: ProjectScope::Large,
         checks: Some(vec![89]),
         rules_path: None,
+        phases: None,
+        module_filter: None,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     assert_eq!(report.results.len(), 1);
@@ -254,6 +280,8 @@ fn test_arch_42010_pass_minimal() {
         project_scope: ProjectScope::Large,
         checks: Some(vec![90]),
         rules_path: None,
+        phases: None,
+        module_filter: None,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     assert_eq!(report.results.len(), 1);
@@ -271,6 +299,8 @@ fn test_arch_42010_skip_empty() {
         project_scope: ProjectScope::Large,
         checks: Some(vec![90]),
         rules_path: None,
+        phases: None,
+        module_filter: None,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     assert_eq!(report.results.len(), 1);
@@ -288,6 +318,8 @@ fn test_test_29119_pass_minimal() {
         project_scope: ProjectScope::Large,
         checks: Some(vec![91]),
         rules_path: None,
+        phases: None,
+        module_filter: None,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     assert_eq!(report.results.len(), 1);
@@ -305,6 +337,8 @@ fn test_test_29119_skip_empty() {
         project_scope: ProjectScope::Large,
         checks: Some(vec![91]),
         rules_path: None,
+        phases: None,
+        module_filter: None,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     assert_eq!(report.results.len(), 1);
@@ -322,6 +356,8 @@ fn test_dev_guide_26514_pass_minimal() {
         project_scope: ProjectScope::Large,
         checks: Some(vec![94]),
         rules_path: None,
+        phases: None,
+        module_filter: None,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     assert_eq!(report.results.len(), 1);
@@ -339,6 +375,8 @@ fn test_dev_guide_26514_skip_empty() {
         project_scope: ProjectScope::Large,
         checks: Some(vec![94]),
         rules_path: None,
+        phases: None,
+        module_filter: None,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     assert_eq!(report.results.len(), 1);
@@ -356,6 +394,8 @@ fn test_backlog_sections_pass_minimal() {
         project_scope: ProjectScope::Large,
         checks: Some(vec![95]),
         rules_path: None,
+        phases: None,
+        module_filter: None,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     assert_eq!(report.results.len(), 1);
@@ -373,6 +413,8 @@ fn test_backlog_sections_skip_empty() {
         project_scope: ProjectScope::Large,
         checks: Some(vec![95]),
         rules_path: None,
+        phases: None,
+        module_filter: None,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     assert_eq!(report.results.len(), 1);
@@ -392,6 +434,8 @@ fn test_backlog_sections_fail_missing_sections() {
         project_scope: ProjectScope::Large,
         checks: Some(vec![95]),
         rules_path: None,
+        phases: None,
+        module_filter: None,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     assert_eq!(report.results.len(), 1);
@@ -412,6 +456,8 @@ fn test_backlog_existence_and_sections_combined() {
         project_scope: ProjectScope::Large,
         checks: Some(vec![71, 82, 95]),
         rules_path: None,
+        phases: None,
+        module_filter: None,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     assert_eq!(report.results.len(), 3);
@@ -431,6 +477,8 @@ fn test_prod_12207_pass_minimal() {
         project_scope: ProjectScope::Large,
         checks: Some(vec![96]),
         rules_path: None,
+        phases: None,
+        module_filter: None,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     assert_eq!(report.results.len(), 1);
@@ -448,6 +496,8 @@ fn test_prod_12207_skip_empty() {
         project_scope: ProjectScope::Large,
         checks: Some(vec![96]),
         rules_path: None,
+        phases: None,
+        module_filter: None,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     assert_eq!(report.results.len(), 1);
@@ -465,6 +515,8 @@ fn test_prod_25010_supp_pass_minimal() {
         project_scope: ProjectScope::Large,
         checks: Some(vec![97]),
         rules_path: None,
+        phases: None,
+        module_filter: None,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     assert_eq!(report.results.len(), 1);
@@ -482,6 +534,8 @@ fn test_prod_25010_supp_skip_empty() {
         project_scope: ProjectScope::Large,
         checks: Some(vec![97]),
         rules_path: None,
+        phases: None,
+        module_filter: None,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     assert_eq!(report.results.len(), 1);
@@ -499,6 +553,8 @@ fn test_prod_25040_pass_minimal() {
         project_scope: ProjectScope::Large,
         checks: Some(vec![98]),
         rules_path: None,
+        phases: None,
+        module_filter: None,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     assert_eq!(report.results.len(), 1);
@@ -516,6 +572,8 @@ fn test_prod_25040_skip_empty() {
         project_scope: ProjectScope::Large,
         checks: Some(vec![98]),
         rules_path: None,
+        phases: None,
+        module_filter: None,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     assert_eq!(report.results.len(), 1);
@@ -535,6 +593,8 @@ fn test_prod_12207_fail_missing_sections() {
         project_scope: ProjectScope::Large,
         checks: Some(vec![96]),
         rules_path: None,
+        phases: None,
+        module_filter: None,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     assert_eq!(report.results.len(), 1);
@@ -557,6 +617,8 @@ fn test_prod_25010_supp_fail_missing_sections() {
         project_scope: ProjectScope::Large,
         checks: Some(vec![97]),
         rules_path: None,
+        phases: None,
+        module_filter: None,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     assert_eq!(report.results.len(), 1);
@@ -579,6 +641,8 @@ fn test_prod_25040_fail_missing_sections() {
         project_scope: ProjectScope::Large,
         checks: Some(vec![98]),
         rules_path: None,
+        phases: None,
+        module_filter: None,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     assert_eq!(report.results.len(), 1);
@@ -599,6 +663,8 @@ fn test_prod_readiness_all_checks_combined() {
         project_scope: ProjectScope::Large,
         checks: Some(vec![92, 93, 96, 97, 98]),
         rules_path: None,
+        phases: None,
+        module_filter: None,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     assert_eq!(report.results.len(), 5);
@@ -618,6 +684,8 @@ fn test_scan_summary_math() {
         project_scope: ProjectScope::Large,
         checks: None,
         rules_path: None,
+        phases: None,
+        module_filter: None,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     assert_eq!(

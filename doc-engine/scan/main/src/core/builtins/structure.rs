@@ -340,6 +340,7 @@ mod tests {
             project_type: None,
             scope: None,
             depends_on: vec![],
+            module_filter: None,
         }
     }
 
@@ -350,6 +351,7 @@ mod tests {
             file_contents: HashMap::new(),
             project_type: ProjectType::OpenSource,
             project_scope: ProjectScope::Large,
+            module_filter: None,
         }
     }
 

@@ -6,6 +6,7 @@ use regex::Regex;
 use crate::api::types::RuleDef;
 use crate::api::traits::CheckRunner;
 use crate::api::types::{CheckId, CheckResult, ScanContext, Violation};
+use crate::core::regex_utils::find_hardcoded_path;
 
 static TLDR_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(?i)\*\*TLDR\*\*|## TLDR|## TL;DR").unwrap());
 static GLOSSARY_TERM_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^\*\*[^*]+\*\*").unwrap());
@@ -305,6 +306,70 @@ impl CheckRunner for ReadmeLineCount {
     }
 }
 
+/// Check 129: hardcoded_path_detection
+/// No hardcoded absolute paths in documentation (FR-832)
+pub struct HardcodedPathDetection {
+    pub def: RuleDef,
+}
+
+impl CheckRunner for HardcodedPathDetection {
+    fn id(&self) -> CheckId { CheckId(self.def.id) }
+    fn category(&self) -> &str { &self.def.category }
+    fn description(&self) -> &str { &self.def.description }
+
+    fn run(&self, ctx: &ScanContext) -> CheckResult {
+        let docs_files: Vec<_> = ctx.files.iter()
+            .filter(|f| {
+                let s = f.to_string_lossy();
+                s.starts_with("docs/") && s.ends_with(".md")
+            })
+            .collect();
+
+        if docs_files.is_empty() {
+            return CheckResult::Skip { reason: "No .md files in docs/".to_string() };
+        }
+
+        let mut violations = Vec::new();
+        for file in &docs_files {
+            let full = ctx.root.join(file);
+            let content = match fs::read_to_string(&full) {
+                Ok(c) => c,
+                Err(_) => continue,
+            };
+
+            let mut in_code_fence = false;
+            for (i, line) in content.lines().enumerate() {
+                if line.trim_start().starts_with("```") {
+                    in_code_fence = !in_code_fence;
+                    continue;
+                }
+                if in_code_fence {
+                    continue;
+                }
+
+                if let Some(m) = find_hardcoded_path(line) {
+                    violations.push(Violation {
+                        check_id: CheckId(self.def.id),
+                        path: Some(file.to_path_buf()),
+                        message: format!(
+                            "Line {}: hardcoded absolute path '{}'",
+                            i + 1,
+                            m.as_str()
+                        ),
+                        severity: self.def.severity.clone(),
+                    });
+                }
+            }
+        }
+
+        if violations.is_empty() {
+            CheckResult::Pass
+        } else {
+            CheckResult::Fail { violations }
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -324,6 +389,7 @@ mod tests {
             project_type: None,
             scope: None,
             depends_on: vec![],
+            module_filter: None,
         }
     }
 
@@ -334,6 +400,7 @@ mod tests {
             file_contents: HashMap::new(),
             project_type: ProjectType::OpenSource,
             project_scope: ProjectScope::Large,
+            module_filter: None,
         }
     }
 
@@ -494,6 +561,79 @@ mod tests {
     fn test_readme_line_count_skip() {
         let tmp = TempDir::new().unwrap();
         let handler = ReadmeLineCount { def: make_def(75) };
+        let ctx = make_ctx(tmp.path(), vec![]);
+        assert!(matches!(handler.run(&ctx), CheckResult::Skip { .. }));
+    }
+
+    // --- HardcodedPathDetection (check 129) ---
+
+    #[test]
+    fn test_hardcoded_path_detection_pass() {
+        let tmp = TempDir::new().unwrap();
+        fs::create_dir_all(tmp.path().join("docs")).unwrap();
+        fs::write(tmp.path().join("docs/guide.md"), "# Guide\nUse relative paths like `./config`.\n").unwrap();
+        let handler = HardcodedPathDetection { def: make_def(129) };
+        let ctx = make_ctx(tmp.path(), vec![PathBuf::from("docs/guide.md")]);
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_hardcoded_path_detection_fail_unix() {
+        let tmp = TempDir::new().unwrap();
+        fs::create_dir_all(tmp.path().join("docs")).unwrap();
+        fs::write(tmp.path().join("docs/setup.md"), "# Setup\nEdit /home/alice/.bashrc\n").unwrap();
+        let handler = HardcodedPathDetection { def: make_def(129) };
+        let ctx = make_ctx(tmp.path(), vec![PathBuf::from("docs/setup.md")]);
+        match handler.run(&ctx) {
+            CheckResult::Fail { violations } => {
+                assert_eq!(violations.len(), 1);
+                assert!(violations[0].message.contains("/home/alice/.bashrc"));
+            }
+            other => panic!("Expected Fail, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_hardcoded_path_detection_fail_windows() {
+        let tmp = TempDir::new().unwrap();
+        fs::create_dir_all(tmp.path().join("docs")).unwrap();
+        fs::write(tmp.path().join("docs/setup.md"), "# Setup\nEdit C:\\Users\\alice\\file.txt\n").unwrap();
+        let handler = HardcodedPathDetection { def: make_def(129) };
+        let ctx = make_ctx(tmp.path(), vec![PathBuf::from("docs/setup.md")]);
+        match handler.run(&ctx) {
+            CheckResult::Fail { violations } => {
+                assert_eq!(violations.len(), 1);
+                assert!(violations[0].message.contains("C:\\Users\\alice\\file.txt"));
+            }
+            other => panic!("Expected Fail, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_hardcoded_path_detection_skip_code_fence() {
+        let tmp = TempDir::new().unwrap();
+        fs::create_dir_all(tmp.path().join("docs")).unwrap();
+        let content = "# Example\n```\n/home/user/project\n```\n";
+        fs::write(tmp.path().join("docs/example.md"), content).unwrap();
+        let handler = HardcodedPathDetection { def: make_def(129) };
+        let ctx = make_ctx(tmp.path(), vec![PathBuf::from("docs/example.md")]);
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_hardcoded_path_detection_skip_url() {
+        let tmp = TempDir::new().unwrap();
+        fs::create_dir_all(tmp.path().join("docs")).unwrap();
+        fs::write(tmp.path().join("docs/links.md"), "See https://example.com/home/page\n").unwrap();
+        let handler = HardcodedPathDetection { def: make_def(129) };
+        let ctx = make_ctx(tmp.path(), vec![PathBuf::from("docs/links.md")]);
+        assert!(matches!(handler.run(&ctx), CheckResult::Pass));
+    }
+
+    #[test]
+    fn test_hardcoded_path_detection_skip_no_docs() {
+        let tmp = TempDir::new().unwrap();
+        let handler = HardcodedPathDetection { def: make_def(129) };
         let ctx = make_ctx(tmp.path(), vec![]);
         assert!(matches!(handler.run(&ctx), CheckResult::Skip { .. }));
     }

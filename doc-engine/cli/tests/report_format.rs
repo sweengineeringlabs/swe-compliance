@@ -10,6 +10,8 @@ fn test_text_contains_header() {
         project_scope: ProjectScope::Large,
         checks: None,
         rules_path: None,
+        phases: None,
+        module_filter: None,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     let text = format_report_text(&report);
@@ -24,6 +26,8 @@ fn test_text_contains_summary() {
         project_scope: ProjectScope::Large,
         checks: None,
         rules_path: None,
+        phases: None,
+        module_filter: None,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     let text = format_report_text(&report);
@@ -40,6 +44,8 @@ fn test_json_valid() {
         project_scope: ProjectScope::Large,
         checks: None,
         rules_path: None,
+        phases: None,
+        module_filter: None,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     let json = format_report_json(&report);
@@ -55,6 +61,8 @@ fn test_json_has_results_and_summary() {
         project_scope: ProjectScope::Large,
         checks: None,
         rules_path: None,
+        phases: None,
+        module_filter: None,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     let json = format_report_json(&report);
@@ -80,6 +88,8 @@ fn test_json_roundtrip() {
         project_scope: ProjectScope::Large,
         checks: None,
         rules_path: None,
+        phases: None,
+        module_filter: None,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     let json = format_report_json(&report);

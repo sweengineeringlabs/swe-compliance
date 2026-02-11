@@ -4,7 +4,7 @@
 
 ## TLDR
 
-This SRS defines requirements for doc-engine, a Rust CLI tool that audits project documentation against 128 compliance checks across 18 categories, mapped to 8 ISO/IEC/IEEE standards, IEEE 1028, and PMBOK. It also scaffolds SDLC spec files from an SRS document, generating per-domain spec, architecture, test plan, deployment, and test execution plan files. It covers stakeholder needs, functional requirements for rule evaluation, reporting, and scaffolding, non-functional requirements for performance and extensibility, and traceability from stakeholder goals to implementation modules.
+This SRS defines requirements for doc-engine, a Rust CLI tool that audits project documentation against 128 compliance checks across 18 categories, mapped to 8 ISO/IEC/IEEE standards, IEEE 1028, and PMBOK. It also scaffolds SDLC spec files from an SRS document, generating per-domain spec, architecture, test plan, deployment, and test execution plan files. An opt-in AI subsystem (`doc-engine-ai` crate, feature-gated behind `--features ai`) provides LLM-powered compliance analysis and conversational auditing via the rustratify agent framework. It covers stakeholder needs, functional requirements for rule evaluation, reporting, scaffolding, and AI-powered analysis, non-functional requirements for performance and extensibility, and traceability from stakeholder goals to implementation modules.
 
 **Version**: 1.0
 **Date**: 2026-02-07
@@ -20,7 +20,7 @@ This SRS defines the stakeholder, system, and software requirements for **doc-en
 
 ### 1.2 Scope
 
-doc-engine is a single-crate Rust project within the `swe-compliance` workspace. It:
+doc-engine is a multi-crate Rust workspace within the `swe-compliance` workspace. It:
 
 - Scans any project directory for documentation compliance
 - Sources rules from a TOML configuration file (declarative + builtin handlers)
@@ -29,11 +29,12 @@ doc-engine is a single-crate Rust project within the `swe-compliance` workspace.
 - Validates spec files in two formats: YAML (`.spec.yaml`, `.arch.yaml`, `.test.yaml`, `.deploy.yaml`) and markdown (`.spec`, `.arch`, `.test`, `.deploy`) for structure, cross-references, and SDLC coverage
 - Generates markdown documentation from YAML spec files
 - Scaffolds per-domain SDLC spec files from an SRS markdown document, including test execution plans (`.manual.exec`, `.auto.exec`), with optional `--phase` filtering by SDLC phase
+- (Opt-in, `--features ai`) Provides AI-powered compliance analysis via the `doc-engine-ai` crate, using the rustratify agent framework (chat-engine, llm-provider, tool, agent-controller) to deliver conversational auditing and LLM-analysed scan reports
 
-doc-engine does **not**:
+doc-engine does **not** (default build):
 
 - Enforce code-level conventions (only documentation structure/content)
-- Require network access (local file system only)
+- Require network access (local file system only; the opt-in AI feature requires LLM API access)
 
 ### 1.3 Definitions and Acronyms
 
@@ -64,6 +65,12 @@ doc-engine does **not**:
 | **Automated execution plan** | An `.auto.exec` markdown file listing all test cases with Verifies, CI Job, Build, Status, and Last Run columns — a CI/automated test tracker |
 | **Phase filter** | A `--phase` CLI flag that restricts scaffold output to specific SDLC phases (`requirements`, `design`, `testing`, `deployment`); when omitted, all phases are generated |
 | **Scaffold status report** | A JSON information item conforming to ISO/IEC/IEEE 15289:2019 clause 9 (progress/status reports); persisted via `--report <path>` and containing identification metadata (standard, clause, tool, version, timestamp), scope (srs_source, phases, force), and results (domain_count, requirement_count, created, skipped) |
+| **rustratify** | A Rust framework providing composable AI agent infrastructure: chat engine, LLM provider abstraction, tool trait, agent controller, caching, and RAG; consumed from a local Cargo registry |
+| **Agent** | An AI agent configuration (YAML-defined) with a system prompt, trigger keywords, and allowed tools; managed by the agent controller |
+| **Tool (AI)** | A Rust struct implementing rustratify's `Tool` trait (`name()`, `execute()`, `risk_level()`), callable by the LLM within a tool-aware chat engine loop |
+| **ComplianceScanTool** | An AI tool wrapping `scan_with_config()` so that the LLM agent can run compliance scans within a conversation |
+| **DocEngineAiService** | The public trait for AI features, exposing `chat()` and `audit()` methods; implemented by `DefaultDocEngineAiService` |
+| **Feature gate** | A Cargo feature flag (`ai`) that conditionally compiles the AI subsystem; the default build has no AI, async, or network dependencies |
 
 ### 1.4 References
 
@@ -78,11 +85,12 @@ doc-engine does **not**:
 | ISO/IEC 25010:2023 | Product quality model, SQuaRE (checks 93, 97) |
 | ISO/IEC 25040:2024 | Evaluation process, SQuaRE (check 98) |
 | IEEE 1028:2008 | Standard for Software Reviews and Audits (checks 123, 124) |
-| Documentation Framework | `/mnt/c/phd-systems/swe-labs/template-engine/templates/framework.md` |
-| Compliance Checklist | `/mnt/c/phd-systems/swe-labs/template-engine/templates/compliance-checklist.md` |
-| SEA Architecture Reference | `/mnt/c/phd-systems/swe-labs/langboot/rustratify/docs/3-design/architecture.md` |
+| Documentation Framework | `swe-labs/template-engine/templates/framework.md` |
+| Compliance Checklist | `swe-labs/template-engine/templates/compliance-checklist.md` |
+| SEA Architecture Reference | `swe-labs/langboot/rustratify/docs/3-design/architecture.md` |
 | doc-engine Architecture | `../3-design/architecture.md` |
 | doc-engine Implementation Plan | `../2-planning/implementation_plan.md` |
+| rustratify Agent Framework | Local Cargo registry (see `doc-engine/.cargo/config.toml`) — chat-engine 0.1.0, llm-provider 0.1.0, react 0.1.0, tool 0.1.0, agent-controller 0.1.0, agent-cache 0.1.0 |
 
 ---
 
@@ -97,6 +105,7 @@ doc-engine does **not**:
 | Documentation maintainer | Tweaks rules without coding | Declarative TOML rules, no recompilation for simple changes |
 | CI system | Automated gate in pipeline | JSON output, deterministic exit codes, non-interactive |
 | Library consumer | Integrates scanning programmatically | Clean public API, well-typed report structures |
+| AI user | Uses conversational AI to audit and interpret results | Natural-language audit summaries, prioritised recommendations, interactive compliance Q&A |
 
 ### 2.2 Operational Scenarios
 
@@ -140,6 +149,14 @@ A developer or CI job runs `doc-engine scan . --scope large --json -o docs/7-ope
 
 An architect runs `doc-engine scaffold docs/1-requirements/srs.md --output . --force`. The tool parses the SRS, extracts all domains and their requirements, and generates 10 files per domain (spec.yaml, spec, arch.yaml, arch, test.yaml, test, manual.exec, auto.exec, deploy.yaml, deploy) plus 2 BRD files. The `.manual.exec` files provide actionable checklists with Steps and Expected columns for human testers. The `.auto.exec` files provide CI tracking tables with CI Job and Build columns. Both exec files list all test cases aligned row-for-row with the `.test` plan. The `--phase` flag filters output to specific SDLC phases (e.g., `--phase testing` generates only `docs/5-testing/` files).
 
+#### OS-11: AI-powered compliance chat
+
+A developer builds with `--features ai` and runs `ANTHROPIC_API_KEY=sk-... doc-engine ai chat "What ISO standards apply to my project and what's missing?"`. The tool initialises the LLM provider, loads the compliance-auditor agent, sends the message through the LLM with access to the compliance_scan tool, and prints a natural-language response explaining the project's compliance posture.
+
+#### OS-12: AI-powered compliance audit
+
+An architect runs `doc-engine ai audit /path/to/project --scope medium`. The tool executes a compliance scan via `ComplianceScanTool`, sends the JSON results to the LLM for analysis, and prints a prioritised summary with actionable recommendations grouped by ISO standard. The raw scan results are preserved in the `AuditResponse` for programmatic consumption.
+
 ### 2.3 Stakeholder Requirements
 
 | ID | Requirement | Source | Priority | Rationale |
@@ -155,6 +172,7 @@ An architect runs `doc-engine scaffold docs/1-requirements/srs.md --output . --f
 | STK-09 | The tool shall persist audit reports as versioned JSON files following ISO/IEC/IEEE 15289:2019 naming | CI pipeline needs, ISO compliance | Should | Enables audit trail, historical comparison, and compliance evidence |
 | STK-10 | The tool shall scope checks by project size (small/medium/large) so that smaller projects are not burdened by large-project requirements | Developer feedback | Must | Different project sizes have different documentation needs |
 | STK-11 | The tool shall scaffold a complete set of SDLC spec files from an SRS document, including actionable manual and automated test execution plans | Architect feedback | Should | Bootstraps documentation structure from requirements, ensuring consistent traceability from day one |
+| STK-12 | The tool shall provide opt-in AI-powered compliance analysis that explains scan results, prioritises failures, and suggests fixes using natural language | AI user feedback | Should | Compliance scan output is dense; LLM analysis provides accessible summaries and actionable guidance |
 
 ---
 
@@ -189,19 +207,21 @@ doc-engine scan <project> --scope <tier>  ← audits any project against them
 | SYS-05 | Reporting | Output results as human-readable text or machine-readable JSON |
 | SYS-06 | YAML spec processing | Parse, validate, cross-reference, and generate markdown from YAML spec files |
 | SYS-07 | SRS scaffold | Parse SRS document, extract domains/requirements, generate per-domain SDLC spec files and test execution plans |
+| SYS-08 | AI compliance analysis | (Opt-in) Run compliance scans via LLM-integrated tool, analyse results with agent, produce natural-language summaries and recommendations |
 
 ### 3.3 System Constraints
 
 - **Language**: Rust (2021 edition)
-- **Architecture**: Single-Crate Modular SEA
-- **No async**: Synchronous file system operations only
-- **No network**: Local file system scanning only
+- **Architecture**: Multi-crate workspace (cli, scan, scaffold, ai) following Modular SEA
+- **No async** (default): Synchronous file system operations only; the `ai` feature introduces `tokio` for LLM API calls
+- **No network** (default): Local file system scanning only; the `ai` feature requires network access for LLM API calls
 - **Platform**: Linux, macOS, Windows (via standard Rust cross-compilation)
 
 ### 3.4 Assumptions and Dependencies
 
 - Projects being scanned follow a recognizable directory structure (not necessarily fully compliant)
 - External crate dependencies: `walkdir`, `regex`, `toml`, `clap`, `serde`, `serde_json`, `serde_yaml`
+- (AI feature only) rustratify crates from local Cargo registry: `chat-engine`, `llm-provider`, `react`, `tool`, `agent-controller`, `agent-cache`; `tokio` async runtime; a valid LLM API key (e.g., `ANTHROPIC_API_KEY`)
 
 ---
 
@@ -1561,7 +1581,96 @@ Severity mapping: mandatory artifacts (per ISO) use `warning`; recommended artif
 | **Traces to** | Check 128 -> `core/builtins/requirements.rs` |
 | **Acceptance** | Check 128 validates that `docs/5-testing/verification_report.md` contains Summary/results, Pass/fail status, and Defects/issues sections per 29119-3 clause 10. Missing sections produce per-section violations. Projects without the file produce Skip. |
 
-### 4.14 SRS Scaffold
+#### FR-832: Hardcoded absolute path detection
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Should |
+| **State** | Implemented |
+| **Verification** | Test |
+| **Traces to** | STK-05 -> Check 129 |
+| **Acceptance** | A content check scans all `.md` files under `docs/` for hardcoded absolute paths matching platform-specific patterns (e.g., `/mnt/`, `/home/<user>/`, `/Users/<user>/`, `C:\Users\`). Each match produces a Warning-severity violation with the file path, line number, and matched pattern. Files outside `docs/` are not scanned. The check produces Skip when no `docs/` directory exists. Workspace-relative paths and URLs (`http://`, `https://`, `file:///`) are excluded from matches |
+
+**Scan rule** (Check 129 in `rules.toml`):
+
+| Field | Value |
+|-------|-------|
+| id | 129 |
+| category | content |
+| severity | warning |
+| type | builtin |
+| handler | `hardcoded_path_detection` |
+| scope | small |
+
+**Implementation**: `core/builtins/content.rs` (`HardcodedPathDetection` check runner) delegates regex matching and URL-exclusion logic to `core/regex_utils.rs` (`find_hardcoded_path`).
+
+#### FR-833: SRS no technical details
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Should |
+| **State** | Implemented |
+| **Verification** | Test |
+| **Traces to** | STK-05 -> Check 130 |
+| **Acceptance** | A requirements check scans `docs/1-requirements/srs.md` FR/NFR blocks for source-code file references (`.rs`, `.py`, `.ts`, `.js`, `.go`, `.java`, etc.) in attribute table rows. Each block with a violation produces a Warning-severity message naming the requirement ID and the offending attribute row. Documentation file extensions (`.md`, `.toml`, `.yaml`) are allowed. The check produces Skip when no FR/NFR blocks exist. |
+
+**Scan rule** (Check 130 in `rules.toml`):
+
+| Field | Value |
+|-------|-------|
+| id | 130 |
+| category | requirements |
+| severity | warning |
+| type | builtin |
+| handler | `srs_no_tech_details` |
+| scope | large |
+| depends_on | [89] |
+
+#### FR-834: SRS no downstream references
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Should |
+| **State** | Implemented |
+| **Verification** | Test |
+| **Traces to** | STK-05 -> Check 131 |
+| **Acceptance** | A requirements check scans `docs/1-requirements/srs.md` FR/NFR blocks for references to downstream SDLC phase artifacts (phases 2-7: planning, design, development, testing, deployment, operations) in attribute table rows. The **Acceptance** attribute row is exempt since it describes check behavior. Each block with a violation produces a Warning-severity message. Upstream references (`0-ideation/`, `1-requirements/`), check IDs, and `rules.toml` are allowed. The check produces Skip when no FR/NFR blocks exist. |
+
+**Scan rule** (Check 131 in `rules.toml`):
+
+| Field | Value |
+|-------|-------|
+| id | 131 |
+| category | requirements |
+| severity | warning |
+| type | builtin |
+| handler | `srs_no_downstream_refs` |
+| scope | large |
+| depends_on | [89] |
+
+### 4.14 Scan Filters
+
+#### FR-835: Scan phase filter
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Should |
+| **State** | Implemented |
+| **Verification** | Test |
+| **Traces to** | STK-05 |
+| **Acceptance** | The `scan` command accepts a `--phase` flag with a comma-separated list of SDLC phase/category names (e.g. `--phase testing,module`). When specified, only checks whose category matches one of the given phases appear in results; non-matching checks are silently excluded. Unknown phase names cause exit code 2 with an error message listing valid phases. |
+
+#### FR-836: Scan module filter
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Should |
+| **State** | Implemented |
+| **Verification** | Test |
+| **Traces to** | STK-05 |
+| **Acceptance** | The `scan` command accepts a `--module` flag with a comma-separated list of module names (e.g. `--module scan,cli`). When specified, module checks (77-81) only run against the named modules. The CLI flag overrides any per-rule `module_filter` default in `rules.toml`. Module names are case-sensitive filesystem names and are not validated against discovered modules. |
+
+### 4.15 SRS Scaffold
 
 #### FR-822: Scaffold command
 
@@ -1674,6 +1783,100 @@ Generated files per domain:
 
 When `--report <path>` is provided, the scaffold command shall serialize a `ScaffoldStatusReport` as pretty-printed JSON. The report wraps `ScaffoldResult` fields (promoted to top level) with ISO 15289:2019 clause 9 identification metadata: standard identifier, clause reference, tool name, tool version (from `Cargo.toml`), ISO 8601 UTC timestamp, canonicalized SRS source path, phase filter, and force flag. Parent directories are created automatically. No new dependencies are introduced — the timestamp uses Howard Hinnant's `civil_from_days` algorithm on `std::time::SystemTime`.
 
+### 4.15 AI-Powered Compliance Analysis
+
+All requirements in this section are feature-gated behind `#[cfg(feature = "ai")]` and implemented in the `doc-engine-ai` crate. The default build is unaffected.
+
+#### FR-900: AI feature gate
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Must |
+| **State** | Implemented |
+| **Verification** | Demonstration |
+| **Traces to** | STK-12 -> `cli/Cargo.toml` (`[features]`), `cli/src/main.rs` (`#[cfg(feature = "ai")]`) |
+| **Acceptance** | `cargo build` (default) succeeds without `tokio`, `llm-provider`, or any AI dependencies; `cargo build --features ai` compiles the `doc-engine-ai` crate and enables the `ai` subcommand; the default CLI help does not show the `ai` subcommand |
+
+#### FR-901: AI configuration from environment
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Must |
+| **State** | Implemented |
+| **Verification** | Test |
+| **Traces to** | STK-12 -> `ai/src/spi/config.rs` |
+| **Acceptance** | `DocEngineAiConfig::from_env()` reads `DOC_ENGINE_AI_ENABLED`, `LLM_PROVIDER`, `LLM_DEFAULT_MODEL`, and `DOC_ENGINE_AI_HISTORY_SIZE` from environment variables with sensible defaults (enabled=true, provider=anthropic, model=claude-sonnet-4-20250514, history_size=20); `has_api_key()` returns true when `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, or `GEMINI_API_KEY` is set and non-empty |
+
+#### FR-902: ComplianceScanTool
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Must |
+| **State** | Implemented |
+| **Verification** | Test |
+| **Traces to** | STK-12 -> `ai/src/core/tools/compliance_scan_tool.rs` |
+| **Acceptance** | `ComplianceScanTool` implements rustratify's `Tool` trait; `name()` returns `"compliance_scan"`; `risk_level()` returns `ReadOnly`; `parameters_schema()` returns a JSON Schema with `path` (required string), `scope` (enum: small/medium/large), and `format` (enum: json/text); `execute()` delegates to `doc_engine_scan::scan_with_config()` and returns a `ToolOutput` with the scan report as JSON or text |
+
+#### FR-903: Agent configuration from embedded YAML
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Must |
+| **State** | Implemented |
+| **Verification** | Test |
+| **Traces to** | STK-12 -> `ai/src/core/agents/default_agents.yaml`, `ai/src/core/agents/manager.rs` |
+| **Acceptance** | `default_agents.yaml` is embedded via `include_str!`; it defines a `compliance-auditor` agent with trigger keywords (`audit`, `compliance`, `scan`, `check`, `iso`), the `compliance_scan` tool, and a system prompt instructing the LLM to analyse ISO compliance results; `DocEngineAgentManager` parses the YAML at construction and registers agents in an `AgentRegistry<DocEngineAgent>` |
+
+#### FR-904: DocEngineAgent descriptor
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Must |
+| **State** | Implemented |
+| **Verification** | Test |
+| **Traces to** | STK-12 -> `ai/src/core/agents/manager.rs` |
+| **Acceptance** | `DocEngineAgent` implements rustratify's `AgentDescriptor` trait, providing `id()`, `display_name()`, `description()`, `system_prompt()`, and `trigger_keywords()` from the parsed YAML entry |
+
+#### FR-905: DocEngineFactory
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Must |
+| **State** | Implemented |
+| **Verification** | Inspection |
+| **Traces to** | STK-12 -> `ai/src/core/agents/factory.rs` |
+| **Acceptance** | `DocEngineFactory` implements rustratify's `EngineFactory<DocEngineAgent>` with `type Engine = dyn ChatEngine`; `create()` builds a `ToolRegistry` with `ComplianceScanTool` (when the agent's tool list includes `compliance_scan`), constructs a `ChatConfig` from `DocEngineAiConfig` and agent metadata, and returns a `ToolAwareChatEngine` |
+
+#### FR-906: DocEngineAiService trait
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Must |
+| **State** | Implemented |
+| **Verification** | Inspection |
+| **Traces to** | STK-12 -> `ai/src/api/types.rs` |
+| **Acceptance** | The `DocEngineAiService` async trait defines `chat(&self, message: &str) -> Result<String, DocEngineAiError>` and `audit(&self, path: &str, scope: &str) -> Result<AuditResponse, DocEngineAiError>`; `AuditResponse` contains `summary` (String), `scan_results` (JSON Value), and `recommendations` (Vec<String>) |
+
+#### FR-907: DefaultDocEngineAiService
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Must |
+| **State** | Implemented |
+| **Verification** | Test |
+| **Traces to** | STK-12 -> `ai/src/api/service.rs` |
+| **Acceptance** | `DefaultDocEngineAiService::new(config)` validates that AI is enabled and an API key is present, initialises the LLM provider via `llm_provider::create_service()`, and constructs a `DocEngineAgentManager`; `chat()` sends the message through `CompletionBuilder` with the active agent's system prompt; `audit()` runs `ComplianceScanTool::execute()`, sends the scan JSON to the LLM for analysis, and returns an `AuditResponse` with the LLM summary, raw scan results, and extracted recommendations |
+
+#### FR-908: AI CLI subcommands
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Must |
+| **State** | Implemented |
+| **Verification** | Demonstration |
+| **Traces to** | STK-12 -> `cli/src/main.rs` |
+| **Acceptance** | When built with `--features ai`, the CLI exposes `doc-engine ai chat <MESSAGE>` and `doc-engine ai audit <PATH> [--scope small\|medium\|large]`; the `chat` subcommand prints the LLM response to stdout; the `audit` subcommand prints the summary and recommendations; both exit with code 1 on AI errors and code 2 on configuration errors; the `ai` subcommand does not appear in help when the feature is disabled |
+
 ---
 
 ## 5. Non-Functional Requirements
@@ -1688,17 +1891,9 @@ When `--report <path>` is provided, the scaffold command shall serialize a `Scaf
 | **State** | Approved |
 | **Verification** | Inspection |
 | **Traces to** | STK-04 -> module structure |
-| **Acceptance** | Code review confirms 5-layer SEA: SPI (no deps) <- API <- Core (private) <- SAF (re-exports) <- CLI |
+| **Acceptance** | Code review confirms layered SEA with no upward dependencies; see `docs/3-design/architecture.md` for layer definitions |
 
-The crate shall follow Single-Crate Modular SEA:
-
-| Layer | Visibility | Contents |
-|-------|-----------|----------|
-| L4: SAF | `pub` | Re-exports for library consumers |
-| L3: CLI | binary only | `main.rs` with clap |
-| L2: API | `pub` | `ComplianceEngine` trait, config/report types |
-| L1: SPI | `pub` | `FileScanner`, `CheckRunner`, `Reporter` traits, core types |
-| L0: Core | `pub(crate)` | All implementations |
+The crate shall follow the Stratified Encapsulation Architecture pattern, separating public interfaces from private implementation with clearly defined layer boundaries.
 
 #### NFR-101: Dependency direction
 
@@ -1708,7 +1903,7 @@ The crate shall follow Single-Crate Modular SEA:
 | **State** | Approved |
 | **Verification** | Inspection |
 | **Traces to** | STK-04 -> module structure |
-| **Acceptance** | No `use core::` in spi/ or api/; no `use api::` in spi/ |
+| **Acceptance** | No module depends on a layer above it; see `docs/3-design/architecture.md` for layer ordering |
 
 No layer shall depend on a layer above it.
 
@@ -1796,6 +1991,38 @@ IO errors and missing files shall produce `Skip` results or clear error messages
 | **Traces to** | STK-02 |
 | **Acceptance** | Malformed TOML produces exit code 2 with a parse error message identifying the line |
 
+### 5.6 AI Subsystem (feature-gated)
+
+#### NFR-600: AI feature is opt-in
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Must |
+| **State** | Implemented |
+| **Verification** | Demonstration |
+| **Traces to** | STK-12 -> `cli/Cargo.toml`, `ai/Cargo.toml` |
+| **Acceptance** | The default `cargo build` produces a binary with no `tokio`, `llm-provider`, or AI dependencies; `cargo test -p doc-engine-scan` and `cargo test -p doc-engine-cli` pass without the `ai` feature |
+
+#### NFR-601: AI crate SEA compliance
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Must |
+| **State** | Implemented |
+| **Verification** | Inspection |
+| **Traces to** | STK-12 -> `ai/src/` module structure |
+| **Acceptance** | The `doc-engine-ai` crate follows SEA layering: `spi/` (L2, config), `api/` (L1, service trait and types), `core/` (L0, tools, agents, factory); no upward dependency violations |
+
+#### NFR-602: Graceful AI degradation
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Must |
+| **State** | Implemented |
+| **Verification** | Demonstration |
+| **Traces to** | STK-12 -> `ai/src/api/service.rs` |
+| **Acceptance** | Missing or invalid API key produces a clear `DocEngineAiError::NotEnabled` message and exit code 2; LLM API failures produce `DocEngineAiError::Llm` with the provider's error message; neither case panics or corrupts scan results |
+
 ---
 
 ## 6. External Interface Requirements
@@ -1826,6 +2053,25 @@ IO errors and missing files shall produce `Skip` results or clear error messages
 | Default location | Embedded in binary via `include_str!` |
 | Override | `--rules <path>` CLI flag |
 
+### 6.4 LLM API Interface (AI feature only)
+
+| Direction | Data | Detail |
+|-----------|------|--------|
+| Input | API key | Environment variable (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, or `GEMINI_API_KEY`) |
+| Input | Provider/model | Environment variables `LLM_PROVIDER` and `LLM_DEFAULT_MODEL` |
+| Output | Completion | LLM response via `llm_provider::CompletionBuilder` over HTTPS |
+| Dependency | rustratify crates | `chat-engine`, `llm-provider`, `tool`, `agent-controller`, `react`, `agent-cache` from local Cargo registry |
+
+### 6.5 AI Service Library Interface (AI feature only)
+
+| Direction | Data | Type |
+|-----------|------|------|
+| Input | Configuration | `DocEngineAiConfig` (from environment) |
+| Input | Chat message | `&str` |
+| Input | Audit path + scope | `&str`, `&str` |
+| Output | Chat response | `Result<String, DocEngineAiError>` |
+| Output | Audit response | `Result<AuditResponse, DocEngineAiError>` |
+
 ---
 
 ## 7. Risk Analysis
@@ -1837,6 +2083,10 @@ IO errors and missing files shall produce `Skip` results or clear error messages
 | Regex patterns in TOML are hard to debug | Medium | Medium | Provide `--dry-run` or `--list-rules` to inspect loaded rules |
 | Large projects with many files cause slow scans | Low | Low | Single-pass scanner (NFR-201); checks operate on cached file list |
 | Builtin handler logic diverges from checklist intent | Medium | Low | Each handler traces to specific check IDs; test against fixture projects |
+| LLM API key exposed in logs or error output | High | Low | API key is never logged; `DocEngineAiConfig` reads from env vars and `has_api_key()` only checks presence, never returns the value |
+| LLM hallucination produces incorrect compliance advice | Medium | Medium | `audit()` always includes raw scan results alongside LLM summary; users can verify recommendations against the structured data |
+| AI feature bloats default build with async/network dependencies | Medium | Low | Feature gate (`--features ai`) ensures default build has zero AI dependencies; NFR-600 enforces this |
+| LLM provider API changes break AI feature | Medium | Low | `llm-provider` crate abstracts provider details; `CompletionBuilder` provides a stable interface |
 
 ---
 
@@ -1857,6 +2107,7 @@ IO errors and missing files shall produce `Skip` results or clear error messages
 | STK-09 | SYS-05 |
 | STK-10 | SYS-03 |
 | STK-11 | SYS-07 |
+| STK-12 | SYS-08 |
 
 ### Stakeholder -> Software
 
@@ -1873,6 +2124,7 @@ IO errors and missing files shall produce `Skip` results or clear error messages
 | STK-09 | FR-403, FR-506, FR-831 |
 | STK-10 | FR-505 |
 | STK-11 | FR-822, FR-823, FR-824, FR-825, FR-826, FR-827, FR-828, FR-829, FR-830 |
+| STK-12 | FR-900, FR-901, FR-902, FR-903, FR-904, FR-905, FR-906, FR-907, FR-908, NFR-600, NFR-601, NFR-602 |
 
 ### Software -> Architecture
 
@@ -1894,9 +2146,11 @@ IO errors and missing files shall produce `Skip` results or clear error messages
 | FR-750-755 | `main.rs`, `core/reporter.rs` |
 | FR-808-821 | `core/builtins/requirements.rs`, `rules.toml` |
 | FR-822-830 | `core/scaffold/mod.rs`, `core/scaffold/types.rs`, `core/scaffold/parser.rs`, `core/scaffold/yaml_gen.rs`, `core/scaffold/markdown_gen.rs`, `main.rs` |
-| NFR-100-101 | Module structure (spi/, api/, core/, saf/) |
+| NFR-100-101 | Module structure — see `docs/3-design/architecture.md` |
 | NFR-400-401 | `rules.toml`, `core/declarative.rs`, `core/builtins/` |
 | NFR-500-501 | `core/engine.rs`, `core/rules.rs` |
+| FR-900-908 | `ai/src/spi/config.rs`, `ai/src/core/tools/compliance_scan_tool.rs`, `ai/src/core/agents/factory.rs`, `ai/src/core/agents/manager.rs`, `ai/src/api/types.rs`, `ai/src/api/service.rs`, `cli/src/main.rs` |
+| NFR-600-602 | `cli/Cargo.toml` (`[features]`), `ai/Cargo.toml`, `ai/src/` module structure |
 
 ---
 
