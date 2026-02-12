@@ -3,8 +3,8 @@ use std::sync::Arc;
 use agent_controller::AgentDescriptor;
 use serde::Deserialize;
 
-use crate::spi::DocEngineAiConfig;
-use super::factory::DocEngineFactory;
+use crate::spi::AuditConfig;
+use super::factory::AuditEngineFactory;
 
 // ---------------------------------------------------------------------------
 // YAML parsing types (private)
@@ -25,11 +25,11 @@ struct AgentEntry {
 }
 
 // ---------------------------------------------------------------------------
-// DocEngineAgent — implements AgentDescriptor
+// AuditAgent — implements AgentDescriptor
 // ---------------------------------------------------------------------------
 
-/// Descriptor for a doc-engine AI agent, parsed from YAML config.
-pub struct DocEngineAgent {
+/// Descriptor for an audit agent, parsed from YAML config.
+pub struct AuditAgent {
     id: String,
     display_name: String,
     description: String,
@@ -38,7 +38,7 @@ pub struct DocEngineAgent {
     pub tools: Vec<String>,
 }
 
-impl AgentDescriptor for DocEngineAgent {
+impl AgentDescriptor for AuditAgent {
     fn id(&self) -> &str {
         &self.id
     }
@@ -56,7 +56,7 @@ impl AgentDescriptor for DocEngineAgent {
     }
 }
 
-impl From<AgentEntry> for DocEngineAgent {
+impl From<AgentEntry> for AuditAgent {
     fn from(e: AgentEntry) -> Self {
         Self {
             display_name: e.description.clone(),
@@ -70,23 +70,19 @@ impl From<AgentEntry> for DocEngineAgent {
 }
 
 // ---------------------------------------------------------------------------
-// DocEngineAgentManager
+// AuditAgentManager
 // ---------------------------------------------------------------------------
 
-/// Manages agent descriptors and their engine factory.
-///
-/// Agents are loaded from the embedded `default_agents.yaml` at construction
-/// time.  The `EngineFactory` is stored for future use by callers that need
-/// to create chat engines on demand.
-pub struct DocEngineAgentManager {
-    registry: agent_controller::AgentRegistry<DocEngineAgent>,
-    factory: DocEngineFactory,
+/// Manages audit agent descriptors and their engine factory.
+pub struct AuditAgentManager {
+    registry: agent_controller::AgentRegistry<AuditAgent>,
+    factory: AuditEngineFactory,
     active_agent_id: String,
 }
 
-impl DocEngineAgentManager {
-    pub fn new(llm: Arc<dyn llm_provider::LlmService>, config: DocEngineAiConfig) -> Self {
-        let factory = DocEngineFactory::new(llm, config.clone());
+impl AuditAgentManager {
+    pub fn new(llm: Arc<dyn llm_provider::LlmService>, config: AuditConfig) -> Self {
+        let factory = AuditEngineFactory::new(llm, config.clone());
         let mut registry = agent_controller::AgentRegistry::new();
 
         for agent in load_default_agents() {
@@ -101,17 +97,17 @@ impl DocEngineAgentManager {
     }
 
     /// Return the currently-active agent descriptor (if it exists).
-    pub fn active_agent(&self) -> Option<&DocEngineAgent> {
+    pub fn active_agent(&self) -> Option<&AuditAgent> {
         self.registry.get(&self.active_agent_id)
     }
 
     /// List all registered agents.
-    pub fn list_agents(&self) -> Vec<&DocEngineAgent> {
+    pub fn list_agents(&self) -> Vec<&AuditAgent> {
         self.registry.list()
     }
 
     /// Borrow the engine factory.
-    pub fn factory(&self) -> &DocEngineFactory {
+    pub fn factory(&self) -> &AuditEngineFactory {
         &self.factory
     }
 
@@ -127,11 +123,11 @@ impl DocEngineAgentManager {
 }
 
 /// Parse the embedded YAML into agent descriptors.
-fn load_default_agents() -> Vec<DocEngineAgent> {
+fn load_default_agents() -> Vec<AuditAgent> {
     let yaml = include_str!("default_agents.yaml");
     let config: AgentsYaml =
         serde_yml::from_str(yaml).expect("embedded agent YAML must be valid");
-    config.agents.into_iter().map(DocEngineAgent::from).collect()
+    config.agents.into_iter().map(AuditAgent::from).collect()
 }
 
 #[cfg(test)]

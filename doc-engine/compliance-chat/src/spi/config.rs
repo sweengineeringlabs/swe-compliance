@@ -1,16 +1,15 @@
-/// Configuration for the doc-engine AI subsystem.
+/// Configuration for the compliance chat subsystem.
 ///
-/// Reads LLM provider settings from environment variables,
-/// following the same env-var conventions as swebash-ai.
+/// Reads LLM provider settings from environment variables.
 #[derive(Debug, Clone)]
-pub struct DocEngineAiConfig {
+pub struct ComplianceChatConfig {
     pub enabled: bool,
     pub provider: String,
     pub model: String,
     pub history_size: usize,
 }
 
-impl DocEngineAiConfig {
+impl ComplianceChatConfig {
     /// Build configuration from environment variables.
     ///
     /// | Variable | Default |
@@ -45,7 +44,7 @@ impl DocEngineAiConfig {
     }
 }
 
-impl Default for DocEngineAiConfig {
+impl Default for ComplianceChatConfig {
     fn default() -> Self {
         Self::from_env()
     }

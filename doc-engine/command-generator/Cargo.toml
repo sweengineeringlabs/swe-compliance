@@ -1,0 +1,13 @@
+[package]
+name = "doc-engine-command-generator"
+version = "0.1.0"
+edition = "2021"
+description = "LLM-powered test command generation from SRS requirements"
+license = "MIT"
+
+[dependencies]
+llm-provider = { version = "0.1.0", registry = "local" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+async-trait = "0.1"
+tokio = { version = "1", features = ["full"] }

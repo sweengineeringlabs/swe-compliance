@@ -529,16 +529,45 @@ dependencies = [
 ]
 
 [[package]]
-name = "doc-engine-ai"
+name = "doc-engine-cli"
 version = "0.1.0"
 dependencies = [
- "agent-cache",
+ "assert_cmd",
+ "clap",
+ "doc-engine-command-generator",
+ "doc-engine-compliance-audit",
+ "doc-engine-compliance-chat",
+ "doc-engine-scaffold",
+ "doc-engine-scan",
+ "predicates",
+ "serde_json",
+ "serde_yml",
+ "tempfile",
+ "tokio",
+ "toml",
+ "walkdir",
+]
+
+[[package]]
+name = "doc-engine-command-generator"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "llm-provider",
+ "serde",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
+name = "doc-engine-compliance-audit"
+version = "0.1.0"
+dependencies = [
  "agent-controller",
  "async-trait",
  "chat",
  "doc-engine-scan",
  "llm-provider",
- "react",
  "serde",
  "serde_json",
  "serde_yml",
@@ -547,20 +576,18 @@ dependencies = [
 ]
 
 [[package]]
-name = "doc-engine-cli"
+name = "doc-engine-compliance-chat"
 version = "0.1.0"
 dependencies = [
- "assert_cmd",
- "clap",
- "doc-engine-ai",
- "doc-engine-scaffold",
- "doc-engine-scan",
- "predicates",
+ "agent-controller",
+ "async-trait",
+ "chat",
+ "llm-provider",
+ "serde",
  "serde_json",
  "serde_yml",
- "tempfile",
  "tokio",
- "walkdir",
+ "tool",
 ]
 
 [[package]]

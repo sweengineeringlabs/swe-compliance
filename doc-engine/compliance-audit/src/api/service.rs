@@ -1,40 +1,35 @@
 use std::sync::Arc;
 
-use async_trait::async_trait;
-
-use crate::api::types::{AuditResponse, DocEngineAiError, DocEngineAiService};
-use crate::core::agents::DocEngineAgentManager;
-use crate::core::tools::ComplianceScanTool;
-use crate::spi::DocEngineAiConfig;
-
 use agent_controller::AgentDescriptor;
 use tool::Tool;
 
-/// Default implementation of `DocEngineAiService`.
+use crate::api::types::{AuditError, AuditResponse};
+use crate::core::agents::AuditAgentManager;
+use crate::core::tools::ComplianceScanTool;
+use crate::spi::AuditConfig;
+
+/// AI-powered compliance auditor.
 ///
-/// Holds an LLM handle and an agent manager.  For the MVP the `chat()` and
-/// `audit()` methods use `CompletionBuilder` one-shot calls so that we avoid
-/// needing to wire up event channels.  The full `ChatEngine` infrastructure
-/// (factory, engine cache) is in place and ready for Phase 2 streaming.
-pub struct DefaultDocEngineAiService {
+/// Runs a compliance scan and then asks the LLM to analyse the results.
+pub struct ComplianceAuditor {
     llm: Arc<dyn llm_provider::LlmService>,
-    config: DocEngineAiConfig,
-    manager: DocEngineAgentManager,
+    config: AuditConfig,
+    manager: AuditAgentManager,
 }
 
-impl DefaultDocEngineAiService {
-    /// Create the AI service.
+impl ComplianceAuditor {
+    /// Create the compliance auditor.
     ///
     /// This is async because the underlying LLM provider may perform network
     /// handshakes during initialisation.
-    pub async fn new(config: DocEngineAiConfig) -> Result<Self, DocEngineAiError> {
+    pub async fn new(config: AuditConfig) -> Result<Self, AuditError> {
         if !config.enabled {
-            return Err(DocEngineAiError::NotEnabled(
+            return Err(AuditError::NotEnabled(
                 "set DOC_ENGINE_AI_ENABLED=true".into(),
             ));
         }
         if !config.has_api_key() {
-            return Err(DocEngineAiError::NotEnabled(
+            return Err(AuditError::NotEnabled(
                 "no API key found (set ANTHROPIC_API_KEY or OPENAI_API_KEY)".into(),
             ));
         }
@@ -42,37 +37,19 @@ impl DefaultDocEngineAiService {
         let llm = Arc::new(
             llm_provider::create_service()
                 .await
-                .map_err(|e| DocEngineAiError::Init(e.to_string()))?,
+                .map_err(|e| AuditError::Init(e.to_string()))?,
         );
 
-        let manager = DocEngineAgentManager::new(llm.clone(), config.clone());
+        let manager = AuditAgentManager::new(llm.clone(), config.clone());
         Ok(Self {
             llm,
             config,
             manager,
         })
     }
-}
 
-#[async_trait]
-impl DocEngineAiService for DefaultDocEngineAiService {
-    async fn chat(&self, message: &str) -> Result<String, DocEngineAiError> {
-        let agent = self
-            .manager
-            .active_agent()
-            .ok_or(DocEngineAiError::NoAgent)?;
-
-        let response = llm_provider::CompletionBuilder::new(&self.config.model)
-            .system(agent.system_prompt())
-            .user(message)
-            .execute(&*self.llm)
-            .await
-            .map_err(|e| DocEngineAiError::Llm(e.to_string()))?;
-
-        Ok(response.content.unwrap_or_default())
-    }
-
-    async fn audit(&self, path: &str, scope: &str) -> Result<AuditResponse, DocEngineAiError> {
+    /// Run an AI-powered compliance audit on the given path.
+    pub async fn audit(&self, path: &str, scope: &str) -> Result<AuditResponse, AuditError> {
         // 1. Run the scan tool directly.
         let scan_tool = ComplianceScanTool::new();
         let args = serde_json::json!({
@@ -83,13 +60,13 @@ impl DocEngineAiService for DefaultDocEngineAiService {
         let output = scan_tool
             .execute(args)
             .await
-            .map_err(|e| DocEngineAiError::Tool(e.to_string()))?;
+            .map_err(|e| AuditError::Tool(e.to_string()))?;
 
         // 2. Ask the LLM to analyse the results.
         let agent = self
             .manager
             .active_agent()
-            .ok_or(DocEngineAiError::NoAgent)?;
+            .ok_or(AuditError::NoAgent)?;
 
         let analysis_prompt = format!(
             "Analyse the following compliance scan results. \
@@ -103,7 +80,7 @@ impl DocEngineAiService for DefaultDocEngineAiService {
             .user(&analysis_prompt)
             .execute(&*self.llm)
             .await
-            .map_err(|e| DocEngineAiError::Llm(e.to_string()))?;
+            .map_err(|e| AuditError::Llm(e.to_string()))?;
 
         let summary = response.content.unwrap_or_default();
 

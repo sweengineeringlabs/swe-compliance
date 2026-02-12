@@ -1,3 +1,5 @@
+#[cfg(feature = "ai")]
+use std::collections::HashMap;
 use std::path::PathBuf;
 use std::process;
 
@@ -7,7 +9,11 @@ use doc_engine_scan::{scan_with_config, format_report_text, format_report_json, 
 use doc_engine_scaffold::{scaffold_from_srs, ScaffoldConfig};
 
 #[cfg(feature = "ai")]
-use doc_engine_ai::{DocEngineAiConfig, DefaultDocEngineAiService, DocEngineAiService};
+use doc_engine_compliance_chat::{ComplianceChat, ComplianceChatConfig};
+#[cfg(feature = "ai")]
+use doc_engine_compliance_audit::{ComplianceAuditor, AuditConfig};
+#[cfg(feature = "ai")]
+use doc_engine_command_generator::{CommandGenerator, CommandGeneratorConfig, GenerateCommandsRequest, RequirementContext};
 
 #[derive(Parser)]
 #[command(name = "doc-engine", version, about = "Documentation compliance engine")]
@@ -117,6 +123,23 @@ enum AiAction {
         #[arg(long, default_value = "small")]
         scope: String,
     },
+    /// Generate test commands for requirements missing them
+    GenerateCommands {
+        /// Path to the SRS markdown file
+        srs_path: PathBuf,
+
+        /// Output file (default: stdout)
+        #[arg(long, short)]
+        output: Option<PathBuf>,
+
+        /// Existing command map to merge with (existing entries always win)
+        #[arg(long)]
+        merge: Option<PathBuf>,
+
+        /// Process all requirements, not just those missing commands
+        #[arg(long)]
+        all: bool,
+    },
 }
 
 fn parse_checks(input: &str) -> Result<Vec<u8>, String> {
@@ -181,6 +204,130 @@ mod tests {
         assert!(parse_checks("abc").is_err());
     }
 
+    #[cfg(feature = "ai")]
+    #[test]
+    fn test_needs_command_with_backtick_command() {
+        // Acceptance with a command-like backtick span → already has a command
+        assert!(needs_command("`cargo test -p scan rules`"));
+        assert!(needs_command("Run `cargo test -p scan` and check output"));
+    }
+
+    #[cfg(feature = "ai")]
+    #[test]
+    fn test_needs_command_without_command() {
+        // Descriptive text without command spans → needs AI command
+        assert!(!needs_command("Engine loads embedded rules"));
+        assert!(!needs_command("The system shall comply with standards"));
+    }
+
+    #[cfg(feature = "ai")]
+    #[test]
+    fn test_needs_command_with_non_command_backtick() {
+        // Backtick span that is NOT a command (no space, or key-value)
+        assert!(!needs_command("The `config` value must be set"));
+        assert!(!needs_command("Uses `key: value` format"));
+    }
+
+    #[cfg(feature = "ai")]
+    #[test]
+    fn test_format_command_map_toml_sorted() {
+        let mut map = HashMap::new();
+        map.insert("FR-200".to_string(), "cargo test -p scan discovery".to_string());
+        map.insert("FR-100".to_string(), "cargo test -p scan rules".to_string());
+        let toml = format_command_map_toml(&map);
+
+        assert!(toml.starts_with("[commands]\n"));
+        // FR-100 should come before FR-200
+        let pos_100 = toml.find("FR-100").unwrap();
+        let pos_200 = toml.find("FR-200").unwrap();
+        assert!(pos_100 < pos_200);
+
+        // Should be valid TOML
+        let parsed: toml::Table = toml.parse().expect("should be valid TOML");
+        let cmds = parsed.get("commands").unwrap().as_table().unwrap();
+        assert_eq!(cmds.get("FR-100").unwrap().as_str().unwrap(), "cargo test -p scan rules");
+    }
+
+}
+
+/// Returns `true` if the acceptance text already contains a command-like backtick span,
+/// meaning no AI-generated command is needed.
+///
+/// Replicates the `is_command_like` + `BacktickScanner` heuristic from scaffold's markdown_gen.
+#[cfg(feature = "ai")]
+fn needs_command(acceptance: &str) -> bool {
+    // Scan for single-backtick spans that look like commands.
+    let bytes = acceptance.as_bytes();
+    let len = bytes.len();
+    let mut pos = 0;
+    while pos < len {
+        if bytes[pos] == b'`' {
+            // Skip code fences (``` or more)
+            let tick_start = pos;
+            while pos < len && bytes[pos] == b'`' {
+                pos += 1;
+            }
+            let tick_count = pos - tick_start;
+            if tick_count > 1 {
+                // Multi-backtick: skip to closing sequence
+                continue;
+            }
+            // Single backtick: find closing backtick
+            let span_start = pos;
+            while pos < len && bytes[pos] != b'`' {
+                pos += 1;
+            }
+            if pos < len {
+                let span = &acceptance[span_start..pos];
+                pos += 1; // skip closing backtick
+                if is_command_like(span) {
+                    return true;
+                }
+            }
+        } else {
+            pos += 1;
+        }
+    }
+    false
+}
+
+/// Check if a backtick span looks like a runnable CLI command.
+///
+/// Replicates scaffold's `is_command_like` heuristic.
+#[cfg(feature = "ai")]
+fn is_command_like(span: &str) -> bool {
+    let bytes = span.as_bytes();
+    if bytes.is_empty() {
+        return false;
+    }
+    // Must start with an ASCII letter
+    if !bytes[0].is_ascii_alphabetic() {
+        return false;
+    }
+    // Must contain at least one space (command + arguments)
+    if !span.contains(' ') {
+        return false;
+    }
+    // Must not look like a key-value pair
+    if span.contains(": ") || span.contains("= ") {
+        return false;
+    }
+    true
+}
+
+/// Format a command map as a sorted TOML string with a `[commands]` table.
+#[cfg(feature = "ai")]
+fn format_command_map_toml(map: &HashMap<String, String>) -> String {
+    let mut sorted: Vec<(&String, &String)> = map.iter().collect();
+    sorted.sort_by_key(|(k, _)| *k);
+
+    let mut out = String::from("[commands]\n");
+    for (id, cmd) in sorted {
+        // Escape the command value for TOML string
+        let escaped = cmd.replace('\\', "\\\\").replace('"', "\\\"");
+        out.push_str(&format!("{} = \"{}\"\n", id, escaped));
+    }
+    out
 }
 
 fn main() {
@@ -323,17 +470,15 @@ fn main() {
             });
 
             rt.block_on(async {
-                let config = DocEngineAiConfig::from_env();
-                let service = match DefaultDocEngineAiService::new(config).await {
-                    Ok(s) => s,
-                    Err(e) => {
-                        eprintln!("Error: {}", e);
-                        process::exit(2);
-                    }
-                };
-
                 match action {
                     AiAction::Chat { message } => {
+                        let service = match ComplianceChat::new(ComplianceChatConfig::from_env()).await {
+                            Ok(s) => s,
+                            Err(e) => {
+                                eprintln!("Error: {}", e);
+                                process::exit(2);
+                            }
+                        };
                         match service.chat(&message).await {
                             Ok(response) => println!("{}", response),
                             Err(e) => {
@@ -343,6 +488,13 @@ fn main() {
                         }
                     }
                     AiAction::Audit { path, scope } => {
+                        let service = match ComplianceAuditor::new(AuditConfig::from_env()).await {
+                            Ok(s) => s,
+                            Err(e) => {
+                                eprintln!("Error: {}", e);
+                                process::exit(2);
+                            }
+                        };
                         let root = match path.canonicalize() {
                             Ok(p) => p,
                             Err(e) => {
@@ -366,6 +518,143 @@ fn main() {
                                 process::exit(1);
                             }
                         }
+                    }
+                    AiAction::GenerateCommands { srs_path, output, merge, all } => {
+                        let service = match CommandGenerator::new(CommandGeneratorConfig::from_env()).await {
+                            Ok(s) => s,
+                            Err(e) => {
+                                eprintln!("Error: {}", e);
+                                process::exit(2);
+                            }
+                        };
+
+                        // 1. Read and parse the SRS.
+                        let srs_content = match std::fs::read_to_string(&srs_path) {
+                            Ok(c) => c,
+                            Err(e) => {
+                                eprintln!("Error: cannot read SRS '{}': {}", srs_path.display(), e);
+                                process::exit(2);
+                            }
+                        };
+                        let domains = match doc_engine_scaffold::parse_srs(&srs_content) {
+                            Ok(d) => d,
+                            Err(e) => {
+                                eprintln!("Error: {}", e);
+                                process::exit(2);
+                            }
+                        };
+
+                        // 2. Optionally load existing command map.
+                        let existing_map: HashMap<String, String> = match merge {
+                            Some(ref p) => match doc_engine_scaffold::load_command_map(p) {
+                                Ok(m) => m,
+                                Err(e) => {
+                                    eprintln!("Error: {}", e);
+                                    process::exit(2);
+                                }
+                            },
+                            None => HashMap::new(),
+                        };
+
+                        // 3. Collect requirements needing commands.
+                        let all_reqs: Vec<_> = domains.iter()
+                            .flat_map(|d| d.requirements.iter())
+                            .collect();
+
+                        let reqs_for_ai: Vec<RequirementContext> = all_reqs.iter()
+                            .filter(|r| {
+                                if !all {
+                                    // Skip if already in existing map
+                                    if existing_map.contains_key(&r.id) {
+                                        return false;
+                                    }
+                                    // Skip if backtick heuristic finds a command
+                                    if let Some(ref acc) = r.acceptance {
+                                        if needs_command(acc) {
+                                            return false;
+                                        }
+                                    }
+                                }
+                                true
+                            })
+                            .map(|r| RequirementContext {
+                                id: r.id.clone(),
+                                title: r.title.clone(),
+                                verification: r.verification.clone().unwrap_or_default(),
+                                acceptance: r.acceptance.clone().unwrap_or_default(),
+                                traces_to: r.traces_to.clone().unwrap_or_default(),
+                                description: r.description.clone(),
+                            })
+                            .collect();
+
+                        if reqs_for_ai.is_empty() {
+                            eprintln!("All requirements already have commands.");
+                            // Still output existing map if merging
+                            if !existing_map.is_empty() {
+                                let toml_out = format_command_map_toml(&existing_map);
+                                if let Some(ref out_path) = output {
+                                    if let Err(e) = std::fs::write(out_path, &toml_out) {
+                                        eprintln!("Error: cannot write to '{}': {}", out_path.display(), e);
+                                        process::exit(2);
+                                    }
+                                    eprintln!("Wrote {} entries to {}", existing_map.len(), out_path.display());
+                                } else {
+                                    print!("{}", toml_out);
+                                }
+                            }
+                            process::exit(0);
+                        }
+
+                        eprintln!("Sending {} requirements to LLM...", reqs_for_ai.len());
+
+                        // 4. Call the AI service.
+                        let request = GenerateCommandsRequest {
+                            requirements: reqs_for_ai,
+                            project_context: "Rust workspace (doc-engine) with crates: \
+                                scan (doc-engine-scan), scaffold (doc-engine-scaffold), \
+                                ai (doc-engine-ai, feature-gated), cli (doc-engine-cli). \
+                                Test framework: cargo test. Binary: doc-engine.".to_string(),
+                        };
+
+                        let response = match service.generate_commands(&request).await {
+                            Ok(r) => r,
+                            Err(e) => {
+                                eprintln!("Error: {}", e);
+                                process::exit(1);
+                            }
+                        };
+
+                        // 5. Merge: existing entries always win.
+                        let mut merged = existing_map.clone();
+                        for (id, cmd) in &response.commands {
+                            merged.entry(id.clone()).or_insert_with(|| cmd.clone());
+                        }
+
+                        // 6. Output sorted TOML.
+                        let toml_out = format_command_map_toml(&merged);
+                        if let Some(ref out_path) = output {
+                            if let Err(e) = std::fs::write(out_path, &toml_out) {
+                                eprintln!("Error: cannot write to '{}': {}", out_path.display(), e);
+                                process::exit(2);
+                            }
+                            eprintln!("Wrote {} entries to {}", merged.len(), out_path.display());
+                        } else {
+                            print!("{}", toml_out);
+                        }
+
+                        // 7. Report skipped to stderr.
+                        if !response.skipped.is_empty() {
+                            eprintln!("\nSkipped {} requirements:", response.skipped.len());
+                            for s in &response.skipped {
+                                eprintln!("  {}: {}", s.id, s.reason);
+                            }
+                        }
+
+                        eprintln!(
+                            "\nGenerated {} commands, skipped {}",
+                            response.commands.len(),
+                            response.skipped.len()
+                        );
                     }
                 }
             });

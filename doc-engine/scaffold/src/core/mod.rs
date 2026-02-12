@@ -1,4 +1,4 @@
-pub(crate) mod parser;
+pub mod parser;
 pub(crate) mod yaml_gen;
 pub(crate) mod markdown_gen;
 
@@ -16,7 +16,7 @@ use crate::api::types::{ScaffoldConfig, ScaffoldResult};
 /// [commands]
 /// FR-901 = "cargo test -p doc-engine-ai config"
 /// ```
-pub(crate) fn load_command_map(path: &std::path::Path) -> Result<HashMap<String, String>, ScaffoldError> {
+pub fn load_command_map(path: &std::path::Path) -> Result<HashMap<String, String>, ScaffoldError> {
     let content = fs::read_to_string(path).map_err(|e| {
         ScaffoldError::Path(format!(
             "cannot read command map '{}': {}",
