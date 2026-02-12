@@ -1,0 +1,5 @@
+routes:
+  - path: "/templates"
+    page: "templates_landing"
+    title: "Templates"
+    layout: "templates"

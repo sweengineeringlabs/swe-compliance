@@ -1,0 +1,16 @@
+routes:
+  - path: "/"
+    page: "app"
+    title: "swe-compliance"
+    children:
+      - import: "src/features/dashboard/dashboard_routes.yaml"
+      - import: "src/features/projects/projects_routes.yaml"
+      - import: "src/features/scans/scans_routes.yaml"
+      - import: "src/features/violations/violations_routes.yaml"
+      - import: "src/features/scaffold/scaffold_routes.yaml"
+      - import: "src/features/templates/templates_routes.yaml"
+      - import: "src/features/reports/reports_routes.yaml"
+      - import: "src/features/ai/ai_routes.yaml"
+      - import: "src/features/editor/editor_routes.yaml"
+      - import: "src/features/specs/specs_routes.yaml"
+      - import: "src/features/struct-engine/struct-engine_routes.yaml"

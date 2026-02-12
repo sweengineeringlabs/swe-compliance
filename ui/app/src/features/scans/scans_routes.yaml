@@ -1,0 +1,5 @@
+routes:
+  - path: "/scans"
+    page: "scans_landing"
+    title: "Scans"
+    layout: "scans"

@@ -1,0 +1,4 @@
+[boundary]
+name = "struct-engine"
+description = "Struct engine scan results and crate layout browser"
+exports = []

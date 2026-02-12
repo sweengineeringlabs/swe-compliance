@@ -1,0 +1,5 @@
+routes:
+  - path: "/struct-engine"
+    page: "struct_engine_landing"
+    title: "Struct Engine"
+    layout: "struct_engine"

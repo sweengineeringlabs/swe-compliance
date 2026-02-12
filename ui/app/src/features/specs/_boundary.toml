@@ -1,0 +1,4 @@
+[boundary]
+name = "specs"
+description = "Spec file browser and BRD overview"
+exports = []

@@ -1,0 +1,21 @@
+[project]
+name = "swe-compliance-frontend"
+version = "0.1.0"
+description = "Compliance dashboard for doc-engine, struct-engine, and template-engine"
+
+[build]
+target = "web"
+entry = "src/main.rsx"
+out_dir = "dist"
+
+[dev]
+port = 3000
+hmr = true
+proxy_api = "http://localhost:8080"
+
+[dependencies]
+rsc-ui = { version = "0.1.0", features = ["charts"] }
+
+[lint]
+naming = "kebab-case"
+boundary_check = true

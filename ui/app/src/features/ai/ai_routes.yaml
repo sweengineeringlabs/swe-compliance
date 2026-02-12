@@ -1,0 +1,5 @@
+routes:
+  - path: "/ai"
+    page: "ai_landing"
+    title: "AI Compliance"
+    layout: "ai"

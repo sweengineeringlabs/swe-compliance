@@ -1,0 +1,5 @@
+routes:
+  - path: "/violations"
+    page: "violations_landing"
+    title: "Violations"
+    layout: "violations"

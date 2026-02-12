@@ -1,0 +1,5 @@
+routes:
+  - path: "/specs"
+    page: "specs_landing"
+    title: "Spec Browser"
+    layout: "specs"

@@ -1,0 +1,5 @@
+routes:
+  - path: "/scaffold"
+    page: "scaffold_landing"
+    title: "Scaffold"
+    layout: "scaffold"

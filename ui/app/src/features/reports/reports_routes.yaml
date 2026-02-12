@@ -1,0 +1,5 @@
+routes:
+  - path: "/reports"
+    page: "reports_landing"
+    title: "Reports"
+    layout: "reports"

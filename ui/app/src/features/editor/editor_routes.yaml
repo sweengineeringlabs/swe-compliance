@@ -1,0 +1,5 @@
+routes:
+  - path: "/editor"
+    page: "editor_landing"
+    title: "SRS Editor"
+    layout: "editor"

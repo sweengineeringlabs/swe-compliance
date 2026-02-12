@@ -52,7 +52,7 @@ agents:
       - component
       - signal
     docs:
-      budget: 40000
+      budget: 100000
       sources:
         # SRS — master requirements document
         - docs/1-requirements/srs.md
@@ -78,6 +78,31 @@ agents:
         - docs/1-requirements/accessibility/accessibility.spec
         - docs/1-requirements/maintainability/maintainability.spec
         - docs/1-requirements/reliability/reliability.spec
+        # RustScript schemas — authoritative specs (load early, highest priority for correctness)
+        - ../rustscript/schema/rustscript.schema.json
+        - ../rustscript/schema/routes.schema.json
+        - ../rustscript/schema/project_structure.schema.json
+        - ../rustscript/schema/styles.schema.json
+        - ../rustscript/schema/theme.schema.json
+        - ../rustscript/schema/agent.schema.json
+        # RustScript reference app (swe-studio) — canonical patterns for all RSX file types
+        - ../rustscript/apps/swe-studio/src/pages/app.page.rsx
+        - ../rustscript/apps/swe-studio/src/features/sdlc/design/design.layout.rsx
+        - ../rustscript/apps/swe-studio/src/features/sdlc/design/design-landing.page.rsx
+        - ../rustscript/apps/swe-studio/src/features/sdlc/design/design.type.rsx
+        - ../rustscript/apps/swe-studio/src/features/sdlc/design/design_routes.yaml
+        - ../rustscript/apps/swe-studio/src/features/sdlc/implementation/hook/use-editor.hook.rsx
+        - ../rustscript/apps/swe-studio/src/features/sdlc/implementation/component/file-tree.component.rsx
+        - ../rustscript/apps/swe-studio/src/modules/layout/workspace-layout.component.rsx
+        - ../rustscript/apps/swe-studio/src/modules/layout/sidebar.component.rsx
+        - ../rustscript/apps/swe-studio/src/modules/layout/data-table.component.rsx
+        # RustScript docs site layout — responsive sidebar + sticky panels
+        - ../rustscript/sites/docs/src/layouts/docs-layout.layout.rsx
+        # rsc-ui layout component examples
+        - ../rustscript/crates/runtime/component/library/layout/layout-examples/src/features/flex/flex.layout.rsx
+        - ../rustscript/crates/runtime/component/library/layout/layout-examples/src/features/grid/grid.layout.rsx
+        - ../rustscript/crates/runtime/component/library/layout/layout-examples/src/features/container/container.layout.rsx
+        - ../rustscript/crates/runtime/component/library/layout/layout-examples/src/features/stack/stack.layout.rsx
         # Architecture docs (all 17 domains)
         - docs/3-design/project_management/project_management.arch
         - docs/3-design/compliance_dashboard/compliance_dashboard.arch
@@ -821,6 +846,16 @@ agents:
       ═══════════════════════════════════════════════════════════════════════════
 
       When building a feature:
+        0. Consult the RustScript reference sources loaded into your context:
+           - Schemas (rustscript.schema.json, routes.schema.json,
+             project_structure.schema.json, styles.schema.json) define the
+             authoritative rules for rsc.toml, routes YAML, file naming
+             conventions, and scoped style blocks. Follow them exactly.
+           - Reference app files (../rustscript/apps/swe-studio/) show canonical
+             RSX patterns for pages, layouts, components, types, hooks, and
+             routes. Match their structure and idioms.
+           If a schema or reference contradicts the inlined framework knowledge
+           below, the schema/reference file takes precedence.
         1. Read the SRS requirements for the target domain (FR-nnn).
         2. Read the domain's .spec and .arch files for detailed context.
         3. Identify which API endpoints are needed (see endpoint inventory).
