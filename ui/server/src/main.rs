@@ -1,20 +1,12 @@
-mod auth;
-mod config;
-mod db;
-mod error;
-mod middleware;
-mod routes;
-mod ws;
-
 use std::net::SocketAddr;
 
 use tracing_subscriber::EnvFilter;
 
-use crate::config::ServerConfig;
-use crate::db::Db;
-use crate::middleware::{cors_layer, ScanSemaphore};
-use crate::routes::{build_router, AppState};
-use crate::ws::WsBroadcaster;
+use swe_compliance_server::config::ServerConfig;
+use swe_compliance_server::db::Db;
+use swe_compliance_server::middleware::{cors_layer, ScanSemaphore};
+use swe_compliance_server::routes::{build_router, AppState};
+use swe_compliance_server::ws::WsBroadcaster;
 
 #[tokio::main]
 async fn main() {

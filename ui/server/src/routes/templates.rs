@@ -99,7 +99,13 @@ pub async fn copy_template(
             std::fs::copy(&source, &dest_file)
                 .map_err(|e| AppError::Internal(format!("failed to copy template: {e}")))?;
         } else if source.is_dir() {
-            copy_dir_recursive(&source, &destination)?;
+            // Preserve directory name in destination (consistent with file copy)
+            let dest_dir = destination.join(
+                source
+                    .file_name()
+                    .ok_or_else(|| AppError::Internal("invalid source dirname".into()))?,
+            );
+            copy_dir_recursive(&source, &dest_dir)?;
         }
         Ok(())
     })

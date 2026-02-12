@@ -9,6 +9,10 @@ license = "MIT"
 name = "swe-compliance-server"
 path = "src/main.rs"
 
+[lib]
+name = "swe_compliance_server"
+path = "src/lib.rs"
+
 [dependencies]
 # Web framework
 axum = { version = "0.8", features = ["ws", "macros"] }
@@ -46,6 +50,10 @@ struct-engine = { path = "../../struct-engine" }
 doc-engine-compliance-audit = { path = "../../doc-engine/compliance-audit", optional = true }
 doc-engine-compliance-chat = { path = "../../doc-engine/compliance-chat", optional = true }
 doc-engine-command-generator = { path = "../../doc-engine/command-generator", optional = true }
+
+[dev-dependencies]
+http-body-util = "0.1"
+tempfile = "3"
 
 [features]
 default = []
