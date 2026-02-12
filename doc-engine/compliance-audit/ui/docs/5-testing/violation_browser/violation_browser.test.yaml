@@ -1,0 +1,25 @@
+kind: test_plan
+domain: Violation Browser
+section: '4.4'
+specRef: docs/1-requirements/violation_browser/violation_browser.spec.yaml
+testCases:
+- id: TC-001
+  test: 'FR-400: Violation list (Demonstration)'
+  verifies: REQ-001
+  priority: Must
+- id: TC-002
+  test: 'FR-401: Violation filtering (Test)'
+  verifies: REQ-002
+  priority: Must
+- id: TC-003
+  test: 'FR-402: Violation sorting (Demonstration)'
+  verifies: REQ-003
+  priority: Must
+- id: TC-004
+  test: 'FR-403: Fix guidance display (Demonstration)'
+  verifies: REQ-004
+  priority: Should
+- id: TC-005
+  test: 'FR-404: Violation export (Test)'
+  verifies: REQ-005
+  priority: Should

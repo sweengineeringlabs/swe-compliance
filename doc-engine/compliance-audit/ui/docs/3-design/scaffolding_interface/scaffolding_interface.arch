@@ -1,0 +1,22 @@
+# Architecture: Scaffolding Interface
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/scaffolding_interface/scaffolding_interface.spec)
+
+## Components
+
+| Component | Traces To | Description |
+|-----------|-----------|-------------|
+| FR-500 handler | STK-04 -> `api/scaffold.rs` | The API shall accept an SRS markdown document, parse it using `doc_engine_scaffold::parse_srs()`, and return the extracted domain/requirement structure for preview. |
+| FR-501 handler | STK-04 -> `ui/scaffold/` | Scaffold preview |
+| FR-502 handler | STK-04 -> `api/scaffold.rs` | Execute scaffold |
+| FR-503 handler | STK-04 -> `ui/scaffold/`, `api/scaffold.rs` | Phase and type filters |
+| FR-504 handler | STK-04 -> `ui/scaffold/` | Scaffold progress monitoring |
+
+## Related Documents
+
+- [Feature Spec](../1-requirements/scaffolding_interface/scaffolding_interface.spec)
+- [Test Plan](../5-testing/scaffolding_interface/scaffolding_interface.test)
+- [Deployment](../6-deployment/scaffolding_interface/scaffolding_interface.deploy)
+

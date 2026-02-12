@@ -1,0 +1,21 @@
+# Automated Test Execution: AI Compliance Features
+
+> **TLDR:** CI/automated test tracker for AI Compliance Features — maps each test case to a CI job and build.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](ai_compliance_features.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Verifies | CI Job | Build | Status | Last Run |
+|----|------|----------|--------|-------|--------|----------|
+| TC-001 | FR-800: Chat interface (Demonstration) | REQ-001 | | | Pending | |
+| TC-002 | FR-801: Chat streaming (Demonstration) | REQ-002 | | | Pending | |
+| TC-003 | FR-802: AI audit execution (Test) | REQ-003 | | | Pending | |
+| TC-004 | FR-803: AI audit results display (Demonstration) | REQ-004 | | | Pending | |
+| TC-005 | FR-804: Command generation (Test) | REQ-005 | | | Pending | |
+| TC-006 | FR-805: AI feature availability check (Test) | REQ-006 | | | Pending | |
+

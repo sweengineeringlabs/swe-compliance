@@ -1,0 +1,39 @@
+kind: feature_request
+domain: Project Management
+section: '4.1'
+requirements:
+- id: REQ-001
+  sourceId: FR-100
+  title: Create project
+  priority: Must
+  status: Proposed
+  verification: Test
+  acceptance: '`POST /api/v1/projects` with `{"name": "my-project", "root_path": "/path/to/project", "scope": "medium", "project_type": "open_source"}` returns 201 with a project ID; the project appears in `GET /api/v1/projects`'
+- id: REQ-002
+  sourceId: FR-101
+  title: List projects
+  priority: Must
+  status: Proposed
+  verification: Test
+  acceptance: '`GET /api/v1/projects` returns a JSON array of project objects with id, name, root_path, scope, project_type, last_scan_timestamp, and compliance_summary fields'
+- id: REQ-003
+  sourceId: FR-102
+  title: Update project configuration
+  priority: Must
+  status: Proposed
+  verification: Test
+  acceptance: '`PATCH /api/v1/projects/{id}` with `{"scope": "large"}` returns 200; subsequent `GET /api/v1/projects/{id}` reflects the updated scope'
+- id: REQ-004
+  sourceId: FR-103
+  title: Delete project
+  priority: Must
+  status: Proposed
+  verification: Test
+  acceptance: '`DELETE /api/v1/projects/{id}` returns 204; subsequent `GET /api/v1/projects/{id}` returns 404; associated scan history is retained for audit trail'
+- id: REQ-005
+  sourceId: FR-104
+  title: Project configuration validation
+  priority: Must
+  status: Proposed
+  verification: Test
+  acceptance: '`POST /api/v1/projects` with `{"scope": "invalid"}` returns 422 with a validation error message; `root_path` that does not exist on the server returns 422'

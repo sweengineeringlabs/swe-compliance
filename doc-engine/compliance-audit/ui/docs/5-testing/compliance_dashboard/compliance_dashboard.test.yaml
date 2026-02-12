@@ -1,0 +1,21 @@
+kind: test_plan
+domain: Compliance Dashboard
+section: '4.2'
+specRef: docs/1-requirements/compliance_dashboard/compliance_dashboard.spec.yaml
+testCases:
+- id: TC-001
+  test: 'FR-200: Compliance overview (Demonstration)'
+  verifies: REQ-001
+  priority: Must
+- id: TC-002
+  test: 'FR-201: Category breakdown chart (Demonstration)'
+  verifies: REQ-002
+  priority: Must
+- id: TC-003
+  test: 'FR-202: Trend over time (Demonstration)'
+  verifies: REQ-003
+  priority: Should
+- id: TC-004
+  test: 'FR-203: Multi-engine summary (Demonstration)'
+  verifies: REQ-004
+  priority: Should

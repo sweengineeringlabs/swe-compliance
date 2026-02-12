@@ -1,0 +1,9 @@
+kind: deployment
+domain: Scaffolding Interface
+section: '4.5'
+specRef: docs/1-requirements/scaffolding_interface/scaffolding_interface.spec.yaml
+environments:
+- name: staging
+  description: Staging environment for Scaffolding Interface validation
+- name: production
+  description: Production environment for Scaffolding Interface

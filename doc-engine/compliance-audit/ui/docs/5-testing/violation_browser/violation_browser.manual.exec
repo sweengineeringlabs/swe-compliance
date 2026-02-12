@@ -1,0 +1,32 @@
+# Manual Test Execution: Violation Browser
+
+> **TLDR:** Manual test checklist for Violation Browser — step-by-step procedures with expected outcomes.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](violation_browser.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Steps | Expected |
+|----|------|-------|----------|
+| TC-001 | FR-400: Violation list (Demonstration) | Run a doc-engine scan to completion, then navigate to the violation browser for that scan | Given a completed scan, the violation browser displays all failed checks with: check ID, category, description, severity (error/warning/info), and each violation's file path and message; the data is derived from `CheckEntry` objects where `result.status == "fail"` |
+| TC-002 | FR-401: Violation filtering (Test) | In the violation browser, select a category from the dropdown, toggle severity checkboxes (error/warning/info), and enter free-text in the search field | The violation browser supports filtering by: category (dropdown of 18 categories), severity (error/warning/info checkboxes), and free-text search on check description and violation message; filters are applied client-side and update the view without a new API call |
+| TC-003 | FR-402: Violation sorting (Demonstration) | In the violation browser, click each column header (check ID, severity, category, file path) to toggle sort order | Violations can be sorted by: check ID (ascending/descending), severity (error first), category (alphabetical), and file path (alphabetical); the default sort is severity descending then check ID ascending |
+| TC-004 | FR-403: Fix guidance display (Demonstration) | In the violation browser, click on a specific violation row to expand its detail panel | Clicking a violation expands a detail panel showing: the check's full description from `rules.toml`, the violation file path, the expected condition (from the rule definition), and a suggested fix action |
+| TC-005 | FR-404: Violation export (Test) | Run `GET /api/v1/scans/{id}/violations?format=csv` | Returns a CSV file with columns: check_id, category, severity, file_path, message; `format=json` returns the violations array as JSON |
+
+---
+
+## Execution Log
+
+| TC | Tester | Date | Pass/Fail | Notes |
+|----|--------|------|-----------|-------|
+| TC-001 | | | | |
+| TC-002 | | | | |
+| TC-003 | | | | |
+| TC-004 | | | | |
+| TC-005 | | | | |
+

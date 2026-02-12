@@ -1,0 +1,21 @@
+# Architecture: Template Browser
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/template_browser/template_browser.spec)
+
+## Components
+
+| Component | Traces To | Description |
+|-----------|-----------|-------------|
+| FR-600 handler | STK-09 -> `api/templates.rs` | List templates |
+| FR-601 handler | STK-09 -> `ui/templates/` | Template preview with W3H structure |
+| FR-602 handler | STK-09 -> `api/templates.rs` | Template copy to project |
+| FR-603 handler | STK-09 -> `ui/templates/` | Compliance checklist display |
+
+## Related Documents
+
+- [Feature Spec](../1-requirements/template_browser/template_browser.spec)
+- [Test Plan](../5-testing/template_browser/template_browser.test)
+- [Deployment](../6-deployment/template_browser/template_browser.deploy)
+

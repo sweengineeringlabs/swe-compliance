@@ -1,0 +1,30 @@
+# Manual Test Execution: Template Browser
+
+> **TLDR:** Manual test checklist for Template Browser — step-by-step procedures with expected outcomes.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](template_browser.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Steps | Expected |
+|----|------|-------|----------|
+| TC-001 | FR-600: List templates (Test) | Run `GET /api/v1/templates` | Returns a JSON array of template objects with name, sdlc_phase, description, and path fields; the list includes all templates from the configured template-engine templates directory |
+| TC-002 | FR-601: Template preview with W3H structure (Demonstration) | Navigate to the template browser, select a template from the list, and switch between rendered and raw code views | Selecting a template displays its rendered markdown with W3H sections (WHO, WHAT, WHY, HOW) visually highlighted; the raw markdown is also available in a code view |
+| TC-003 | FR-602: Template copy to project (Test) | Run `POST /api/v1/templates/{name}/copy` | With `{"project_id": "uuid", "target_path": "docs/2-planning/quality_plan.md"}` copies the template to the project's directory; returns 201 on success or 409 if file already exists |
+| TC-004 | FR-603: Compliance checklist display (Demonstration) | Navigate to the template browser, select a project with a completed doc-engine scan, and open the compliance checklist view | The template browser includes a dedicated checklist view that displays the 56-point compliance checklist from template-engine with each item's status (pass/fail/skip) mapped to the most recent doc-engine scan results for the selected project |
+
+---
+
+## Execution Log
+
+| TC | Tester | Date | Pass/Fail | Notes |
+|----|--------|------|-----------|-------|
+| TC-001 | | | | |
+| TC-002 | | | | |
+| TC-003 | | | | |
+| TC-004 | | | | |
+

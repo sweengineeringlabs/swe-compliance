@@ -1,0 +1,9 @@
+kind: deployment
+domain: Report Generation
+section: '4.7'
+specRef: docs/1-requirements/report_generation/report_generation.spec.yaml
+environments:
+- name: staging
+  description: Staging environment for Report Generation validation
+- name: production
+  description: Production environment for Report Generation

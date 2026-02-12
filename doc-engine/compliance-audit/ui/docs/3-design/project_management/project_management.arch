@@ -1,0 +1,22 @@
+# Architecture: Project Management
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/project_management/project_management.spec)
+
+## Components
+
+| Component | Traces To | Description |
+|-----------|-----------|-------------|
+| FR-100 handler | STK-11 -> `api/projects.rs`, `ui/projects/` | The frontend shall allow users to create compliance projects by specifying a project name, root file system path on the server, project scope (small/medium/large), and project type (open_source/internal). |
+| FR-101 handler | STK-11 -> `api/projects.rs`, `ui/projects/` | List projects |
+| FR-102 handler | STK-11 -> `api/projects.rs` | Update project configuration |
+| FR-103 handler | STK-11 -> `api/projects.rs` | Delete project |
+| FR-104 handler | STK-11 -> `api/projects.rs` | Project configuration validation |
+
+## Related Documents
+
+- [Feature Spec](../1-requirements/project_management/project_management.spec)
+- [Test Plan](../5-testing/project_management/project_management.test)
+- [Deployment](../6-deployment/project_management/project_management.deploy)
+

@@ -1,0 +1,30 @@
+# Manual Test Execution: Security
+
+> **TLDR:** Manual test checklist for Security — step-by-step procedures with expected outcomes.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](security.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Steps | Expected |
+|----|------|-------|----------|
+| TC-001 | NFR-200: Authentication required (Test) | Send `GET /api/v1/projects` without an `Authorization` header; repeat with an expired JWT token; verify `GET /health` and `POST /api/v1/auth/login` work without auth | Every API endpoint (except `/health` and `/api/v1/auth/login`) returns 401 when no Authorization header is provided; JWT tokens expire after a configurable period (default: 24 hours) |
+| TC-002 | NFR-201: Path traversal prevention (Test) | Run `POST /api/v1/projects` with `root_path` values: `"../../etc"`, a symlink pointing outside the base directory, and an absolute path above the configured base directory | Project root_path values containing `..`, symbolic links outside allowed directories, or paths above a configurable base directory are rejected with 422; the server resolves and validates all paths before passing to engine libraries |
+| TC-003 | NFR-202: API key protection (Inspection) | Review `api/ai.rs` | LLM API keys are read from server environment variables and never exposed in API responses, logs, or error messages; the `/api/v1/ai/status` endpoint reports only whether a key is configured (true/false), never the key value |
+| TC-004 | NFR-203: CORS configuration (Inspection) | Review `api/middleware.rs` | CORS origins are configurable via environment variable; the default allows only `localhost` origins; production deployments must explicitly configure allowed origins |
+
+---
+
+## Execution Log
+
+| TC | Tester | Date | Pass/Fail | Notes |
+|----|--------|------|-----------|-------|
+| TC-001 | | | | |
+| TC-002 | | | | |
+| TC-003 | | | | |
+| TC-004 | | | | |
+

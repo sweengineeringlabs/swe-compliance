@@ -1,0 +1,13 @@
+# Test Plan: Accessibility
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/accessibility/accessibility.spec)
+
+## Test Cases
+
+| ID | Test | Verifies | Priority |
+|----|------|----------|----------|
+| TC-001 | NFR-300: Keyboard navigation (Demonstration) | REQ-001 | Should |
+| TC-002 | NFR-301: Screen reader compatibility (Inspection) | REQ-002 | Should |
+

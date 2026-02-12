@@ -1,0 +1,32 @@
+# Manual Test Execution: Report Generation
+
+> **TLDR:** Manual test checklist for Report Generation — step-by-step procedures with expected outcomes.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](report_generation.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Steps | Expected |
+|----|------|-------|----------|
+| TC-001 | FR-700: JSON report export (Test) | Run `GET /api/v1/scans/{id}/report?format=json` | Returns the `ScanReport` JSON conforming to ISO/IEC/IEEE 15289:2019 clause 9.2 (containing standard, clause, tool, tool_version, timestamp, project_root, results, summary, project_type, project_scope) |
+| TC-002 | FR-701: Markdown report export (Test) | Run `GET /api/v1/scans/{id}/report?format=markdown` | Returns a structured markdown document with sections for: executive summary, category breakdown, violation details, and ISO standard mapping; the Content-Type header is `text/markdown` |
+| TC-003 | FR-702: PDF report export (Test) | Run `GET /api/v1/scans/{id}/report?format=pdf` | Returns a downloadable PDF with the same content as the markdown report rendered with headers, tables, and charts; the Content-Type header is `application/pdf` |
+| TC-004 | FR-703: Historical report comparison (Demonstration) | Navigate to Reports for a project with at least two completed scans, select two scan results, and click "Compare" | The UI allows selecting two scan results for the same project; a diff view highlights checks that changed status between scans (e.g., fail-to-pass, pass-to-fail); new and removed checks are flagged |
+| TC-005 | FR-704: Audit status report (ISO 15289) (Test) | Run `GET /api/v1/scans/{id}/audit-report` | Returns the full ISO/IEC/IEEE 15289:2019 clause 9.2 audit status report JSON, matching the structure produced by doc-engine's `--output` flag (standard, clause, tool, tool_version, timestamp, project_root, project_type, project_scope, results, summary) |
+
+---
+
+## Execution Log
+
+| TC | Tester | Date | Pass/Fail | Notes |
+|----|--------|------|-----------|-------|
+| TC-001 | | | | |
+| TC-002 | | | | |
+| TC-003 | | | | |
+| TC-004 | | | | |
+| TC-005 | | | | |
+

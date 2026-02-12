@@ -1,0 +1,19 @@
+# Automated Test Execution: Security
+
+> **TLDR:** CI/automated test tracker for Security — maps each test case to a CI job and build.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](security.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Verifies | CI Job | Build | Status | Last Run |
+|----|------|----------|--------|-------|--------|----------|
+| TC-001 | NFR-200: Authentication required (Test) | REQ-001 | | | Pending | |
+| TC-002 | NFR-201: Path traversal prevention (Test) | REQ-002 | | | Pending | |
+| TC-003 | NFR-202: API key protection (Inspection) | REQ-003 | | | Pending | |
+| TC-004 | NFR-203: CORS configuration (Inspection) | REQ-004 | | | Pending | |
+

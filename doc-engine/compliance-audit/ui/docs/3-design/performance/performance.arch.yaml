@@ -1,0 +1,17 @@
+kind: architecture
+domain: Performance
+section: '5.1'
+specRef: docs/1-requirements/performance/performance.spec.yaml
+components:
+- name: NFR-100 handler
+  tracesTo: STK-01 -> `ui/dashboard/`
+  description: Dashboard load time
+- name: NFR-101 handler
+  tracesTo: STK-03 -> `ui/violations/`
+  description: Scan result rendering
+- name: NFR-102 handler
+  tracesTo: STK-07 -> `api/`
+  description: API response time
+- name: NFR-103 handler
+  tracesTo: STK-02 -> `api/scans.rs`
+  description: Concurrent scan execution

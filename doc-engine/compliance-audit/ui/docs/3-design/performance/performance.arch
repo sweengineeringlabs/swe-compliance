@@ -1,0 +1,21 @@
+# Architecture: Performance
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/performance/performance.spec)
+
+## Components
+
+| Component | Traces To | Description |
+|-----------|-----------|-------------|
+| NFR-100 handler | STK-01 -> `ui/dashboard/` | Dashboard load time |
+| NFR-101 handler | STK-03 -> `ui/violations/` | Scan result rendering |
+| NFR-102 handler | STK-07 -> `api/` | API response time |
+| NFR-103 handler | STK-02 -> `api/scans.rs` | Concurrent scan execution |
+
+## Related Documents
+
+- [Feature Spec](../1-requirements/performance/performance.spec)
+- [Test Plan](../5-testing/performance/performance.test)
+- [Deployment](../6-deployment/performance/performance.deploy)
+

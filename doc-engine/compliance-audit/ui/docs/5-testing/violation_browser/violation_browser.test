@@ -1,0 +1,16 @@
+# Test Plan: Violation Browser
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/violation_browser/violation_browser.spec)
+
+## Test Cases
+
+| ID | Test | Verifies | Priority |
+|----|------|----------|----------|
+| TC-001 | FR-400: Violation list (Demonstration) | REQ-001 | Must |
+| TC-002 | FR-401: Violation filtering (Test) | REQ-002 | Must |
+| TC-003 | FR-402: Violation sorting (Demonstration) | REQ-003 | Must |
+| TC-004 | FR-403: Fix guidance display (Demonstration) | REQ-004 | Should |
+| TC-005 | FR-404: Violation export (Test) | REQ-005 | Should |
+

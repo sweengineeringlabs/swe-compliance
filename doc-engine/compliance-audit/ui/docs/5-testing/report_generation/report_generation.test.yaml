@@ -1,0 +1,25 @@
+kind: test_plan
+domain: Report Generation
+section: '4.7'
+specRef: docs/1-requirements/report_generation/report_generation.spec.yaml
+testCases:
+- id: TC-001
+  test: 'FR-700: JSON report export (Test)'
+  verifies: REQ-001
+  priority: Must
+- id: TC-002
+  test: 'FR-701: Markdown report export (Test)'
+  verifies: REQ-002
+  priority: Must
+- id: TC-003
+  test: 'FR-702: PDF report export (Test)'
+  verifies: REQ-003
+  priority: Should
+- id: TC-004
+  test: 'FR-703: Historical report comparison (Demonstration)'
+  verifies: REQ-004
+  priority: Should
+- id: TC-005
+  test: 'FR-704: Audit status report (ISO 15289) (Test)'
+  verifies: REQ-005
+  priority: Must

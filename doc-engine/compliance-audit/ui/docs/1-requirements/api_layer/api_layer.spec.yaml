@@ -1,0 +1,46 @@
+kind: feature_request
+domain: API Layer
+section: '4.12'
+requirements:
+- id: REQ-001
+  sourceId: FR-1200
+  title: REST API versioning
+  priority: Must
+  status: Proposed
+  verification: Inspection
+  acceptance: All API endpoints are prefixed with `/api/v1/`; the version is part of the URL path; no endpoints exist outside the versioned prefix (except `/health`)
+- id: REQ-002
+  sourceId: FR-1201
+  title: Authentication
+  priority: Must
+  status: Proposed
+  verification: Test
+  acceptance: '`POST /api/v1/auth/login` with `{"username": "...", "password": "..."}` returns a JWT token; all other endpoints (except `/health` and `/api/v1/auth/login`) require a valid `Authorization: Bearer <token>` header; expired or invalid tokens return 401'
+- id: REQ-003
+  sourceId: FR-1202
+  title: Health check
+  priority: Must
+  status: Proposed
+  verification: Test
+  acceptance: '`GET /health` returns 200 with `{"status": "ok", "version": "x.y.z", "engines": {"doc-engine": "x.y.z", "struct-engine": "x.y.z"}}`'
+- id: REQ-004
+  sourceId: FR-1203
+  title: WebSocket connection management
+  priority: Must
+  status: Proposed
+  verification: Test
+  acceptance: WebSocket connections at `/api/v1/ws` require a valid JWT token as a query parameter (`?token=...`); connections without a valid token are rejected with 401; the server sends a ping every 30 seconds and closes idle connections after 120 seconds
+- id: REQ-005
+  sourceId: FR-1204
+  title: Error response format
+  priority: Must
+  status: Proposed
+  verification: Inspection
+  acceptance: 'All error responses follow the format `{"error": {"code": "ERROR_CODE", "message": "Human-readable description", "details": {...}}}` with appropriate HTTP status codes: 400 (bad request), 401 (unauthorized), 404 (not found), 422 (validation error), 500 (internal error), 503 (service unavailable)'
+- id: REQ-006
+  sourceId: FR-1205
+  title: Request rate limiting
+  priority: Should
+  status: Proposed
+  verification: Test
+  acceptance: API endpoints enforce rate limiting of 100 requests per minute per authenticated user; scan execution endpoints are limited to 10 concurrent scans per user; exceeding limits returns 429 with a `Retry-After` header

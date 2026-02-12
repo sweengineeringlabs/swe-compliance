@@ -1,0 +1,29 @@
+kind: test_plan
+domain: AI Compliance Features
+section: '4.8'
+specRef: docs/1-requirements/ai_compliance_features/ai_compliance_features.spec.yaml
+testCases:
+- id: TC-001
+  test: 'FR-800: Chat interface (Demonstration)'
+  verifies: REQ-001
+  priority: Should
+- id: TC-002
+  test: 'FR-801: Chat streaming (Demonstration)'
+  verifies: REQ-002
+  priority: Could
+- id: TC-003
+  test: 'FR-802: AI audit execution (Test)'
+  verifies: REQ-003
+  priority: Should
+- id: TC-004
+  test: 'FR-803: AI audit results display (Demonstration)'
+  verifies: REQ-004
+  priority: Should
+- id: TC-005
+  test: 'FR-804: Command generation (Test)'
+  verifies: REQ-005
+  priority: Could
+- id: TC-006
+  test: 'FR-805: AI feature availability check (Test)'
+  verifies: REQ-006
+  priority: Must

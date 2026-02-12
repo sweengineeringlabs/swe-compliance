@@ -1,0 +1,32 @@
+# Manual Test Execution: Scaffolding Interface
+
+> **TLDR:** Manual test checklist for Scaffolding Interface — step-by-step procedures with expected outcomes.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](scaffolding_interface.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Steps | Expected |
+|----|------|-------|----------|
+| TC-001 | FR-500: Upload SRS document (Test) | Run `POST /api/v1/scaffold/parse` | With the SRS markdown content in the request body returns a JSON representation of extracted domains and requirements (matching `SrsDomain` and `SrsRequirement` structures: section, title, slug, requirements with id, title, kind, priority, state, verification, traces_to, acceptance, description) |
+| TC-002 | FR-501: Scaffold preview (Demonstration) | Upload an SRS markdown document via `POST /api/v1/scaffold/parse`, then click "Preview Scaffold" in the scaffold UI | After uploading an SRS, the UI displays a tree of files that will be generated: per-domain `.spec.yaml`, `.spec`, `.arch.yaml`, `.arch`, `.test.yaml`, `.test`, `.manual.exec`, `.auto.exec`, `.deploy.yaml`, `.deploy`, plus BRD files; each file shows its target path under the output directory |
+| TC-003 | FR-502: Execute scaffold (Test) | Run `POST /api/v1/scaffold/execute` | With `{"project_id": "uuid", "srs_content": "...", "phases": ["requirements", "testing"], "force": false}` invokes `scaffold_from_srs()` and returns a `ScaffoldResult` JSON (standard, clause, tool, tool_version, timestamp, srs_source, phases, force, domain_count, requirement_count, created, skipped) |
+| TC-004 | FR-503: Phase and type filters (Test) | In the scaffold UI, toggle SDLC phase checkboxes (requirements, design, testing, deployment) and file type checkboxes (yaml, spec, arch, test, exec, deploy), then run `POST /api/v1/scaffold/execute` with the selected filters | The scaffold UI provides checkboxes for SDLC phases (requirements, design, testing, deployment) and file types (yaml, spec, arch, test, exec, deploy); selections are passed to `ScaffoldConfig.phases` and `ScaffoldConfig.file_types` |
+| TC-005 | FR-504: Scaffold progress monitoring (Demonstration) | Click "Generate" in the scaffold UI and observe the real-time file creation log during execution | During scaffold execution, the UI displays which files are being created (`+` prefix) and which are skipped (`~` prefix) in real-time; upon completion, a summary shows domain_count, requirement_count, created count, and skipped count |
+
+---
+
+## Execution Log
+
+| TC | Tester | Date | Pass/Fail | Notes |
+|----|--------|------|-----------|-------|
+| TC-001 | | | | |
+| TC-002 | | | | |
+| TC-003 | | | | |
+| TC-004 | | | | |
+| TC-005 | | | | |
+

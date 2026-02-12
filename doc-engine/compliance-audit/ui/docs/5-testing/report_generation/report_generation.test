@@ -1,0 +1,16 @@
+# Test Plan: Report Generation
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/report_generation/report_generation.spec)
+
+## Test Cases
+
+| ID | Test | Verifies | Priority |
+|----|------|----------|----------|
+| TC-001 | FR-700: JSON report export (Test) | REQ-001 | Must |
+| TC-002 | FR-701: Markdown report export (Test) | REQ-002 | Must |
+| TC-003 | FR-702: PDF report export (Test) | REQ-003 | Should |
+| TC-004 | FR-703: Historical report comparison (Demonstration) | REQ-004 | Should |
+| TC-005 | FR-704: Audit status report (ISO 15289) (Test) | REQ-005 | Must |
+

@@ -1,0 +1,17 @@
+kind: architecture
+domain: Security
+section: '5.2'
+specRef: docs/1-requirements/security/security.spec.yaml
+components:
+- name: NFR-200 handler
+  tracesTo: STK-07 -> `api/auth.rs`
+  description: Authentication required
+- name: NFR-201 handler
+  tracesTo: STK-07 -> `api/projects.rs`
+  description: Path traversal prevention
+- name: NFR-202 handler
+  tracesTo: STK-05 -> `api/ai.rs`
+  description: API key protection
+- name: NFR-203 handler
+  tracesTo: STK-07 -> `api/middleware.rs`
+  description: CORS configuration

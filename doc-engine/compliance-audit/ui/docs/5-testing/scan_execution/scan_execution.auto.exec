@@ -1,0 +1,21 @@
+# Automated Test Execution: Scan Execution
+
+> **TLDR:** CI/automated test tracker for Scan Execution — maps each test case to a CI job and build.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](scan_execution.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Verifies | CI Job | Build | Status | Last Run |
+|----|------|----------|--------|-------|--------|----------|
+| TC-001 | FR-300: Trigger doc-engine scan (Test) | REQ-001 | | | Pending | |
+| TC-002 | FR-301: Trigger struct-engine scan (Test) | REQ-002 | | | Pending | |
+| TC-003 | FR-302: Real-time scan progress (Demonstration) | REQ-003 | | | Pending | |
+| TC-004 | FR-303: Scan result retrieval (Test) | REQ-004 | | | Pending | |
+| TC-005 | FR-304: Scan filtering options (Test) | REQ-005 | | | Pending | |
+| TC-006 | FR-305: Scan history (Test) | REQ-006 | | | Pending | |
+

@@ -1,0 +1,32 @@
+kind: feature_request
+domain: Template Browser
+section: '4.6'
+requirements:
+- id: REQ-001
+  sourceId: FR-600
+  title: List templates
+  priority: Should
+  status: Proposed
+  verification: Test
+  acceptance: '`GET /api/v1/templates` returns a JSON array of template objects with name, sdlc_phase, description, and path fields; the list includes all templates from the configured template-engine templates directory'
+- id: REQ-002
+  sourceId: FR-601
+  title: Template preview with W3H structure
+  priority: Should
+  status: Proposed
+  verification: Demonstration
+  acceptance: Selecting a template displays its rendered markdown with W3H sections (WHO, WHAT, WHY, HOW) visually highlighted; the raw markdown is also available in a code view
+- id: REQ-003
+  sourceId: FR-602
+  title: Template copy to project
+  priority: Could
+  status: Proposed
+  verification: Test
+  acceptance: '`POST /api/v1/templates/{name}/copy` with `{"project_id": "uuid", "target_path": "docs/2-planning/quality_plan.md"}` copies the template to the project''s directory; returns 201 on success or 409 if file already exists'
+- id: REQ-004
+  sourceId: FR-603
+  title: Compliance checklist display
+  priority: Should
+  status: Proposed
+  verification: Demonstration
+  acceptance: The template browser includes a dedicated checklist view that displays the 56-point compliance checklist from template-engine with each item's status (pass/fail/skip) mapped to the most recent doc-engine scan results for the selected project

@@ -1,0 +1,32 @@
+kind: feature_request
+domain: Security
+section: '5.2'
+requirements:
+- id: REQ-001
+  sourceId: NFR-200
+  title: Authentication required
+  priority: Must
+  status: Proposed
+  verification: Test
+  acceptance: 'Every API endpoint (except `/health` and `/api/v1/auth/login`) returns 401 when no Authorization header is provided; JWT tokens expire after a configurable period (default: 24 hours)'
+- id: REQ-002
+  sourceId: NFR-201
+  title: Path traversal prevention
+  priority: Must
+  status: Proposed
+  verification: Test
+  acceptance: Project root_path values containing `..`, symbolic links outside allowed directories, or paths above a configurable base directory are rejected with 422; the server resolves and validates all paths before passing to engine libraries
+- id: REQ-003
+  sourceId: NFR-202
+  title: API key protection
+  priority: Must
+  status: Proposed
+  verification: Inspection
+  acceptance: LLM API keys are read from server environment variables and never exposed in API responses, logs, or error messages; the `/api/v1/ai/status` endpoint reports only whether a key is configured (true/false), never the key value
+- id: REQ-004
+  sourceId: NFR-203
+  title: CORS configuration
+  priority: Must
+  status: Proposed
+  verification: Inspection
+  acceptance: CORS origins are configurable via environment variable; the default allows only `localhost` origins; production deployments must explicitly configure allowed origins

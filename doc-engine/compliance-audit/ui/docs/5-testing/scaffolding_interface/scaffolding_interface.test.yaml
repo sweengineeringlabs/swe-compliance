@@ -1,0 +1,25 @@
+kind: test_plan
+domain: Scaffolding Interface
+section: '4.5'
+specRef: docs/1-requirements/scaffolding_interface/scaffolding_interface.spec.yaml
+testCases:
+- id: TC-001
+  test: 'FR-500: Upload SRS document (Test)'
+  verifies: REQ-001
+  priority: Should
+- id: TC-002
+  test: 'FR-501: Scaffold preview (Demonstration)'
+  verifies: REQ-002
+  priority: Should
+- id: TC-003
+  test: 'FR-502: Execute scaffold (Test)'
+  verifies: REQ-003
+  priority: Should
+- id: TC-004
+  test: 'FR-503: Phase and type filters (Test)'
+  verifies: REQ-004
+  priority: Should
+- id: TC-005
+  test: 'FR-504: Scaffold progress monitoring (Demonstration)'
+  verifies: REQ-005
+  priority: Could

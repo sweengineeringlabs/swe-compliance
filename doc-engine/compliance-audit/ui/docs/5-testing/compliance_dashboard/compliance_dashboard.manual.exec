@@ -1,0 +1,30 @@
+# Manual Test Execution: Compliance Dashboard
+
+> **TLDR:** Manual test checklist for Compliance Dashboard — step-by-step procedures with expected outcomes.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](compliance_dashboard.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Steps | Expected |
+|----|------|-------|----------|
+| TC-001 | FR-200: Compliance overview (Demonstration) | Execute `GET /api/v1/projects` and observe output | The dashboard page displays for each project: project name, last scan date, total/passed/failed/skipped counts, and a compliance percentage (passed / total * 100); the data is sourced from `GET /api/v1/projects` |
+| TC-002 | FR-201: Category breakdown chart (Demonstration) | Open the dashboard, select a project with a completed scan, and navigate to the category breakdown view | Selecting a project displays a bar or stacked chart with pass/fail/skip counts per category (structure, naming, root_files, content, navigation, cross_ref, adr, traceability, ideation, requirements, planning, design, development, testing, deployment, operations, backlog, module) |
+| TC-003 | FR-202: Trend over time (Demonstration) | Execute `GET /api/v1/projects/{id}/trends?period=30d` and observe output | Returns an array of `{timestamp, passed, failed, skipped}` objects; the UI renders a line chart showing compliance score over the selected period |
+| TC-004 | FR-203: Multi-engine summary (Demonstration) | Open the dashboard for a Rust project that has both a completed doc-engine scan and a completed struct-engine scan | For Rust projects, the dashboard shows both doc-engine (128 checks) and struct-engine (44 checks) results side by side with separate compliance scores and a combined total |
+
+---
+
+## Execution Log
+
+| TC | Tester | Date | Pass/Fail | Notes |
+|----|--------|------|-----------|-------|
+| TC-001 | | | | |
+| TC-002 | | | | |
+| TC-003 | | | | |
+| TC-004 | | | | |
+

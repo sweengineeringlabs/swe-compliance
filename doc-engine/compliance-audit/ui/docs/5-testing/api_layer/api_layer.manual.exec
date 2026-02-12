@@ -1,0 +1,34 @@
+# Manual Test Execution: API Layer
+
+> **TLDR:** Manual test checklist for API Layer — step-by-step procedures with expected outcomes.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](api_layer.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Steps | Expected |
+|----|------|-------|----------|
+| TC-001 | FR-1200: REST API versioning (Inspection) | Review `api/router.rs` | All API endpoints are prefixed with `/api/v1/`; the version is part of the URL path; no endpoints exist outside the versioned prefix (except `/health`) |
+| TC-002 | FR-1201: Authentication (Test) | Run `POST /api/v1/auth/login` | With `{"username": "...", "password": "..."}` returns a JWT token; all other endpoints (except `/health` and `/api/v1/auth/login`) require a valid `Authorization: Bearer <token>` header; expired or invalid tokens return 401 |
+| TC-003 | FR-1202: Health check (Test) | Run `GET /health` | Returns 200 with `{"status": "ok", "version": "x.y.z", "engines": {"doc-engine": "x.y.z", "struct-engine": "x.y.z"}}` |
+| TC-004 | FR-1203: WebSocket connection management (Test) | Connect to `WS /api/v1/ws` without a token, then with an invalid token, then with a valid JWT token via `?token=...`; leave the valid connection idle for 120+ seconds | WebSocket connections at `/api/v1/ws` require a valid JWT token as a query parameter (`?token=...`); connections without a valid token are rejected with 401; the server sends a ping every 30 seconds and closes idle connections after 120 seconds |
+| TC-005 | FR-1204: Error response format (Inspection) | Review `api/error.rs` | All error responses follow the format `{"error": {"code": "ERROR_CODE", "message": "Human-readable description", "details": {...}}}` with appropriate HTTP status codes: 400 (bad request), 401 (unauthorized), 404 (not found), 422 (validation error), 500 (internal error), 503 (service unavailable) |
+| TC-006 | FR-1205: Request rate limiting (Test) | Send 101 `GET /api/v1/projects` requests within 60 seconds using the same JWT token; then send 11 concurrent `POST /api/v1/scans` requests | API endpoints enforce rate limiting of 100 requests per minute per authenticated user; scan execution endpoints are limited to 10 concurrent scans per user; exceeding limits returns 429 with a `Retry-After` header |
+
+---
+
+## Execution Log
+
+| TC | Tester | Date | Pass/Fail | Notes |
+|----|--------|------|-----------|-------|
+| TC-001 | | | | |
+| TC-002 | | | | |
+| TC-003 | | | | |
+| TC-004 | | | | |
+| TC-005 | | | | |
+| TC-006 | | | | |
+

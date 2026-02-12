@@ -1,0 +1,32 @@
+kind: feature_request
+domain: Spec File Viewer
+section: '4.10'
+requirements:
+- id: REQ-001
+  sourceId: FR-1000
+  title: Browse spec files
+  priority: Should
+  status: Proposed
+  verification: Test
+  acceptance: '`GET /api/v1/projects/{id}/specs` returns a JSON array of discovered spec files with path, format (yaml/markdown), kind (brd/spec/architecture/test_plan/deployment), and domain_slug fields; the UI displays them in a tree grouped by domain'
+- id: REQ-002
+  sourceId: FR-1001
+  title: Spec file content view
+  priority: Should
+  status: Proposed
+  verification: Demonstration
+  acceptance: 'Selecting a spec file displays its content: YAML files are rendered with syntax highlighting; markdown files are rendered as formatted HTML; both views show the file''s metadata (Version, Status, Spec ID, Related) in a summary header'
+- id: REQ-003
+  sourceId: FR-1002
+  title: Cross-reference display
+  priority: Could
+  status: Proposed
+  verification: Demonstration
+  acceptance: 'The spec viewer shows cross-references as navigable links: clicking a dependency reference navigates to the referenced spec file; test plan `verifies` fields link to the corresponding requirement spec; unresolved references are highlighted in red'
+- id: REQ-004
+  sourceId: FR-1003
+  title: BRD inventory display
+  priority: Could
+  status: Proposed
+  verification: Demonstration
+  acceptance: 'The spec viewer includes a BRD overview page showing the master inventory: domain count, specs per domain, and coverage indicators for each SDLC phase (requirements, design, testing, deployment)'

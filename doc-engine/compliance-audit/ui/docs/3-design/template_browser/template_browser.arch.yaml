@@ -1,0 +1,17 @@
+kind: architecture
+domain: Template Browser
+section: '4.6'
+specRef: docs/1-requirements/template_browser/template_browser.spec.yaml
+components:
+- name: FR-600 handler
+  tracesTo: STK-09 -> `api/templates.rs`
+  description: List templates
+- name: FR-601 handler
+  tracesTo: STK-09 -> `ui/templates/`
+  description: Template preview with W3H structure
+- name: FR-602 handler
+  tracesTo: STK-09 -> `api/templates.rs`
+  description: Template copy to project
+- name: FR-603 handler
+  tracesTo: STK-09 -> `ui/templates/`
+  description: Compliance checklist display

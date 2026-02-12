@@ -1,0 +1,20 @@
+# Deployment: Scan Execution
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/scan_execution/scan_execution.spec)
+
+## Environments
+
+| Environment | Description |
+|-------------|-------------|
+| staging | Staging environment for Scan Execution validation |
+| production | Production environment for Scan Execution |
+
+## Build
+
+_TODO: Define build steps._
+
+## Rollback
+
+_TODO: Define rollback procedures._

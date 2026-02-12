@@ -1,0 +1,28 @@
+# Manual Test Execution: Reliability
+
+> **TLDR:** Manual test checklist for Reliability — step-by-step procedures with expected outcomes.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](reliability.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Steps | Expected |
+|----|------|-------|----------|
+| TC-001 | NFR-500: Graceful engine errors (Test) | Run `POST /api/v1/scans` with a project whose `root_path` does not exist (triggers `ScanError::Path`); run another with an invalid scope value (triggers `ScanError::Config`); verify the server remains responsive after both | When `scan_with_config()` returns `ScanError::Path` or `ScanError::Config`, the API returns a structured error response (422 or 500) with the engine's error message; the server does not panic or crash |
+| TC-002 | NFR-501: AI graceful degradation (Test) | Unset the LLM API key environment variable, restart the server, then run `GET /api/v1/ai/status` followed by `POST /api/v1/ai/chat` with `{"message": "test"}`; observe the AI section in the UI | When AI features are not configured (missing API key or disabled), all AI endpoints return 503 with `{"error": {"code": "AI_NOT_CONFIGURED", "message": "..."}}` and the UI disables AI panels; LLM API failures return 502 with the provider's error message |
+| TC-003 | NFR-502: Data persistence (Test) | Create a project via `POST /api/v1/projects`, run a scan to completion, restart the server process, then run `GET /api/v1/projects` and `GET /api/v1/scans/{id}` to verify data survived | Project configurations and scan results survive server restarts; the storage backend (SQLite or PostgreSQL, deferred to design) persists all data to disk; no in-memory-only state is required for correctness |
+
+---
+
+## Execution Log
+
+| TC | Tester | Date | Pass/Fail | Notes |
+|----|--------|------|-----------|-------|
+| TC-001 | | | | |
+| TC-002 | | | | |
+| TC-003 | | | | |
+

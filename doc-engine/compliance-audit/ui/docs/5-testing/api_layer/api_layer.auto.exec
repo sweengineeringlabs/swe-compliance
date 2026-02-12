@@ -1,0 +1,21 @@
+# Automated Test Execution: API Layer
+
+> **TLDR:** CI/automated test tracker for API Layer — maps each test case to a CI job and build.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](api_layer.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Verifies | CI Job | Build | Status | Last Run |
+|----|------|----------|--------|-------|--------|----------|
+| TC-001 | FR-1200: REST API versioning (Inspection) | REQ-001 | | | Pending | |
+| TC-002 | FR-1201: Authentication (Test) | REQ-002 | | | Pending | |
+| TC-003 | FR-1202: Health check (Test) | REQ-003 | | | Pending | |
+| TC-004 | FR-1203: WebSocket connection management (Test) | REQ-004 | | | Pending | |
+| TC-005 | FR-1204: Error response format (Inspection) | REQ-005 | | | Pending | |
+| TC-006 | FR-1205: Request rate limiting (Test) | REQ-006 | | | Pending | |
+

@@ -1,0 +1,28 @@
+# Manual Test Execution: Struct-Engine Integration
+
+> **TLDR:** Manual test checklist for Struct-Engine Integration — step-by-step procedures with expected outcomes.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](struct_engine_integration.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Steps | Expected |
+|----|------|-------|----------|
+| TC-001 | FR-1100: Struct-engine scan results (Test) | Run `GET /api/v1/scans/{id}` | For a struct-engine scan returns the struct-engine `ScanReport` JSON (containing results with check_id, category, description, result per check across 7 categories: structure, cargo_metadata, cargo_targets, naming, test_org, documentation, hygiene) |
+| TC-002 | FR-1101: Crate layout visualization (Demonstration) | Run a struct-engine scan to completion on a Rust project, then navigate to the struct-engine results page and inspect the crate layout tree | The struct-engine results page includes a tree diagram showing the project's actual crate layout (src/, main/, tests/, benches/, examples/) with pass/fail indicators overlaid on directories that correspond to checked paths |
+| TC-003 | FR-1102: Project kind display (Demonstration) | Navigate to the struct-engine results page for a completed scan and locate the project kind indicator | The struct-engine results display the detected project kind (Library, Binary, Both, Workspace) and indicate which checks were skipped due to kind filtering |
+
+---
+
+## Execution Log
+
+| TC | Tester | Date | Pass/Fail | Notes |
+|----|--------|------|-----------|-------|
+| TC-001 | | | | |
+| TC-002 | | | | |
+| TC-003 | | | | |
+

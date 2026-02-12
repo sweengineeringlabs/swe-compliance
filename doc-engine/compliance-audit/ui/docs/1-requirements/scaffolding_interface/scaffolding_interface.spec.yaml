@@ -1,0 +1,39 @@
+kind: feature_request
+domain: Scaffolding Interface
+section: '4.5'
+requirements:
+- id: REQ-001
+  sourceId: FR-500
+  title: Upload SRS document
+  priority: Should
+  status: Proposed
+  verification: Test
+  acceptance: '`POST /api/v1/scaffold/parse` with the SRS markdown content in the request body returns a JSON representation of extracted domains and requirements (matching `SrsDomain` and `SrsRequirement` structures: section, title, slug, requirements with id, title, kind, priority, state, verification, traces_to, acceptance, description)'
+- id: REQ-002
+  sourceId: FR-501
+  title: Scaffold preview
+  priority: Should
+  status: Proposed
+  verification: Demonstration
+  acceptance: 'After uploading an SRS, the UI displays a tree of files that will be generated: per-domain `.spec.yaml`, `.spec`, `.arch.yaml`, `.arch`, `.test.yaml`, `.test`, `.manual.exec`, `.auto.exec`, `.deploy.yaml`, `.deploy`, plus BRD files; each file shows its target path under the output directory'
+- id: REQ-003
+  sourceId: FR-502
+  title: Execute scaffold
+  priority: Should
+  status: Proposed
+  verification: Test
+  acceptance: '`POST /api/v1/scaffold/execute` with `{"project_id": "uuid", "srs_content": "...", "phases": ["requirements", "testing"], "force": false}` invokes `scaffold_from_srs()` and returns a `ScaffoldResult` JSON (standard, clause, tool, tool_version, timestamp, srs_source, phases, force, domain_count, requirement_count, created, skipped)'
+- id: REQ-004
+  sourceId: FR-503
+  title: Phase and type filters
+  priority: Should
+  status: Proposed
+  verification: Test
+  acceptance: The scaffold UI provides checkboxes for SDLC phases (requirements, design, testing, deployment) and file types (yaml, spec, arch, test, exec, deploy); selections are passed to `ScaffoldConfig.phases` and `ScaffoldConfig.file_types`
+- id: REQ-005
+  sourceId: FR-504
+  title: Scaffold progress monitoring
+  priority: Could
+  status: Proposed
+  verification: Demonstration
+  acceptance: During scaffold execution, the UI displays which files are being created (`+` prefix) and which are skipped (`~` prefix) in real-time; upon completion, a summary shows domain_count, requirement_count, created count, and skipped count

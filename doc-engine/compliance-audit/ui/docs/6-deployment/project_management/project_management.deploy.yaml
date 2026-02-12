@@ -1,0 +1,9 @@
+kind: deployment
+domain: Project Management
+section: '4.1'
+specRef: docs/1-requirements/project_management/project_management.spec.yaml
+environments:
+- name: staging
+  description: Staging environment for Project Management validation
+- name: production
+  description: Production environment for Project Management

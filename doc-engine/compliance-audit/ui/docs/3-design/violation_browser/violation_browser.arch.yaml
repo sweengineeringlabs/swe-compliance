@@ -1,0 +1,20 @@
+kind: architecture
+domain: Violation Browser
+section: '4.4'
+specRef: docs/1-requirements/violation_browser/violation_browser.spec.yaml
+components:
+- name: FR-400 handler
+  tracesTo: STK-03 -> `ui/violations/`
+  description: Violation list
+- name: FR-401 handler
+  tracesTo: STK-03 -> `ui/violations/`
+  description: Violation filtering
+- name: FR-402 handler
+  tracesTo: STK-03 -> `ui/violations/`
+  description: Violation sorting
+- name: FR-403 handler
+  tracesTo: STK-03 -> `ui/violations/`
+  description: Fix guidance display
+- name: FR-404 handler
+  tracesTo: STK-03, STK-06 -> `api/scans.rs`
+  description: Violation export

@@ -1,0 +1,9 @@
+kind: deployment
+domain: Maintainability
+section: '5.4'
+specRef: docs/1-requirements/maintainability/maintainability.spec.yaml
+environments:
+- name: staging
+  description: Staging environment for Maintainability validation
+- name: production
+  description: Production environment for Maintainability

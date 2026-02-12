@@ -1,0 +1,20 @@
+# Deployment: SRS Editor
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/srs_editor/srs_editor.spec)
+
+## Environments
+
+| Environment | Description |
+|-------------|-------------|
+| staging | Staging environment for SRS Editor validation |
+| production | Production environment for SRS Editor |
+
+## Build
+
+_TODO: Define build steps._
+
+## Rollback
+
+_TODO: Define rollback procedures._

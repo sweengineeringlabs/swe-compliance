@@ -1,0 +1,9 @@
+kind: deployment
+domain: SRS Editor
+section: '4.9'
+specRef: docs/1-requirements/srs_editor/srs_editor.spec.yaml
+environments:
+- name: staging
+  description: Staging environment for SRS Editor validation
+- name: production
+  description: Production environment for SRS Editor

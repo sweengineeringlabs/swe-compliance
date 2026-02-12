@@ -1,0 +1,29 @@
+kind: test_plan
+domain: Scan Execution
+section: '4.3'
+specRef: docs/1-requirements/scan_execution/scan_execution.spec.yaml
+testCases:
+- id: TC-001
+  test: 'FR-300: Trigger doc-engine scan (Test)'
+  verifies: REQ-001
+  priority: Must
+- id: TC-002
+  test: 'FR-301: Trigger struct-engine scan (Test)'
+  verifies: REQ-002
+  priority: Should
+- id: TC-003
+  test: 'FR-302: Real-time scan progress (Demonstration)'
+  verifies: REQ-003
+  priority: Must
+- id: TC-004
+  test: 'FR-303: Scan result retrieval (Test)'
+  verifies: REQ-004
+  priority: Must
+- id: TC-005
+  test: 'FR-304: Scan filtering options (Test)'
+  verifies: REQ-005
+  priority: Should
+- id: TC-006
+  test: 'FR-305: Scan history (Test)'
+  verifies: REQ-006
+  priority: Must

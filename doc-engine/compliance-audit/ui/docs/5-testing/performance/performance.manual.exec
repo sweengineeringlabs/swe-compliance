@@ -1,0 +1,30 @@
+# Manual Test Execution: Performance
+
+> **TLDR:** Manual test checklist for Performance — step-by-step procedures with expected outcomes.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](performance.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Steps | Expected |
+|----|------|-------|----------|
+| TC-001 | NFR-100: Dashboard load time (Test) | Create up to 50 projects, clear the browser cache, then navigate to the dashboard page and measure time from navigation start to full render | The dashboard page loads and renders the project list within 2 seconds on a standard broadband connection when there are fewer than 50 projects |
+| TC-002 | NFR-101: Scan result rendering (Test) | Load a completed scan with 128 check entries and 500 violations in the violation browser; measure render time, then apply a filter and measure filter response time | A scan result with 128 check entries and up to 500 violations renders in the violation browser within 1 second; filtering and sorting operations complete within 200ms |
+| TC-003 | NFR-102: API response time (Test) | Run 10 concurrent clients each sending `GET /api/v1/projects`, `GET /api/v1/templates`, and `GET /api/v1/scans/{id}/report?format=json`; record p95 latency | Non-scan API endpoints (project CRUD, report retrieval, template listing) respond within 500ms at the 95th percentile under normal load (10 concurrent users) |
+| TC-004 | NFR-103: Concurrent scan execution (Test) | Send 5 concurrent `POST /api/v1/scans` requests for different projects; then send a 6th and verify it is queued | The server supports at least 5 concurrent scan executions without degradation; scans are queued when the concurrency limit is exceeded |
+
+---
+
+## Execution Log
+
+| TC | Tester | Date | Pass/Fail | Notes |
+|----|--------|------|-----------|-------|
+| TC-001 | | | | |
+| TC-002 | | | | |
+| TC-003 | | | | |
+| TC-004 | | | | |
+

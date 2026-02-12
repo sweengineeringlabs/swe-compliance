@@ -1,0 +1,9 @@
+kind: deployment
+domain: API Layer
+section: '4.12'
+specRef: docs/1-requirements/api_layer/api_layer.spec.yaml
+environments:
+- name: staging
+  description: Staging environment for API Layer validation
+- name: production
+  description: Production environment for API Layer

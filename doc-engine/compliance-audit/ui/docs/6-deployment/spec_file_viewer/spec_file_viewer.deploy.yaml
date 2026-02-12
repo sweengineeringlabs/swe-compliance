@@ -1,0 +1,9 @@
+kind: deployment
+domain: Spec File Viewer
+section: '4.10'
+specRef: docs/1-requirements/spec_file_viewer/spec_file_viewer.spec.yaml
+environments:
+- name: staging
+  description: Staging environment for Spec File Viewer validation
+- name: production
+  description: Production environment for Spec File Viewer

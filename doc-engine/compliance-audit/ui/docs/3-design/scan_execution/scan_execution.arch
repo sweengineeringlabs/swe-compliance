@@ -1,0 +1,23 @@
+# Architecture: Scan Execution
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/scan_execution/scan_execution.spec)
+
+## Components
+
+| Component | Traces To | Description |
+|-----------|-----------|-------------|
+| FR-300 handler | STK-02 -> `api/scans.rs` | The API shall accept scan requests and execute them asynchronously, invoking the doc-engine library's `scan_with_config()` function with the project's configured root path and the requested scope. |
+| FR-301 handler | STK-02, STK-10 -> `api/scans.rs` | Trigger struct-engine scan |
+| FR-302 handler | STK-02 -> `api/ws.rs`, `ui/scans/` | Real-time scan progress |
+| FR-303 handler | STK-02, STK-03 -> `api/scans.rs` | Scan result retrieval |
+| FR-304 handler | STK-02 -> `api/scans.rs` | Scan filtering options |
+| FR-305 handler | STK-12 -> `api/scans.rs` | Scan history |
+
+## Related Documents
+
+- [Feature Spec](../1-requirements/scan_execution/scan_execution.spec)
+- [Test Plan](../5-testing/scan_execution/scan_execution.test)
+- [Deployment](../6-deployment/scan_execution/scan_execution.deploy)
+

@@ -1,0 +1,17 @@
+# Test Plan: API Layer
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/api_layer/api_layer.spec)
+
+## Test Cases
+
+| ID | Test | Verifies | Priority |
+|----|------|----------|----------|
+| TC-001 | FR-1200: REST API versioning (Inspection) | REQ-001 | Must |
+| TC-002 | FR-1201: Authentication (Test) | REQ-002 | Must |
+| TC-003 | FR-1202: Health check (Test) | REQ-003 | Must |
+| TC-004 | FR-1203: WebSocket connection management (Test) | REQ-004 | Must |
+| TC-005 | FR-1204: Error response format (Inspection) | REQ-005 | Must |
+| TC-006 | FR-1205: Request rate limiting (Test) | REQ-006 | Should |
+

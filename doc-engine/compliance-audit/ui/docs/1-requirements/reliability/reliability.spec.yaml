@@ -1,0 +1,25 @@
+kind: feature_request
+domain: Reliability
+section: '5.5'
+requirements:
+- id: REQ-001
+  sourceId: NFR-500
+  title: Graceful engine errors
+  priority: Must
+  status: Proposed
+  verification: Test
+  acceptance: When `scan_with_config()` returns `ScanError::Path` or `ScanError::Config`, the API returns a structured error response (422 or 500) with the engine's error message; the server does not panic or crash
+- id: REQ-002
+  sourceId: NFR-501
+  title: AI graceful degradation
+  priority: Must
+  status: Proposed
+  verification: Test
+  acceptance: 'When AI features are not configured (missing API key or disabled), all AI endpoints return 503 with `{"error": {"code": "AI_NOT_CONFIGURED", "message": "..."}}` and the UI disables AI panels; LLM API failures return 502 with the provider''s error message'
+- id: REQ-003
+  sourceId: NFR-502
+  title: Data persistence
+  priority: Must
+  status: Proposed
+  verification: Test
+  acceptance: Project configurations and scan results survive server restarts; the storage backend (SQLite or PostgreSQL, deferred to design) persists all data to disk; no in-memory-only state is required for correctness

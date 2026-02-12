@@ -1,0 +1,16 @@
+# Test Plan: Scaffolding Interface
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/scaffolding_interface/scaffolding_interface.spec)
+
+## Test Cases
+
+| ID | Test | Verifies | Priority |
+|----|------|----------|----------|
+| TC-001 | FR-500: Upload SRS document (Test) | REQ-001 | Should |
+| TC-002 | FR-501: Scaffold preview (Demonstration) | REQ-002 | Should |
+| TC-003 | FR-502: Execute scaffold (Test) | REQ-003 | Should |
+| TC-004 | FR-503: Phase and type filters (Test) | REQ-004 | Should |
+| TC-005 | FR-504: Scaffold progress monitoring (Demonstration) | REQ-005 | Could |
+

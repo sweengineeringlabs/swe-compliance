@@ -1,0 +1,17 @@
+# Test Plan: Scan Execution
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/scan_execution/scan_execution.spec)
+
+## Test Cases
+
+| ID | Test | Verifies | Priority |
+|----|------|----------|----------|
+| TC-001 | FR-300: Trigger doc-engine scan (Test) | REQ-001 | Must |
+| TC-002 | FR-301: Trigger struct-engine scan (Test) | REQ-002 | Should |
+| TC-003 | FR-302: Real-time scan progress (Demonstration) | REQ-003 | Must |
+| TC-004 | FR-303: Scan result retrieval (Test) | REQ-004 | Must |
+| TC-005 | FR-304: Scan filtering options (Test) | REQ-005 | Should |
+| TC-006 | FR-305: Scan history (Test) | REQ-006 | Must |
+

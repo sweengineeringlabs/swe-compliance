@@ -1,0 +1,18 @@
+kind: feature_request
+domain: Accessibility
+section: '5.3'
+requirements:
+- id: REQ-001
+  sourceId: NFR-300
+  title: Keyboard navigation
+  priority: Should
+  status: Proposed
+  verification: Demonstration
+  acceptance: All interactive elements (buttons, links, filters, tree nodes) are reachable via keyboard Tab navigation; Enter/Space activates focused elements; Escape closes modals and panels
+- id: REQ-002
+  sourceId: NFR-301
+  title: Screen reader compatibility
+  priority: Should
+  status: Proposed
+  verification: Inspection
+  acceptance: All UI components use semantic HTML elements and ARIA attributes; charts provide text alternatives; the violation count and compliance percentage are announced by screen readers

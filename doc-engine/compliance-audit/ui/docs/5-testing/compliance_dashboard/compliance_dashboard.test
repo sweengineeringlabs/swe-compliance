@@ -1,0 +1,15 @@
+# Test Plan: Compliance Dashboard
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/compliance_dashboard/compliance_dashboard.spec)
+
+## Test Cases
+
+| ID | Test | Verifies | Priority |
+|----|------|----------|----------|
+| TC-001 | FR-200: Compliance overview (Demonstration) | REQ-001 | Must |
+| TC-002 | FR-201: Category breakdown chart (Demonstration) | REQ-002 | Must |
+| TC-003 | FR-202: Trend over time (Demonstration) | REQ-003 | Should |
+| TC-004 | FR-203: Multi-engine summary (Demonstration) | REQ-004 | Should |
+

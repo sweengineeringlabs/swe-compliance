@@ -1,0 +1,21 @@
+kind: test_plan
+domain: SRS Editor
+section: '4.9'
+specRef: docs/1-requirements/srs_editor/srs_editor.spec.yaml
+testCases:
+- id: TC-001
+  test: 'FR-900: Markdown editor (Demonstration)'
+  verifies: REQ-001
+  priority: Should
+- id: TC-002
+  test: 'FR-901: Doc-engine format validation (Test)'
+  verifies: REQ-002
+  priority: Should
+- id: TC-003
+  test: 'FR-902: Requirement ID auto-generation (Demonstration)'
+  verifies: REQ-003
+  priority: Could
+- id: TC-004
+  test: 'FR-903: SRS save and load (Test)'
+  verifies: REQ-004
+  priority: Should

@@ -1,0 +1,22 @@
+# Architecture: Report Generation
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/report_generation/report_generation.spec)
+
+## Components
+
+| Component | Traces To | Description |
+|-----------|-----------|-------------|
+| FR-700 handler | STK-06 -> `api/reports.rs` | JSON report export |
+| FR-701 handler | STK-06 -> `api/reports.rs` | Markdown report export |
+| FR-702 handler | STK-06 -> `api/reports.rs` | PDF report export |
+| FR-703 handler | STK-12 -> `ui/reports/` | Historical report comparison |
+| FR-704 handler | STK-06 -> `api/reports.rs` | Audit status report (ISO 15289) |
+
+## Related Documents
+
+- [Feature Spec](../1-requirements/report_generation/report_generation.spec)
+- [Test Plan](../5-testing/report_generation/report_generation.test)
+- [Deployment](../6-deployment/report_generation/report_generation.deploy)
+

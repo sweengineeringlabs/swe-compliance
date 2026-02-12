@@ -1,0 +1,20 @@
+# Deployment: Struct-Engine Integration
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/struct_engine_integration/struct_engine_integration.spec)
+
+## Environments
+
+| Environment | Description |
+|-------------|-------------|
+| staging | Staging environment for Struct-Engine Integration validation |
+| production | Production environment for Struct-Engine Integration |
+
+## Build
+
+_TODO: Define build steps._
+
+## Rollback
+
+_TODO: Define rollback procedures._

@@ -1,0 +1,20 @@
+# Automated Test Execution: Violation Browser
+
+> **TLDR:** CI/automated test tracker for Violation Browser — maps each test case to a CI job and build.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](violation_browser.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Verifies | CI Job | Build | Status | Last Run |
+|----|------|----------|--------|-------|--------|----------|
+| TC-001 | FR-400: Violation list (Demonstration) | REQ-001 | | | Pending | |
+| TC-002 | FR-401: Violation filtering (Test) | REQ-002 | | | Pending | |
+| TC-003 | FR-402: Violation sorting (Demonstration) | REQ-003 | | | Pending | |
+| TC-004 | FR-403: Fix guidance display (Demonstration) | REQ-004 | | | Pending | |
+| TC-005 | FR-404: Violation export (Test) | REQ-005 | | | Pending | |
+

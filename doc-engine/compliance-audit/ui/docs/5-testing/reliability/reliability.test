@@ -1,0 +1,14 @@
+# Test Plan: Reliability
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/reliability/reliability.spec)
+
+## Test Cases
+
+| ID | Test | Verifies | Priority |
+|----|------|----------|----------|
+| TC-001 | NFR-500: Graceful engine errors (Test) | REQ-001 | Must |
+| TC-002 | NFR-501: AI graceful degradation (Test) | REQ-002 | Must |
+| TC-003 | NFR-502: Data persistence (Test) | REQ-003 | Must |
+

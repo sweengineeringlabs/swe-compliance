@@ -1,0 +1,21 @@
+# Architecture: Compliance Dashboard
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/compliance_dashboard/compliance_dashboard.spec)
+
+## Components
+
+| Component | Traces To | Description |
+|-----------|-----------|-------------|
+| FR-200 handler | STK-01 -> `ui/dashboard/` | The dashboard shall display a summary card for each project showing its most recent scan results, allowing at-a-glance compliance assessment across all managed projects. |
+| FR-201 handler | STK-01 -> `ui/dashboard/` | Category breakdown chart |
+| FR-202 handler | STK-12 -> `ui/dashboard/`, `api/scans.rs` | Trend over time |
+| FR-203 handler | STK-01, STK-10 -> `ui/dashboard/` | Multi-engine summary |
+
+## Related Documents
+
+- [Feature Spec](../1-requirements/compliance_dashboard/compliance_dashboard.spec)
+- [Test Plan](../5-testing/compliance_dashboard/compliance_dashboard.test)
+- [Deployment](../6-deployment/compliance_dashboard/compliance_dashboard.deploy)
+

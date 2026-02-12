@@ -1,0 +1,15 @@
+# Test Plan: Security
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/security/security.spec)
+
+## Test Cases
+
+| ID | Test | Verifies | Priority |
+|----|------|----------|----------|
+| TC-001 | NFR-200: Authentication required (Test) | REQ-001 | Must |
+| TC-002 | NFR-201: Path traversal prevention (Test) | REQ-002 | Must |
+| TC-003 | NFR-202: API key protection (Inspection) | REQ-003 | Must |
+| TC-004 | NFR-203: CORS configuration (Inspection) | REQ-004 | Must |
+

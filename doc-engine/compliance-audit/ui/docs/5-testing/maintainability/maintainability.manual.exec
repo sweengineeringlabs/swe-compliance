@@ -1,0 +1,28 @@
+# Manual Test Execution: Maintainability
+
+> **TLDR:** Manual test checklist for Maintainability — step-by-step procedures with expected outcomes.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](maintainability.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Steps | Expected |
+|----|------|-------|----------|
+| TC-001 | NFR-400: Component-based architecture (Inspection) | Review `ui/`, `api/` | The frontend UI is organized into self-contained components (dashboard, violations, scaffold, editor, templates, ai, specs, struct-engine); the backend API is organized into route modules matching the domain structure; no circular dependencies exist between components |
+| TC-002 | NFR-401: API-first design (Inspection) | Review `api/` | Every UI operation is backed by a documented REST or WebSocket API endpoint; no functionality is available only through the UI; the API can be consumed by external clients (CI systems, scripts) independently of the web UI |
+| TC-003 | NFR-402: Engine version compatibility (Test) | Inspect `Cargo.toml` for semver constraints on `doc-engine-scan` and `struct-engine` dependencies; run `GET /health` and verify engine versions are reported; bump a major engine version and run `cargo check` | The frontend server declares doc-engine and struct-engine crates as Cargo dependencies with semver-compatible version constraints; the `/health` endpoint reports the linked engine versions; incompatible engine API changes are detected at compile time |
+
+---
+
+## Execution Log
+
+| TC | Tester | Date | Pass/Fail | Notes |
+|----|--------|------|-----------|-------|
+| TC-001 | | | | |
+| TC-002 | | | | |
+| TC-003 | | | | |
+

@@ -1,0 +1,9 @@
+kind: deployment
+domain: Template Browser
+section: '4.6'
+specRef: docs/1-requirements/template_browser/template_browser.spec.yaml
+environments:
+- name: staging
+  description: Staging environment for Template Browser validation
+- name: production
+  description: Production environment for Template Browser

@@ -1,0 +1,21 @@
+# Architecture: Security
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/security/security.spec)
+
+## Components
+
+| Component | Traces To | Description |
+|-----------|-----------|-------------|
+| NFR-200 handler | STK-07 -> `api/auth.rs` | Authentication required |
+| NFR-201 handler | STK-07 -> `api/projects.rs` | Path traversal prevention |
+| NFR-202 handler | STK-05 -> `api/ai.rs` | API key protection |
+| NFR-203 handler | STK-07 -> `api/middleware.rs` | CORS configuration |
+
+## Related Documents
+
+- [Feature Spec](../1-requirements/security/security.spec)
+- [Test Plan](../5-testing/security/security.test)
+- [Deployment](../6-deployment/security/security.deploy)
+

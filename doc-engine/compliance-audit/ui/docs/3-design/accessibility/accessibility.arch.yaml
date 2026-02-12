@@ -1,0 +1,11 @@
+kind: architecture
+domain: Accessibility
+section: '5.3'
+specRef: docs/1-requirements/accessibility/accessibility.spec.yaml
+components:
+- name: NFR-300 handler
+  tracesTo: STK-01 -> `ui/`
+  description: Keyboard navigation
+- name: NFR-301 handler
+  tracesTo: STK-01 -> `ui/`
+  description: Screen reader compatibility

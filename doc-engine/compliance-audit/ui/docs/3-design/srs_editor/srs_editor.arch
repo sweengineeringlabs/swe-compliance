@@ -1,0 +1,21 @@
+# Architecture: SRS Editor
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/srs_editor/srs_editor.spec)
+
+## Components
+
+| Component | Traces To | Description |
+|-----------|-----------|-------------|
+| FR-900 handler | STK-08 -> `ui/editor/` | Markdown editor |
+| FR-901 handler | STK-08 -> `api/editor.rs`, `ui/editor/` | Doc-engine format validation |
+| FR-902 handler | STK-08 -> `ui/editor/` | Requirement ID auto-generation |
+| FR-903 handler | STK-08 -> `api/editor.rs` | SRS save and load |
+
+## Related Documents
+
+- [Feature Spec](../1-requirements/srs_editor/srs_editor.spec)
+- [Test Plan](../5-testing/srs_editor/srs_editor.test)
+- [Deployment](../6-deployment/srs_editor/srs_editor.deploy)
+

@@ -1,0 +1,30 @@
+# Manual Test Execution: SRS Editor
+
+> **TLDR:** Manual test checklist for SRS Editor — step-by-step procedures with expected outcomes.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](srs_editor.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Steps | Expected |
+|----|------|-------|----------|
+| TC-001 | FR-900: Markdown editor (Demonstration) | Navigate to the SRS editor page, type markdown content (headings, tables, lists) in the left pane, and observe the right preview pane | The SRS editor provides a split-pane view: a code editor with markdown syntax highlighting on the left, and a rendered preview on the right; editing the markdown updates the preview within 500ms |
+| TC-002 | FR-901: Doc-engine format validation (Test) | Run `POST /api/v1/editor/validate` | With SRS markdown content invokes `parse_srs()` and returns validation results: `{"valid": true\|false, "domains": N, "requirements": N, "errors": [...]}` where errors include missing attribute table fields, duplicate FR IDs, and malformed section headings |
+| TC-003 | FR-902: Requirement ID auto-generation (Demonstration) | In the SRS editor, create a domain section starting at FR-200, add FR-200, then position the cursor and type `#### FR-` | When the user types `#### FR-` in a new domain section, the editor suggests the next sequential FR ID based on the domain's numbering range (e.g., FR-201 if the domain starts at FR-200 and FR-200 exists); accepting the suggestion inserts the complete requirement header with an empty attribute table |
+| TC-004 | FR-903: SRS save and load (Test) | Run `PUT /api/v1/projects/{id}/srs` | With SRS markdown content saves the document to the project's `docs/1-requirements/srs.md` path; `GET /api/v1/projects/{id}/srs` returns the current SRS content with 200, or 404 if no SRS exists |
+
+---
+
+## Execution Log
+
+| TC | Tester | Date | Pass/Fail | Notes |
+|----|--------|------|-----------|-------|
+| TC-001 | | | | |
+| TC-002 | | | | |
+| TC-003 | | | | |
+| TC-004 | | | | |
+

@@ -1,0 +1,17 @@
+# Test Plan: AI Compliance Features
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/ai_compliance_features/ai_compliance_features.spec)
+
+## Test Cases
+
+| ID | Test | Verifies | Priority |
+|----|------|----------|----------|
+| TC-001 | FR-800: Chat interface (Demonstration) | REQ-001 | Should |
+| TC-002 | FR-801: Chat streaming (Demonstration) | REQ-002 | Could |
+| TC-003 | FR-802: AI audit execution (Test) | REQ-003 | Should |
+| TC-004 | FR-803: AI audit results display (Demonstration) | REQ-004 | Should |
+| TC-005 | FR-804: Command generation (Test) | REQ-005 | Could |
+| TC-006 | FR-805: AI feature availability check (Test) | REQ-006 | Must |
+

@@ -1,0 +1,9 @@
+kind: deployment
+domain: Reliability
+section: '5.5'
+specRef: docs/1-requirements/reliability/reliability.spec.yaml
+environments:
+- name: staging
+  description: Staging environment for Reliability validation
+- name: production
+  description: Production environment for Reliability

@@ -1,0 +1,9 @@
+kind: deployment
+domain: Compliance Dashboard
+section: '4.2'
+specRef: docs/1-requirements/compliance_dashboard/compliance_dashboard.spec.yaml
+environments:
+- name: staging
+  description: Staging environment for Compliance Dashboard validation
+- name: production
+  description: Production environment for Compliance Dashboard

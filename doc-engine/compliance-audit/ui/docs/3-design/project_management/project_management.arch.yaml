@@ -1,0 +1,20 @@
+kind: architecture
+domain: Project Management
+section: '4.1'
+specRef: docs/1-requirements/project_management/project_management.spec.yaml
+components:
+- name: FR-100 handler
+  tracesTo: STK-11 -> `api/projects.rs`, `ui/projects/`
+  description: The frontend shall allow users to create compliance projects by specifying a project name, root file system path on the server, project scope (small/medium/large), and project type (open_source/internal).
+- name: FR-101 handler
+  tracesTo: STK-11 -> `api/projects.rs`, `ui/projects/`
+  description: List projects
+- name: FR-102 handler
+  tracesTo: STK-11 -> `api/projects.rs`
+  description: Update project configuration
+- name: FR-103 handler
+  tracesTo: STK-11 -> `api/projects.rs`
+  description: Delete project
+- name: FR-104 handler
+  tracesTo: STK-11 -> `api/projects.rs`
+  description: Project configuration validation

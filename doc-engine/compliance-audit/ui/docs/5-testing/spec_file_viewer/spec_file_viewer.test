@@ -1,0 +1,15 @@
+# Test Plan: Spec File Viewer
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/spec_file_viewer/spec_file_viewer.spec)
+
+## Test Cases
+
+| ID | Test | Verifies | Priority |
+|----|------|----------|----------|
+| TC-001 | FR-1000: Browse spec files (Test) | REQ-001 | Should |
+| TC-002 | FR-1001: Spec file content view (Demonstration) | REQ-002 | Should |
+| TC-003 | FR-1002: Cross-reference display (Demonstration) | REQ-003 | Could |
+| TC-004 | FR-1003: BRD inventory display (Demonstration) | REQ-004 | Could |
+

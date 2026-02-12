@@ -1,0 +1,20 @@
+# Architecture: Struct-Engine Integration
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/struct_engine_integration/struct_engine_integration.spec)
+
+## Components
+
+| Component | Traces To | Description |
+|-----------|-----------|-------------|
+| FR-1100 handler | STK-10 -> `api/scans.rs`, `ui/struct-engine/` | Struct-engine scan results |
+| FR-1101 handler | STK-10 -> `ui/struct-engine/` | Crate layout visualization |
+| FR-1102 handler | STK-10 -> `ui/struct-engine/` | Project kind display |
+
+## Related Documents
+
+- [Feature Spec](../1-requirements/struct_engine_integration/struct_engine_integration.spec)
+- [Test Plan](../5-testing/struct_engine_integration/struct_engine_integration.test)
+- [Deployment](../6-deployment/struct_engine_integration/struct_engine_integration.deploy)
+

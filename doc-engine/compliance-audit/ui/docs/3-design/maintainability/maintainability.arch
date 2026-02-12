@@ -1,0 +1,20 @@
+# Architecture: Maintainability
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/maintainability/maintainability.spec)
+
+## Components
+
+| Component | Traces To | Description |
+|-----------|-----------|-------------|
+| NFR-400 handler | STK-07 -> `ui/`, `api/` | Component-based architecture |
+| NFR-401 handler | STK-07 -> `api/` | API-first design |
+| NFR-402 handler | STK-02 -> `Cargo.toml` | Engine version compatibility |
+
+## Related Documents
+
+- [Feature Spec](../1-requirements/maintainability/maintainability.spec)
+- [Test Plan](../5-testing/maintainability/maintainability.test)
+- [Deployment](../6-deployment/maintainability/maintainability.deploy)
+

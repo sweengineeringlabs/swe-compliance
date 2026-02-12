@@ -1,0 +1,21 @@
+kind: test_plan
+domain: Spec File Viewer
+section: '4.10'
+specRef: docs/1-requirements/spec_file_viewer/spec_file_viewer.spec.yaml
+testCases:
+- id: TC-001
+  test: 'FR-1000: Browse spec files (Test)'
+  verifies: REQ-001
+  priority: Should
+- id: TC-002
+  test: 'FR-1001: Spec file content view (Demonstration)'
+  verifies: REQ-002
+  priority: Should
+- id: TC-003
+  test: 'FR-1002: Cross-reference display (Demonstration)'
+  verifies: REQ-003
+  priority: Could
+- id: TC-004
+  test: 'FR-1003: BRD inventory display (Demonstration)'
+  verifies: REQ-004
+  priority: Could

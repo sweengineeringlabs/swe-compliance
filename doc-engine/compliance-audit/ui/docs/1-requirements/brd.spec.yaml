@@ -1,0 +1,139 @@
+kind: brd
+title: Business Requirements Document
+domains:
+- section: '4.1'
+  domain: Project Management
+  slug: project_management
+  specCount: 5
+  specFile: docs/1-requirements/project_management/project_management.spec.yaml
+  archFile: docs/3-design/project_management/project_management.arch.yaml
+  testFile: docs/5-testing/project_management/project_management.test.yaml
+  deployFile: docs/6-deployment/project_management/project_management.deploy.yaml
+- section: '4.2'
+  domain: Compliance Dashboard
+  slug: compliance_dashboard
+  specCount: 4
+  specFile: docs/1-requirements/compliance_dashboard/compliance_dashboard.spec.yaml
+  archFile: docs/3-design/compliance_dashboard/compliance_dashboard.arch.yaml
+  testFile: docs/5-testing/compliance_dashboard/compliance_dashboard.test.yaml
+  deployFile: docs/6-deployment/compliance_dashboard/compliance_dashboard.deploy.yaml
+- section: '4.3'
+  domain: Scan Execution
+  slug: scan_execution
+  specCount: 6
+  specFile: docs/1-requirements/scan_execution/scan_execution.spec.yaml
+  archFile: docs/3-design/scan_execution/scan_execution.arch.yaml
+  testFile: docs/5-testing/scan_execution/scan_execution.test.yaml
+  deployFile: docs/6-deployment/scan_execution/scan_execution.deploy.yaml
+- section: '4.4'
+  domain: Violation Browser
+  slug: violation_browser
+  specCount: 5
+  specFile: docs/1-requirements/violation_browser/violation_browser.spec.yaml
+  archFile: docs/3-design/violation_browser/violation_browser.arch.yaml
+  testFile: docs/5-testing/violation_browser/violation_browser.test.yaml
+  deployFile: docs/6-deployment/violation_browser/violation_browser.deploy.yaml
+- section: '4.5'
+  domain: Scaffolding Interface
+  slug: scaffolding_interface
+  specCount: 5
+  specFile: docs/1-requirements/scaffolding_interface/scaffolding_interface.spec.yaml
+  archFile: docs/3-design/scaffolding_interface/scaffolding_interface.arch.yaml
+  testFile: docs/5-testing/scaffolding_interface/scaffolding_interface.test.yaml
+  deployFile: docs/6-deployment/scaffolding_interface/scaffolding_interface.deploy.yaml
+- section: '4.6'
+  domain: Template Browser
+  slug: template_browser
+  specCount: 4
+  specFile: docs/1-requirements/template_browser/template_browser.spec.yaml
+  archFile: docs/3-design/template_browser/template_browser.arch.yaml
+  testFile: docs/5-testing/template_browser/template_browser.test.yaml
+  deployFile: docs/6-deployment/template_browser/template_browser.deploy.yaml
+- section: '4.7'
+  domain: Report Generation
+  slug: report_generation
+  specCount: 5
+  specFile: docs/1-requirements/report_generation/report_generation.spec.yaml
+  archFile: docs/3-design/report_generation/report_generation.arch.yaml
+  testFile: docs/5-testing/report_generation/report_generation.test.yaml
+  deployFile: docs/6-deployment/report_generation/report_generation.deploy.yaml
+- section: '4.8'
+  domain: AI Compliance Features
+  slug: ai_compliance_features
+  specCount: 6
+  specFile: docs/1-requirements/ai_compliance_features/ai_compliance_features.spec.yaml
+  archFile: docs/3-design/ai_compliance_features/ai_compliance_features.arch.yaml
+  testFile: docs/5-testing/ai_compliance_features/ai_compliance_features.test.yaml
+  deployFile: docs/6-deployment/ai_compliance_features/ai_compliance_features.deploy.yaml
+- section: '4.9'
+  domain: SRS Editor
+  slug: srs_editor
+  specCount: 4
+  specFile: docs/1-requirements/srs_editor/srs_editor.spec.yaml
+  archFile: docs/3-design/srs_editor/srs_editor.arch.yaml
+  testFile: docs/5-testing/srs_editor/srs_editor.test.yaml
+  deployFile: docs/6-deployment/srs_editor/srs_editor.deploy.yaml
+- section: '4.10'
+  domain: Spec File Viewer
+  slug: spec_file_viewer
+  specCount: 4
+  specFile: docs/1-requirements/spec_file_viewer/spec_file_viewer.spec.yaml
+  archFile: docs/3-design/spec_file_viewer/spec_file_viewer.arch.yaml
+  testFile: docs/5-testing/spec_file_viewer/spec_file_viewer.test.yaml
+  deployFile: docs/6-deployment/spec_file_viewer/spec_file_viewer.deploy.yaml
+- section: '4.11'
+  domain: Struct-Engine Integration
+  slug: struct_engine_integration
+  specCount: 3
+  specFile: docs/1-requirements/struct_engine_integration/struct_engine_integration.spec.yaml
+  archFile: docs/3-design/struct_engine_integration/struct_engine_integration.arch.yaml
+  testFile: docs/5-testing/struct_engine_integration/struct_engine_integration.test.yaml
+  deployFile: docs/6-deployment/struct_engine_integration/struct_engine_integration.deploy.yaml
+- section: '4.12'
+  domain: API Layer
+  slug: api_layer
+  specCount: 6
+  specFile: docs/1-requirements/api_layer/api_layer.spec.yaml
+  archFile: docs/3-design/api_layer/api_layer.arch.yaml
+  testFile: docs/5-testing/api_layer/api_layer.test.yaml
+  deployFile: docs/6-deployment/api_layer/api_layer.deploy.yaml
+- section: '5.1'
+  domain: Performance
+  slug: performance
+  specCount: 4
+  specFile: docs/1-requirements/performance/performance.spec.yaml
+  archFile: docs/3-design/performance/performance.arch.yaml
+  testFile: docs/5-testing/performance/performance.test.yaml
+  deployFile: docs/6-deployment/performance/performance.deploy.yaml
+- section: '5.2'
+  domain: Security
+  slug: security
+  specCount: 4
+  specFile: docs/1-requirements/security/security.spec.yaml
+  archFile: docs/3-design/security/security.arch.yaml
+  testFile: docs/5-testing/security/security.test.yaml
+  deployFile: docs/6-deployment/security/security.deploy.yaml
+- section: '5.3'
+  domain: Accessibility
+  slug: accessibility
+  specCount: 2
+  specFile: docs/1-requirements/accessibility/accessibility.spec.yaml
+  archFile: docs/3-design/accessibility/accessibility.arch.yaml
+  testFile: docs/5-testing/accessibility/accessibility.test.yaml
+  deployFile: docs/6-deployment/accessibility/accessibility.deploy.yaml
+- section: '5.4'
+  domain: Maintainability
+  slug: maintainability
+  specCount: 3
+  specFile: docs/1-requirements/maintainability/maintainability.spec.yaml
+  archFile: docs/3-design/maintainability/maintainability.arch.yaml
+  testFile: docs/5-testing/maintainability/maintainability.test.yaml
+  deployFile: docs/6-deployment/maintainability/maintainability.deploy.yaml
+- section: '5.5'
+  domain: Reliability
+  slug: reliability
+  specCount: 3
+  specFile: docs/1-requirements/reliability/reliability.spec.yaml
+  archFile: docs/3-design/reliability/reliability.arch.yaml
+  testFile: docs/5-testing/reliability/reliability.test.yaml
+  deployFile: docs/6-deployment/reliability/reliability.deploy.yaml

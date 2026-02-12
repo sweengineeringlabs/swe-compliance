@@ -1,0 +1,34 @@
+# Manual Test Execution: Scan Execution
+
+> **TLDR:** Manual test checklist for Scan Execution — step-by-step procedures with expected outcomes.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](scan_execution.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Steps | Expected |
+|----|------|-------|----------|
+| TC-001 | FR-300: Trigger doc-engine scan (Test) | Run `POST /api/v1/scans` | With `{"project_id": "uuid", "engine": "doc-engine", "scope": "medium"}` returns 202 with `{"scan_id": "uuid", "status": "queued"}`; the scan runs asynchronously using `doc_engine_scan::scan_with_config()` |
+| TC-002 | FR-301: Trigger struct-engine scan (Test) | Run `POST /api/v1/scans` | With `{"project_id": "uuid", "engine": "struct-engine"}` returns 202; the scan runs using `struct_engine::scan_with_config()` |
+| TC-003 | FR-302: Real-time scan progress (Demonstration) | Execute `WS /api/v1/scans/{id}/progress` and observe output | Connecting to `WS /api/v1/scans/{id}/progress` receives JSON messages with `{"check_id": N, "category": "...", "status": "pass\|fail\|skip"}` as each check completes; the UI updates a progress bar showing completed/total checks |
+| TC-004 | FR-303: Scan result retrieval (Test) | Run `GET /api/v1/scans/{id}` | Returns the full `ScanReport` JSON (matching doc-engine's `ScanReport` struct: standard, clause, tool, tool_version, timestamp, project_root, results, summary, project_type, project_scope) with HTTP 200 when complete, or `{"status": "in_progress"}` with HTTP 200 when still running |
+| TC-005 | FR-304: Scan filtering options (Test) | Run `POST /api/v1/scans` | Accepts optional `checks` (e.g., "1-13"), `phase` (e.g., "testing,module"), and `module` (e.g., "scan,cli") fields; these are passed through to `ScanConfig` |
+| TC-006 | FR-305: Scan history (Test) | Run `GET /api/v1/projects/{id}/scans` | Returns an array of past scan summaries ordered by timestamp descending, each containing scan_id, timestamp, engine, summary (passed/failed/skipped), and scope |
+
+---
+
+## Execution Log
+
+| TC | Tester | Date | Pass/Fail | Notes |
+|----|--------|------|-----------|-------|
+| TC-001 | | | | |
+| TC-002 | | | | |
+| TC-003 | | | | |
+| TC-004 | | | | |
+| TC-005 | | | | |
+| TC-006 | | | | |
+

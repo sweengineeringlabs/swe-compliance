@@ -1,0 +1,20 @@
+# Automated Test Execution: Report Generation
+
+> **TLDR:** CI/automated test tracker for Report Generation — maps each test case to a CI job and build.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](report_generation.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Verifies | CI Job | Build | Status | Last Run |
+|----|------|----------|--------|-------|--------|----------|
+| TC-001 | FR-700: JSON report export (Test) | REQ-001 | | | Pending | |
+| TC-002 | FR-701: Markdown report export (Test) | REQ-002 | | | Pending | |
+| TC-003 | FR-702: PDF report export (Test) | REQ-003 | | | Pending | |
+| TC-004 | FR-703: Historical report comparison (Demonstration) | REQ-004 | | | Pending | |
+| TC-005 | FR-704: Audit status report (ISO 15289) (Test) | REQ-005 | | | Pending | |
+

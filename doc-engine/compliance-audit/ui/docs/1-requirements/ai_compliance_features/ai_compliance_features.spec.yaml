@@ -1,0 +1,46 @@
+kind: feature_request
+domain: AI Compliance Features
+section: '4.8'
+requirements:
+- id: REQ-001
+  sourceId: FR-800
+  title: Chat interface
+  priority: Should
+  status: Proposed
+  verification: Demonstration
+  acceptance: 'The UI provides a chat panel; sending a message via `POST /api/v1/ai/chat` with `{"message": "What ISO standards apply to my testing docs?"}` returns the LLM response; the chat panel displays the conversation history with user and assistant messages'
+- id: REQ-002
+  sourceId: FR-801
+  title: Chat streaming
+  priority: Could
+  status: Proposed
+  verification: Demonstration
+  acceptance: Connecting to `WS /api/v1/ai/chat/stream` and sending a message receives incremental token-by-token responses; the UI renders tokens as they arrive, providing a real-time typing experience
+- id: REQ-003
+  sourceId: FR-802
+  title: AI audit execution
+  priority: Should
+  status: Proposed
+  verification: Test
+  acceptance: '`POST /api/v1/ai/audit` with `{"project_id": "uuid", "scope": "medium"}` invokes `ComplianceAuditor::audit()`, returns an `AuditResponse` JSON (summary, scan_results, recommendations)'
+- id: REQ-004
+  sourceId: FR-803
+  title: AI audit results display
+  priority: Should
+  status: Proposed
+  verification: Demonstration
+  acceptance: 'The audit view displays: the LLM-generated summary, a list of prioritized recommendations, and a collapsible panel showing the raw scan results JSON; recommendations link to related violations in the violation browser'
+- id: REQ-005
+  sourceId: FR-804
+  title: Command generation
+  priority: Could
+  status: Proposed
+  verification: Test
+  acceptance: '`POST /api/v1/ai/generate-commands` with `{"srs_content": "...", "project_context": "..."}` invokes `CommandGenerator::generate_commands()` and returns a `GenerateCommandsResponse` JSON (commands map of requirement ID to CLI command, skipped array)'
+- id: REQ-006
+  sourceId: FR-805
+  title: AI feature availability check
+  priority: Must
+  status: Proposed
+  verification: Test
+  acceptance: '`GET /api/v1/ai/status` returns `{"enabled": true|false, "provider": "anthropic|openai|gemini|null"}`; when disabled, AI UI sections display a "Not configured" message and AI endpoints return 503'

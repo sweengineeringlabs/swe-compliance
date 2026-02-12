@@ -1,0 +1,18 @@
+# Automated Test Execution: Struct-Engine Integration
+
+> **TLDR:** CI/automated test tracker for Struct-Engine Integration — maps each test case to a CI job and build.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](struct_engine_integration.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Verifies | CI Job | Build | Status | Last Run |
+|----|------|----------|--------|-------|--------|----------|
+| TC-001 | FR-1100: Struct-engine scan results (Test) | REQ-001 | | | Pending | |
+| TC-002 | FR-1101: Crate layout visualization (Demonstration) | REQ-002 | | | Pending | |
+| TC-003 | FR-1102: Project kind display (Demonstration) | REQ-003 | | | Pending | |
+

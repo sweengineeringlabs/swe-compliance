@@ -1,0 +1,25 @@
+kind: test_plan
+domain: Project Management
+section: '4.1'
+specRef: docs/1-requirements/project_management/project_management.spec.yaml
+testCases:
+- id: TC-001
+  test: 'FR-100: Create project (Test)'
+  verifies: REQ-001
+  priority: Must
+- id: TC-002
+  test: 'FR-101: List projects (Test)'
+  verifies: REQ-002
+  priority: Must
+- id: TC-003
+  test: 'FR-102: Update project configuration (Test)'
+  verifies: REQ-003
+  priority: Must
+- id: TC-004
+  test: 'FR-103: Delete project (Test)'
+  verifies: REQ-004
+  priority: Must
+- id: TC-005
+  test: 'FR-104: Project configuration validation (Test)'
+  verifies: REQ-005
+  priority: Must

@@ -1,0 +1,46 @@
+kind: feature_request
+domain: Scan Execution
+section: '4.3'
+requirements:
+- id: REQ-001
+  sourceId: FR-300
+  title: Trigger doc-engine scan
+  priority: Must
+  status: Proposed
+  verification: Test
+  acceptance: '`POST /api/v1/scans` with `{"project_id": "uuid", "engine": "doc-engine", "scope": "medium"}` returns 202 with `{"scan_id": "uuid", "status": "queued"}`; the scan runs asynchronously using `doc_engine_scan::scan_with_config()`'
+- id: REQ-002
+  sourceId: FR-301
+  title: Trigger struct-engine scan
+  priority: Should
+  status: Proposed
+  verification: Test
+  acceptance: '`POST /api/v1/scans` with `{"project_id": "uuid", "engine": "struct-engine"}` returns 202; the scan runs using `struct_engine::scan_with_config()`'
+- id: REQ-003
+  sourceId: FR-302
+  title: Real-time scan progress
+  priority: Must
+  status: Proposed
+  verification: Demonstration
+  acceptance: 'Connecting to `WS /api/v1/scans/{id}/progress` receives JSON messages with `{"check_id": N, "category": "...", "status": "pass|fail|skip"}` as each check completes; the UI updates a progress bar showing completed/total checks'
+- id: REQ-004
+  sourceId: FR-303
+  title: Scan result retrieval
+  priority: Must
+  status: Proposed
+  verification: Test
+  acceptance: '`GET /api/v1/scans/{id}` returns the full `ScanReport` JSON (matching doc-engine''s `ScanReport` struct: standard, clause, tool, tool_version, timestamp, project_root, results, summary, project_type, project_scope) with HTTP 200 when complete, or `{"status": "in_progress"}` with HTTP 200 when still running'
+- id: REQ-005
+  sourceId: FR-304
+  title: Scan filtering options
+  priority: Should
+  status: Proposed
+  verification: Test
+  acceptance: '`POST /api/v1/scans` accepts optional `checks` (e.g., "1-13"), `phase` (e.g., "testing,module"), and `module` (e.g., "scan,cli") fields; these are passed through to `ScanConfig`'
+- id: REQ-006
+  sourceId: FR-305
+  title: Scan history
+  priority: Must
+  status: Proposed
+  verification: Test
+  acceptance: '`GET /api/v1/projects/{id}/scans` returns an array of past scan summaries ordered by timestamp descending, each containing scan_id, timestamp, engine, summary (passed/failed/skipped), and scope'

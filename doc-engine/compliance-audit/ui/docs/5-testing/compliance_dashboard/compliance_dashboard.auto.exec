@@ -1,0 +1,19 @@
+# Automated Test Execution: Compliance Dashboard
+
+> **TLDR:** CI/automated test tracker for Compliance Dashboard — maps each test case to a CI job and build.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](compliance_dashboard.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Verifies | CI Job | Build | Status | Last Run |
+|----|------|----------|--------|-------|--------|----------|
+| TC-001 | FR-200: Compliance overview (Demonstration) | REQ-001 | | | Pending | |
+| TC-002 | FR-201: Category breakdown chart (Demonstration) | REQ-002 | | | Pending | |
+| TC-003 | FR-202: Trend over time (Demonstration) | REQ-003 | | | Pending | |
+| TC-004 | FR-203: Multi-engine summary (Demonstration) | REQ-004 | | | Pending | |
+

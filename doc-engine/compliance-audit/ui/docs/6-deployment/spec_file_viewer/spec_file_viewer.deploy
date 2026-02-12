@@ -1,0 +1,20 @@
+# Deployment: Spec File Viewer
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/spec_file_viewer/spec_file_viewer.spec)
+
+## Environments
+
+| Environment | Description |
+|-------------|-------------|
+| staging | Staging environment for Spec File Viewer validation |
+| production | Production environment for Spec File Viewer |
+
+## Build
+
+_TODO: Define build steps._
+
+## Rollback
+
+_TODO: Define rollback procedures._

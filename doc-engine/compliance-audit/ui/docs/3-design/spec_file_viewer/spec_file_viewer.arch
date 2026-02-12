@@ -1,0 +1,21 @@
+# Architecture: Spec File Viewer
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/spec_file_viewer/spec_file_viewer.spec)
+
+## Components
+
+| Component | Traces To | Description |
+|-----------|-----------|-------------|
+| FR-1000 handler | STK-04 -> `api/specs.rs`, `ui/specs/` | Browse spec files |
+| FR-1001 handler | STK-04 -> `ui/specs/` | Spec file content view |
+| FR-1002 handler | STK-04 -> `ui/specs/` | Cross-reference display |
+| FR-1003 handler | STK-04 -> `ui/specs/` | BRD inventory display |
+
+## Related Documents
+
+- [Feature Spec](../1-requirements/spec_file_viewer/spec_file_viewer.spec)
+- [Test Plan](../5-testing/spec_file_viewer/spec_file_viewer.test)
+- [Deployment](../6-deployment/spec_file_viewer/spec_file_viewer.deploy)
+

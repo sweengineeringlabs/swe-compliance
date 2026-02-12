@@ -1,0 +1,39 @@
+kind: feature_request
+domain: Report Generation
+section: '4.7'
+requirements:
+- id: REQ-001
+  sourceId: FR-700
+  title: JSON report export
+  priority: Must
+  status: Proposed
+  verification: Test
+  acceptance: '`GET /api/v1/scans/{id}/report?format=json` returns the `ScanReport` JSON conforming to ISO/IEC/IEEE 15289:2019 clause 9.2 (containing standard, clause, tool, tool_version, timestamp, project_root, results, summary, project_type, project_scope)'
+- id: REQ-002
+  sourceId: FR-701
+  title: Markdown report export
+  priority: Must
+  status: Proposed
+  verification: Test
+  acceptance: '`GET /api/v1/scans/{id}/report?format=markdown` returns a structured markdown document with sections for: executive summary, category breakdown, violation details, and ISO standard mapping; the Content-Type header is `text/markdown`'
+- id: REQ-003
+  sourceId: FR-702
+  title: PDF report export
+  priority: Should
+  status: Proposed
+  verification: Test
+  acceptance: '`GET /api/v1/scans/{id}/report?format=pdf` returns a downloadable PDF with the same content as the markdown report rendered with headers, tables, and charts; the Content-Type header is `application/pdf`'
+- id: REQ-004
+  sourceId: FR-703
+  title: Historical report comparison
+  priority: Should
+  status: Proposed
+  verification: Demonstration
+  acceptance: The UI allows selecting two scan results for the same project; a diff view highlights checks that changed status between scans (e.g., fail-to-pass, pass-to-fail); new and removed checks are flagged
+- id: REQ-005
+  sourceId: FR-704
+  title: Audit status report (ISO 15289)
+  priority: Must
+  status: Proposed
+  verification: Test
+  acceptance: '`GET /api/v1/scans/{id}/audit-report` returns the full ISO/IEC/IEEE 15289:2019 clause 9.2 audit status report JSON, matching the structure produced by doc-engine''s `--output` flag (standard, clause, tool, tool_version, timestamp, project_root, project_type, project_scope, results, summary)'

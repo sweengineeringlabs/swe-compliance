@@ -1,0 +1,9 @@
+kind: deployment
+domain: Struct-Engine Integration
+section: '4.11'
+specRef: docs/1-requirements/struct_engine_integration/struct_engine_integration.spec.yaml
+environments:
+- name: staging
+  description: Staging environment for Struct-Engine Integration validation
+- name: production
+  description: Production environment for Struct-Engine Integration

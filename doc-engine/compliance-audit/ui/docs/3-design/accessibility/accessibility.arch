@@ -1,0 +1,19 @@
+# Architecture: Accessibility
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/accessibility/accessibility.spec)
+
+## Components
+
+| Component | Traces To | Description |
+|-----------|-----------|-------------|
+| NFR-300 handler | STK-01 -> `ui/` | Keyboard navigation |
+| NFR-301 handler | STK-01 -> `ui/` | Screen reader compatibility |
+
+## Related Documents
+
+- [Feature Spec](../1-requirements/accessibility/accessibility.spec)
+- [Test Plan](../5-testing/accessibility/accessibility.test)
+- [Deployment](../6-deployment/accessibility/accessibility.deploy)
+

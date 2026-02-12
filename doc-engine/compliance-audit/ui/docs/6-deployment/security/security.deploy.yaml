@@ -1,0 +1,9 @@
+kind: deployment
+domain: Security
+section: '5.2'
+specRef: docs/1-requirements/security/security.spec.yaml
+environments:
+- name: staging
+  description: Staging environment for Security validation
+- name: production
+  description: Production environment for Security

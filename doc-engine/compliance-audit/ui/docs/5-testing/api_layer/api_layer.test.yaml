@@ -1,0 +1,29 @@
+kind: test_plan
+domain: API Layer
+section: '4.12'
+specRef: docs/1-requirements/api_layer/api_layer.spec.yaml
+testCases:
+- id: TC-001
+  test: 'FR-1200: REST API versioning (Inspection)'
+  verifies: REQ-001
+  priority: Must
+- id: TC-002
+  test: 'FR-1201: Authentication (Test)'
+  verifies: REQ-002
+  priority: Must
+- id: TC-003
+  test: 'FR-1202: Health check (Test)'
+  verifies: REQ-003
+  priority: Must
+- id: TC-004
+  test: 'FR-1203: WebSocket connection management (Test)'
+  verifies: REQ-004
+  priority: Must
+- id: TC-005
+  test: 'FR-1204: Error response format (Inspection)'
+  verifies: REQ-005
+  priority: Must
+- id: TC-006
+  test: 'FR-1205: Request rate limiting (Test)'
+  verifies: REQ-006
+  priority: Should

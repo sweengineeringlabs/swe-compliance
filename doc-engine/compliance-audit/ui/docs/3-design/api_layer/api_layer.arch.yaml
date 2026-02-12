@@ -1,0 +1,23 @@
+kind: architecture
+domain: API Layer
+section: '4.12'
+specRef: docs/1-requirements/api_layer/api_layer.spec.yaml
+components:
+- name: FR-1200 handler
+  tracesTo: STK-07 -> `api/router.rs`
+  description: REST API versioning
+- name: FR-1201 handler
+  tracesTo: STK-07 -> `api/auth.rs`
+  description: Authentication
+- name: FR-1202 handler
+  tracesTo: STK-07 -> `api/router.rs`
+  description: Health check
+- name: FR-1203 handler
+  tracesTo: STK-07 -> `api/ws.rs`
+  description: WebSocket connection management
+- name: FR-1204 handler
+  tracesTo: STK-07 -> `api/error.rs`
+  description: Error response format
+- name: FR-1205 handler
+  tracesTo: STK-07 -> `api/middleware.rs`
+  description: '---'

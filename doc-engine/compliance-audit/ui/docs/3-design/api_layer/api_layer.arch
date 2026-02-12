@@ -1,0 +1,23 @@
+# Architecture: API Layer
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/api_layer/api_layer.spec)
+
+## Components
+
+| Component | Traces To | Description |
+|-----------|-----------|-------------|
+| FR-1200 handler | STK-07 -> `api/router.rs` | REST API versioning |
+| FR-1201 handler | STK-07 -> `api/auth.rs` | Authentication |
+| FR-1202 handler | STK-07 -> `api/router.rs` | Health check |
+| FR-1203 handler | STK-07 -> `api/ws.rs` | WebSocket connection management |
+| FR-1204 handler | STK-07 -> `api/error.rs` | Error response format |
+| FR-1205 handler | STK-07 -> `api/middleware.rs` | --- |
+
+## Related Documents
+
+- [Feature Spec](../1-requirements/api_layer/api_layer.spec)
+- [Test Plan](../5-testing/api_layer/api_layer.test)
+- [Deployment](../6-deployment/api_layer/api_layer.deploy)
+

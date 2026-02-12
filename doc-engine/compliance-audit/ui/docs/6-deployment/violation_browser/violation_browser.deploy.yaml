@@ -1,0 +1,9 @@
+kind: deployment
+domain: Violation Browser
+section: '4.4'
+specRef: docs/1-requirements/violation_browser/violation_browser.spec.yaml
+environments:
+- name: staging
+  description: Staging environment for Violation Browser validation
+- name: production
+  description: Production environment for Violation Browser

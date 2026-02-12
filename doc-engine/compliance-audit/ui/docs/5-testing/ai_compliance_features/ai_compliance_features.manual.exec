@@ -1,0 +1,34 @@
+# Manual Test Execution: AI Compliance Features
+
+> **TLDR:** Manual test checklist for AI Compliance Features — step-by-step procedures with expected outcomes.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](ai_compliance_features.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Steps | Expected |
+|----|------|-------|----------|
+| TC-001 | FR-800: Chat interface (Demonstration) | Execute `POST /api/v1/ai/chat` and observe output | The UI provides a chat panel; sending a message via `POST /api/v1/ai/chat` with `{"message": "What ISO standards apply to my testing docs?"}` returns the LLM response; the chat panel displays the conversation history with user and assistant messages |
+| TC-002 | FR-801: Chat streaming (Demonstration) | Execute `WS /api/v1/ai/chat/stream` and observe output | Connecting to `WS /api/v1/ai/chat/stream` and sending a message receives incremental token-by-token responses; the UI renders tokens as they arrive, providing a real-time typing experience |
+| TC-003 | FR-802: AI audit execution (Test) | Run `POST /api/v1/ai/audit` | With `{"project_id": "uuid", "scope": "medium"}` invokes `ComplianceAuditor::audit()`, returns an `AuditResponse` JSON (summary, scan_results, recommendations) |
+| TC-004 | FR-803: AI audit results display (Demonstration) | Run `POST /api/v1/ai/audit` with a valid project, then navigate to the audit results view in the AI section | The audit view displays: the LLM-generated summary, a list of prioritized recommendations, and a collapsible panel showing the raw scan results JSON; recommendations link to related violations in the violation browser |
+| TC-005 | FR-804: Command generation (Test) | Run `POST /api/v1/ai/generate-commands` | With `{"srs_content": "...", "project_context": "..."}` invokes `CommandGenerator::generate_commands()` and returns a `GenerateCommandsResponse` JSON (commands map of requirement ID to CLI command, skipped array) |
+| TC-006 | FR-805: AI feature availability check (Test) | Run `GET /api/v1/ai/status` | Returns `{"enabled": true\|false, "provider": "anthropic\|openai\|gemini\|null"}`; when disabled, AI UI sections display a "Not configured" message and AI endpoints return 503 |
+
+---
+
+## Execution Log
+
+| TC | Tester | Date | Pass/Fail | Notes |
+|----|--------|------|-----------|-------|
+| TC-001 | | | | |
+| TC-002 | | | | |
+| TC-003 | | | | |
+| TC-004 | | | | |
+| TC-005 | | | | |
+| TC-006 | | | | |
+

@@ -1,0 +1,21 @@
+kind: test_plan
+domain: Template Browser
+section: '4.6'
+specRef: docs/1-requirements/template_browser/template_browser.spec.yaml
+testCases:
+- id: TC-001
+  test: 'FR-600: List templates (Test)'
+  verifies: REQ-001
+  priority: Should
+- id: TC-002
+  test: 'FR-601: Template preview with W3H structure (Demonstration)'
+  verifies: REQ-002
+  priority: Should
+- id: TC-003
+  test: 'FR-602: Template copy to project (Test)'
+  verifies: REQ-003
+  priority: Could
+- id: TC-004
+  test: 'FR-603: Compliance checklist display (Demonstration)'
+  verifies: REQ-004
+  priority: Should

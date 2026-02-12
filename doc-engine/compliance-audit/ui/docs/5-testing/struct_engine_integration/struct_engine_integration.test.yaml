@@ -1,0 +1,17 @@
+kind: test_plan
+domain: Struct-Engine Integration
+section: '4.11'
+specRef: docs/1-requirements/struct_engine_integration/struct_engine_integration.spec.yaml
+testCases:
+- id: TC-001
+  test: 'FR-1100: Struct-engine scan results (Test)'
+  verifies: REQ-001
+  priority: Should
+- id: TC-002
+  test: 'FR-1101: Crate layout visualization (Demonstration)'
+  verifies: REQ-002
+  priority: Could
+- id: TC-003
+  test: 'FR-1102: Project kind display (Demonstration)'
+  verifies: REQ-003
+  priority: Should

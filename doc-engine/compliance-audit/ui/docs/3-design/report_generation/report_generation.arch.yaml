@@ -1,0 +1,20 @@
+kind: architecture
+domain: Report Generation
+section: '4.7'
+specRef: docs/1-requirements/report_generation/report_generation.spec.yaml
+components:
+- name: FR-700 handler
+  tracesTo: STK-06 -> `api/reports.rs`
+  description: JSON report export
+- name: FR-701 handler
+  tracesTo: STK-06 -> `api/reports.rs`
+  description: Markdown report export
+- name: FR-702 handler
+  tracesTo: STK-06 -> `api/reports.rs`
+  description: PDF report export
+- name: FR-703 handler
+  tracesTo: STK-12 -> `ui/reports/`
+  description: Historical report comparison
+- name: FR-704 handler
+  tracesTo: STK-06 -> `api/reports.rs`
+  description: Audit status report (ISO 15289)

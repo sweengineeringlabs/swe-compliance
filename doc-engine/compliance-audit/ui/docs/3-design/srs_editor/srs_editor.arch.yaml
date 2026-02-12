@@ -1,0 +1,17 @@
+kind: architecture
+domain: SRS Editor
+section: '4.9'
+specRef: docs/1-requirements/srs_editor/srs_editor.spec.yaml
+components:
+- name: FR-900 handler
+  tracesTo: STK-08 -> `ui/editor/`
+  description: Markdown editor
+- name: FR-901 handler
+  tracesTo: STK-08 -> `api/editor.rs`, `ui/editor/`
+  description: Doc-engine format validation
+- name: FR-902 handler
+  tracesTo: STK-08 -> `ui/editor/`
+  description: Requirement ID auto-generation
+- name: FR-903 handler
+  tracesTo: STK-08 -> `api/editor.rs`
+  description: SRS save and load

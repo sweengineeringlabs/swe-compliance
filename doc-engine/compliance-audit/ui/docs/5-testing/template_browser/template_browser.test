@@ -1,0 +1,15 @@
+# Test Plan: Template Browser
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/template_browser/template_browser.spec)
+
+## Test Cases
+
+| ID | Test | Verifies | Priority |
+|----|------|----------|----------|
+| TC-001 | FR-600: List templates (Test) | REQ-001 | Should |
+| TC-002 | FR-601: Template preview with W3H structure (Demonstration) | REQ-002 | Should |
+| TC-003 | FR-602: Template copy to project (Test) | REQ-003 | Could |
+| TC-004 | FR-603: Compliance checklist display (Demonstration) | REQ-004 | Should |
+

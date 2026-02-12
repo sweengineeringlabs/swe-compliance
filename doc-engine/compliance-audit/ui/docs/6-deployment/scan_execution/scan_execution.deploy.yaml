@@ -1,0 +1,9 @@
+kind: deployment
+domain: Scan Execution
+section: '4.3'
+specRef: docs/1-requirements/scan_execution/scan_execution.spec.yaml
+environments:
+- name: staging
+  description: Staging environment for Scan Execution validation
+- name: production
+  description: Production environment for Scan Execution

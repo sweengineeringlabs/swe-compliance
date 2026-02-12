@@ -1,0 +1,21 @@
+kind: test_plan
+domain: Security
+section: '5.2'
+specRef: docs/1-requirements/security/security.spec.yaml
+testCases:
+- id: TC-001
+  test: 'NFR-200: Authentication required (Test)'
+  verifies: REQ-001
+  priority: Must
+- id: TC-002
+  test: 'NFR-201: Path traversal prevention (Test)'
+  verifies: REQ-002
+  priority: Must
+- id: TC-003
+  test: 'NFR-202: API key protection (Inspection)'
+  verifies: REQ-003
+  priority: Must
+- id: TC-004
+  test: 'NFR-203: CORS configuration (Inspection)'
+  verifies: REQ-004
+  priority: Must

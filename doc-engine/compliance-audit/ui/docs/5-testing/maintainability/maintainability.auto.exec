@@ -1,0 +1,18 @@
+# Automated Test Execution: Maintainability
+
+> **TLDR:** CI/automated test tracker for Maintainability — maps each test case to a CI job and build.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](maintainability.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Verifies | CI Job | Build | Status | Last Run |
+|----|------|----------|--------|-------|--------|----------|
+| TC-001 | NFR-400: Component-based architecture (Inspection) | REQ-001 | | | Pending | |
+| TC-002 | NFR-401: API-first design (Inspection) | REQ-002 | | | Pending | |
+| TC-003 | NFR-402: Engine version compatibility (Test) | REQ-003 | | | Pending | |
+

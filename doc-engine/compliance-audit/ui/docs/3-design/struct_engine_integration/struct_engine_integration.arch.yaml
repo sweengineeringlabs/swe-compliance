@@ -1,0 +1,14 @@
+kind: architecture
+domain: Struct-Engine Integration
+section: '4.11'
+specRef: docs/1-requirements/struct_engine_integration/struct_engine_integration.spec.yaml
+components:
+- name: FR-1100 handler
+  tracesTo: STK-10 -> `api/scans.rs`, `ui/struct-engine/`
+  description: Struct-engine scan results
+- name: FR-1101 handler
+  tracesTo: STK-10 -> `ui/struct-engine/`
+  description: Crate layout visualization
+- name: FR-1102 handler
+  tracesTo: STK-10 -> `ui/struct-engine/`
+  description: Project kind display

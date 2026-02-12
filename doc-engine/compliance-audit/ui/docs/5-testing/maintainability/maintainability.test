@@ -1,0 +1,14 @@
+# Test Plan: Maintainability
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/maintainability/maintainability.spec)
+
+## Test Cases
+
+| ID | Test | Verifies | Priority |
+|----|------|----------|----------|
+| TC-001 | NFR-400: Component-based architecture (Inspection) | REQ-001 | Must |
+| TC-002 | NFR-401: API-first design (Inspection) | REQ-002 | Must |
+| TC-003 | NFR-402: Engine version compatibility (Test) | REQ-003 | Must |
+

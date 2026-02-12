@@ -1,0 +1,17 @@
+kind: architecture
+domain: Compliance Dashboard
+section: '4.2'
+specRef: docs/1-requirements/compliance_dashboard/compliance_dashboard.spec.yaml
+components:
+- name: FR-200 handler
+  tracesTo: STK-01 -> `ui/dashboard/`
+  description: The dashboard shall display a summary card for each project showing its most recent scan results, allowing at-a-glance compliance assessment across all managed projects.
+- name: FR-201 handler
+  tracesTo: STK-01 -> `ui/dashboard/`
+  description: Category breakdown chart
+- name: FR-202 handler
+  tracesTo: STK-12 -> `ui/dashboard/`, `api/scans.rs`
+  description: Trend over time
+- name: FR-203 handler
+  tracesTo: STK-01, STK-10 -> `ui/dashboard/`
+  description: Multi-engine summary

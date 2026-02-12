@@ -1,0 +1,26 @@
+# Manual Test Execution: Accessibility
+
+> **TLDR:** Manual test checklist for Accessibility — step-by-step procedures with expected outcomes.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](accessibility.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Steps | Expected |
+|----|------|-------|----------|
+| TC-001 | NFR-300: Keyboard navigation (Demonstration) | Using keyboard only (no mouse), Tab through all interactive elements on the dashboard, violation browser, scaffold, and AI pages; press Enter/Space to activate elements; press Escape to close modals | All interactive elements (buttons, links, filters, tree nodes) are reachable via keyboard Tab navigation; Enter/Space activates focused elements; Escape closes modals and panels |
+| TC-002 | NFR-301: Screen reader compatibility (Inspection) | Review `ui/` | All UI components use semantic HTML elements and ARIA attributes; charts provide text alternatives; the violation count and compliance percentage are announced by screen readers |
+
+---
+
+## Execution Log
+
+| TC | Tester | Date | Pass/Fail | Notes |
+|----|--------|------|-----------|-------|
+| TC-001 | | | | |
+| TC-002 | | | | |
+

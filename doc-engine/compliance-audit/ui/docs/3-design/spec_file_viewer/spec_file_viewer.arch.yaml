@@ -1,0 +1,17 @@
+kind: architecture
+domain: Spec File Viewer
+section: '4.10'
+specRef: docs/1-requirements/spec_file_viewer/spec_file_viewer.spec.yaml
+components:
+- name: FR-1000 handler
+  tracesTo: STK-04 -> `api/specs.rs`, `ui/specs/`
+  description: Browse spec files
+- name: FR-1001 handler
+  tracesTo: STK-04 -> `ui/specs/`
+  description: Spec file content view
+- name: FR-1002 handler
+  tracesTo: STK-04 -> `ui/specs/`
+  description: Cross-reference display
+- name: FR-1003 handler
+  tracesTo: STK-04 -> `ui/specs/`
+  description: BRD inventory display

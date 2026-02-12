@@ -1,0 +1,16 @@
+# Test Plan: Project Management
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/project_management/project_management.spec)
+
+## Test Cases
+
+| ID | Test | Verifies | Priority |
+|----|------|----------|----------|
+| TC-001 | FR-100: Create project (Test) | REQ-001 | Must |
+| TC-002 | FR-101: List projects (Test) | REQ-002 | Must |
+| TC-003 | FR-102: Update project configuration (Test) | REQ-003 | Must |
+| TC-004 | FR-103: Delete project (Test) | REQ-004 | Must |
+| TC-005 | FR-104: Project configuration validation (Test) | REQ-005 | Must |
+

@@ -1,0 +1,20 @@
+kind: architecture
+domain: Scaffolding Interface
+section: '4.5'
+specRef: docs/1-requirements/scaffolding_interface/scaffolding_interface.spec.yaml
+components:
+- name: FR-500 handler
+  tracesTo: STK-04 -> `api/scaffold.rs`
+  description: The API shall accept an SRS markdown document, parse it using `doc_engine_scaffold::parse_srs()`, and return the extracted domain/requirement structure for preview.
+- name: FR-501 handler
+  tracesTo: STK-04 -> `ui/scaffold/`
+  description: Scaffold preview
+- name: FR-502 handler
+  tracesTo: STK-04 -> `api/scaffold.rs`
+  description: Execute scaffold
+- name: FR-503 handler
+  tracesTo: STK-04 -> `ui/scaffold/`, `api/scaffold.rs`
+  description: Phase and type filters
+- name: FR-504 handler
+  tracesTo: STK-04 -> `ui/scaffold/`
+  description: Scaffold progress monitoring

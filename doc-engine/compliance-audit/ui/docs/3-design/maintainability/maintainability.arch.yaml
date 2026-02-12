@@ -1,0 +1,14 @@
+kind: architecture
+domain: Maintainability
+section: '5.4'
+specRef: docs/1-requirements/maintainability/maintainability.spec.yaml
+components:
+- name: NFR-400 handler
+  tracesTo: STK-07 -> `ui/`, `api/`
+  description: Component-based architecture
+- name: NFR-401 handler
+  tracesTo: STK-07 -> `api/`
+  description: API-first design
+- name: NFR-402 handler
+  tracesTo: STK-02 -> `Cargo.toml`
+  description: Engine version compatibility

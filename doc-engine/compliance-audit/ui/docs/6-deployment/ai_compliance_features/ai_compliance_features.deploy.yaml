@@ -1,0 +1,9 @@
+kind: deployment
+domain: AI Compliance Features
+section: '4.8'
+specRef: docs/1-requirements/ai_compliance_features/ai_compliance_features.spec.yaml
+environments:
+- name: staging
+  description: Staging environment for AI Compliance Features validation
+- name: production
+  description: Production environment for AI Compliance Features

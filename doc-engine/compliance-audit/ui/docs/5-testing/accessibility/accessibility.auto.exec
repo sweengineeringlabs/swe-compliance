@@ -1,0 +1,17 @@
+# Automated Test Execution: Accessibility
+
+> **TLDR:** CI/automated test tracker for Accessibility — maps each test case to a CI job and build.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](accessibility.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Verifies | CI Job | Build | Status | Last Run |
+|----|------|----------|--------|-------|--------|----------|
+| TC-001 | NFR-300: Keyboard navigation (Demonstration) | REQ-001 | | | Pending | |
+| TC-002 | NFR-301: Screen reader compatibility (Inspection) | REQ-002 | | | Pending | |
+

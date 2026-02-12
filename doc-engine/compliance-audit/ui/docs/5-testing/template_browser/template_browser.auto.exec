@@ -1,0 +1,19 @@
+# Automated Test Execution: Template Browser
+
+> **TLDR:** CI/automated test tracker for Template Browser — maps each test case to a CI job and build.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](template_browser.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Verifies | CI Job | Build | Status | Last Run |
+|----|------|----------|--------|-------|--------|----------|
+| TC-001 | FR-600: List templates (Test) | REQ-001 | | | Pending | |
+| TC-002 | FR-601: Template preview with W3H structure (Demonstration) | REQ-002 | | | Pending | |
+| TC-003 | FR-602: Template copy to project (Test) | REQ-003 | | | Pending | |
+| TC-004 | FR-603: Compliance checklist display (Demonstration) | REQ-004 | | | Pending | |
+

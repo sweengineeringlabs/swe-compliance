@@ -1,0 +1,32 @@
+# Manual Test Execution: Project Management
+
+> **TLDR:** Manual test checklist for Project Management — step-by-step procedures with expected outcomes.
+
+**Version:** 1.0
+**Status:** Pending
+**Test Plan:** [Test Plan](project_management.test)
+
+---
+
+## Test Cases
+
+| TC | Test | Steps | Expected |
+|----|------|-------|----------|
+| TC-001 | FR-100: Create project (Test) | Run `POST /api/v1/projects` | With `{"name": "my-project", "root_path": "/path/to/project", "scope": "medium", "project_type": "open_source"}` returns 201 with a project ID; the project appears in `GET /api/v1/projects` |
+| TC-002 | FR-101: List projects (Test) | Run `GET /api/v1/projects` | Returns a JSON array of project objects with id, name, root_path, scope, project_type, last_scan_timestamp, and compliance_summary fields |
+| TC-003 | FR-102: Update project configuration (Test) | Run `PATCH /api/v1/projects/{id}` | With `{"scope": "large"}` returns 200; subsequent `GET /api/v1/projects/{id}` reflects the updated scope |
+| TC-004 | FR-103: Delete project (Test) | Run `DELETE /api/v1/projects/{id}` | Returns 204; subsequent `GET /api/v1/projects/{id}` returns 404; associated scan history is retained for audit trail |
+| TC-005 | FR-104: Project configuration validation (Test) | Run `POST /api/v1/projects` | With `{"scope": "invalid"}` returns 422 with a validation error message; `root_path` that does not exist on the server returns 422 |
+
+---
+
+## Execution Log
+
+| TC | Tester | Date | Pass/Fail | Notes |
+|----|--------|------|-----------|-------|
+| TC-001 | | | | |
+| TC-002 | | | | |
+| TC-003 | | | | |
+| TC-004 | | | | |
+| TC-005 | | | | |
+

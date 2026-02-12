@@ -1,0 +1,14 @@
+# Test Plan: Struct-Engine Integration
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/struct_engine_integration/struct_engine_integration.spec)
+
+## Test Cases
+
+| ID | Test | Verifies | Priority |
+|----|------|----------|----------|
+| TC-001 | FR-1100: Struct-engine scan results (Test) | REQ-001 | Should |
+| TC-002 | FR-1101: Crate layout visualization (Demonstration) | REQ-002 | Could |
+| TC-003 | FR-1102: Project kind display (Demonstration) | REQ-003 | Should |
+

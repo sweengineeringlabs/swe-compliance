@@ -1,0 +1,14 @@
+kind: architecture
+domain: Reliability
+section: '5.5'
+specRef: docs/1-requirements/reliability/reliability.spec.yaml
+components:
+- name: NFR-500 handler
+  tracesTo: STK-02 -> `api/scans.rs`
+  description: Graceful engine errors
+- name: NFR-501 handler
+  tracesTo: STK-05 -> `api/ai.rs`
+  description: AI graceful degradation
+- name: NFR-502 handler
+  tracesTo: STK-12 -> `api/storage.rs`
+  description: '---'

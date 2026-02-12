@@ -1,0 +1,23 @@
+# Architecture: AI Compliance Features
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/ai_compliance_features/ai_compliance_features.spec)
+
+## Components
+
+| Component | Traces To | Description |
+|-----------|-----------|-------------|
+| FR-800 handler | STK-05 -> `api/ai.rs`, `ui/ai/chat/` | The API proxies chat requests to `ComplianceChat::chat()` from the `doc-engine-compliance-chat` crate. |
+| FR-801 handler | STK-05 -> `api/ws.rs`, `ui/ai/chat/` | Chat streaming |
+| FR-802 handler | STK-05 -> `api/ai.rs` | AI audit execution |
+| FR-803 handler | STK-05 -> `ui/ai/audit/` | AI audit results display |
+| FR-804 handler | STK-05 -> `api/ai.rs` | Command generation |
+| FR-805 handler | STK-05 -> `api/ai.rs`, `ui/ai/` | AI feature availability check |
+
+## Related Documents
+
+- [Feature Spec](../1-requirements/ai_compliance_features/ai_compliance_features.spec)
+- [Test Plan](../5-testing/ai_compliance_features/ai_compliance_features.test)
+- [Deployment](../6-deployment/ai_compliance_features/ai_compliance_features.deploy)
+

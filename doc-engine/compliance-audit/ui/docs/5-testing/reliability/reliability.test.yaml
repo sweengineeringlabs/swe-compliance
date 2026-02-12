@@ -1,0 +1,17 @@
+kind: test_plan
+domain: Reliability
+section: '5.5'
+specRef: docs/1-requirements/reliability/reliability.spec.yaml
+testCases:
+- id: TC-001
+  test: 'NFR-500: Graceful engine errors (Test)'
+  verifies: REQ-001
+  priority: Must
+- id: TC-002
+  test: 'NFR-501: AI graceful degradation (Test)'
+  verifies: REQ-002
+  priority: Must
+- id: TC-003
+  test: 'NFR-502: Data persistence (Test)'
+  verifies: REQ-003
+  priority: Must

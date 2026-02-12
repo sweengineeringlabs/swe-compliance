@@ -1,0 +1,22 @@
+# Architecture: Violation Browser
+
+**Version:** 1.0
+**Status:** Draft
+**Spec:** [Feature Spec](../1-requirements/violation_browser/violation_browser.spec)
+
+## Components
+
+| Component | Traces To | Description |
+|-----------|-----------|-------------|
+| FR-400 handler | STK-03 -> `ui/violations/` | Violation list |
+| FR-401 handler | STK-03 -> `ui/violations/` | Violation filtering |
+| FR-402 handler | STK-03 -> `ui/violations/` | Violation sorting |
+| FR-403 handler | STK-03 -> `ui/violations/` | Fix guidance display |
+| FR-404 handler | STK-03, STK-06 -> `api/scans.rs` | Violation export |
+
+## Related Documents
+
+- [Feature Spec](../1-requirements/violation_browser/violation_browser.spec)
+- [Test Plan](../5-testing/violation_browser/violation_browser.test)
+- [Deployment](../6-deployment/violation_browser/violation_browser.deploy)
+
