@@ -75,6 +75,16 @@ pub fn parse_cargo_toml(root: &Path) -> Result<Option<CargoManifest>, ScanError>
 
     let has_workspace = raw.get("workspace").is_some();
 
+    let workspace_members = raw.get("workspace")
+        .and_then(|w| w.get("members"))
+        .and_then(|m| m.as_array())
+        .map(|arr| {
+            arr.iter()
+                .filter_map(|v| v.as_str().map(String::from))
+                .collect()
+        })
+        .unwrap_or_default();
+
     Ok(Some(CargoManifest {
         raw: Some(raw),
         package_name,
@@ -86,6 +96,7 @@ pub fn parse_cargo_toml(root: &Path) -> Result<Option<CargoManifest>, ScanError>
         examples,
         has_workspace,
         edition,
+        workspace_members,
     }))
 }
 
@@ -203,6 +214,19 @@ harness = false
         assert_eq!(manifest.tests[0].name, "integration");
         assert_eq!(manifest.benches.len(), 1);
         assert_eq!(manifest.benches[0].harness, Some(false));
+    }
+
+    #[test]
+    fn test_parse_workspace_members() {
+        let tmp = TempDir::new().unwrap();
+        std::fs::write(tmp.path().join("Cargo.toml"), r#"
+[workspace]
+members = ["crate-a", "crate-b"]
+"#).unwrap();
+
+        let manifest = parse_cargo_toml(tmp.path()).unwrap().unwrap();
+        assert!(manifest.has_workspace);
+        assert_eq!(manifest.workspace_members, vec!["crate-a".to_string(), "crate-b".to_string()]);
     }
 
     #[test]

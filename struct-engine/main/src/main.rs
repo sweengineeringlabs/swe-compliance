@@ -34,6 +34,10 @@ enum Commands {
         /// Path to custom rules file
         #[arg(long)]
         rules: Option<PathBuf>,
+
+        /// Recursively scan workspace members
+        #[arg(long)]
+        recursive: bool,
     },
 }
 
@@ -104,7 +108,7 @@ fn main() {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::Scan { path, json, checks, kind, rules } => {
+        Commands::Scan { path, json, checks, kind, rules, recursive } => {
             // Canonicalize path early so auto-detection can read Cargo.toml
             let root = match path.canonicalize() {
                 Ok(p) => p,
@@ -143,6 +147,7 @@ fn main() {
                 project_kind: pk,
                 checks: check_ids,
                 rules_path: rules,
+                recursive,
             };
 
             match scan_with_config(&root, &config) {

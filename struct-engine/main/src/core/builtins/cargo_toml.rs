@@ -258,7 +258,7 @@ impl CheckRunner for TestTargetsDeclared {
 
     fn run(&self, ctx: &ScanContext) -> CheckResult {
         // Find .rs files under tests/
-        let test_files: Vec<_> = ctx.files.iter()
+        let test_files: Vec<_> = ctx.files().iter()
             .filter(|f| {
                 let s = f.to_string_lossy().replace('\\', "/");
                 (s.starts_with("tests/") || s.starts_with("tests\\"))
@@ -356,7 +356,7 @@ impl CheckRunner for NoUndeclaredTests {
             .collect();
 
         let mut violations = Vec::new();
-        for file in &ctx.files {
+        for file in ctx.files() {
             let s = file.to_string_lossy().replace('\\', "/");
             if s.starts_with("tests/") && s.ends_with(".rs")
                 && !s.contains("common/") && !s.ends_with("mod.rs")

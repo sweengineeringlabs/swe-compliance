@@ -190,7 +190,7 @@ impl DeclarativeCheck {
             }
         };
 
-        let matching_files: Vec<_> = ctx.files.iter()
+        let matching_files: Vec<_> = ctx.files().iter()
             .filter(|f| glob_re.is_match(&f.to_string_lossy()))
             .collect();
 
@@ -258,7 +258,7 @@ impl DeclarativeCheck {
             None => None,
         };
 
-        let matching_files: Vec<_> = ctx.files.iter()
+        let matching_files: Vec<_> = ctx.files().iter()
             .filter(|f| glob_re.is_match(&f.to_string_lossy()))
             .collect();
 
@@ -316,7 +316,7 @@ impl DeclarativeCheck {
             }
         };
 
-        let matching_files: Vec<_> = ctx.files.iter()
+        let matching_files: Vec<_> = ctx.files().iter()
             .filter(|f| glob_re.is_match(&f.to_string_lossy()))
             .collect();
 
@@ -370,7 +370,7 @@ impl DeclarativeCheck {
             }
         };
 
-        let matching_files: Vec<_> = ctx.files.iter()
+        let matching_files: Vec<_> = ctx.files().iter()
             .filter(|f| {
                 let path_str = f.to_string_lossy();
                 if !glob_re.is_match(&path_str) {
@@ -573,7 +573,7 @@ mod tests {
     fn make_ctx(root: &std::path::Path, files: Vec<std::path::PathBuf>) -> ScanContext {
         ScanContext {
             root: root.to_path_buf(),
-            files,
+            file_index: crate::api::types::FileIndex::from_files(files),
             file_contents: HashMap::new(),
             project_kind: crate::api::types::ProjectKind::Library,
             cargo_manifest: None,
@@ -583,7 +583,7 @@ mod tests {
     fn make_ctx_with_manifest(root: &std::path::Path, manifest: CargoManifest) -> ScanContext {
         ScanContext {
             root: root.to_path_buf(),
-            files: vec![],
+            file_index: crate::api::types::FileIndex::from_files(vec![]),
             file_contents: HashMap::new(),
             project_kind: crate::api::types::ProjectKind::Library,
             cargo_manifest: Some(manifest),
@@ -706,6 +706,7 @@ name = "test"
             examples: vec![],
             has_workspace: false,
             edition: None,
+            workspace_members: vec![],
         };
         let def = make_rule_def(9, RuleType::CargoKeyExists { key: "package.name".to_string() });
         let check = DeclarativeCheck { def };
@@ -731,6 +732,7 @@ name = "test"
             examples: vec![],
             has_workspace: false,
             edition: None,
+            workspace_members: vec![],
         };
         let def = make_rule_def(12, RuleType::CargoKeyExists { key: "package.description".to_string() });
         let check = DeclarativeCheck { def };
@@ -767,6 +769,7 @@ name = "my_package"
             examples: vec![],
             has_workspace: false,
             edition: None,
+            workspace_members: vec![],
         };
         let def = make_rule_def(27, RuleType::CargoKeyMatches {
             key: "package.name".to_string(),
@@ -795,6 +798,7 @@ name = "MyPackage"
             examples: vec![],
             has_workspace: false,
             edition: None,
+            workspace_members: vec![],
         };
         let def = make_rule_def(27, RuleType::CargoKeyMatches {
             key: "package.name".to_string(),

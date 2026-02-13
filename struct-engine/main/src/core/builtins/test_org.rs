@@ -34,7 +34,7 @@ impl CheckRunner for TestFileSuffixes {
             "_security_test.rs",
         ];
 
-        let test_files: Vec<_> = ctx.files.iter()
+        let test_files: Vec<_> = ctx.files().iter()
             .filter(|f| {
                 let s = f.to_string_lossy().replace('\\', "/");
                 (s.starts_with("tests/") || s.starts_with("tests\\"))
@@ -93,7 +93,7 @@ impl CheckRunner for TestFnPrefixes {
             "test_", // standard Rust test prefix
         ];
 
-        let test_files: Vec<_> = ctx.files.iter()
+        let test_files: Vec<_> = ctx.files().iter()
             .filter(|f| {
                 let s = f.to_string_lossy().replace('\\', "/");
                 (s.starts_with("tests/") || s.starts_with("tests\\"))
@@ -150,7 +150,7 @@ impl CheckRunner for TestFnSuffixes {
             "_config", "_state", "_observe",
         ];
 
-        let test_files: Vec<_> = ctx.files.iter()
+        let test_files: Vec<_> = ctx.files().iter()
             .filter(|f| {
                 let s = f.to_string_lossy().replace('\\', "/");
                 (s.starts_with("tests/") || s.starts_with("tests\\"))
@@ -204,7 +204,7 @@ impl CheckRunner for IntTestsLocation {
         let tests_src = ctx.root.join("tests/src");
         if !tests_src.exists() {
             // Check if there are any test files in tests/ that should be in tests/src/
-            let test_files: Vec<_> = ctx.files.iter()
+            let test_files: Vec<_> = ctx.files().iter()
                 .filter(|f| {
                     let s = f.to_string_lossy().replace('\\', "/");
                     s.starts_with("tests/") && s.ends_with(".rs")
@@ -247,7 +247,7 @@ impl CheckRunner for UnitTestsColocated {
         // Look for source files that have code but no #[cfg(test)] module
         let cfg_test_re = Regex::new(r"#\[cfg\(test\)\]").unwrap();
 
-        let source_files: Vec<_> = ctx.files.iter()
+        let source_files: Vec<_> = ctx.files().iter()
             .filter(|f| {
                 let s = f.to_string_lossy().replace('\\', "/");
                 (s.starts_with("src/") || s.starts_with("main/src/"))
@@ -302,7 +302,7 @@ impl CheckRunner for NoTestInSrc {
         let test_attr_re = Regex::new(r"#\[test\]").unwrap();
         let cfg_test_re = Regex::new(r"#\[cfg\(test\)\]").unwrap();
 
-        let source_files: Vec<_> = ctx.files.iter()
+        let source_files: Vec<_> = ctx.files().iter()
             .filter(|f| {
                 let s = f.to_string_lossy().replace('\\', "/");
                 (s.starts_with("src/") || s.starts_with("main/src/"))

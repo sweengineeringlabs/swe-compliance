@@ -9,6 +9,7 @@ pub use crate::api::types::{
     CheckId, CheckResult, ProjectKind, Severity, Violation, ScanContext, ScanError,
     ScanConfig, ScanReport, ScanSummary, CheckEntry, RuleSet, RuleDef, RuleType,
     CargoManifest, BinTarget, TestTarget, BenchTarget, ExampleTarget,
+    MemberReport, FileIndex,
 };
 
 // Re-export detect_project_kind for library consumers

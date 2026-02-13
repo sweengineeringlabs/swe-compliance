@@ -105,12 +105,61 @@ pub enum ProjectKind {
     Workspace,
 }
 
+/// Pre-indexed file lookup for efficient check execution.
+pub struct FileIndex {
+    /// All files (the original flat list).
+    pub all: Vec<PathBuf>,
+    /// Files grouped by extension (e.g. "rs" → [...]).
+    pub by_extension: HashMap<String, Vec<usize>>,
+    /// Files grouped by first directory component (e.g. "src" → [...]).
+    pub by_top_dir: HashMap<String, Vec<usize>>,
+}
+
+impl FileIndex {
+    /// Build a FileIndex from a flat list of relative paths.
+    pub fn from_files(files: Vec<PathBuf>) -> Self {
+        let mut by_extension: HashMap<String, Vec<usize>> = HashMap::new();
+        let mut by_top_dir: HashMap<String, Vec<usize>> = HashMap::new();
+
+        for (i, path) in files.iter().enumerate() {
+            if let Some(ext) = path.extension().and_then(|e| e.to_str()) {
+                by_extension.entry(ext.to_string()).or_default().push(i);
+            }
+            let normalized = path.to_string_lossy().replace('\\', "/");
+            if let Some(first) = normalized.split('/').next() {
+                by_top_dir.entry(first.to_string()).or_default().push(i);
+            }
+        }
+
+        FileIndex { all: files, by_extension, by_top_dir }
+    }
+
+    /// Get all files (backward compat).
+    pub fn files(&self) -> &[PathBuf] {
+        &self.all
+    }
+
+    /// Get files by extension.
+    pub fn with_extension(&self, ext: &str) -> Vec<&PathBuf> {
+        self.by_extension.get(ext)
+            .map(|indices| indices.iter().map(|&i| &self.all[i]).collect())
+            .unwrap_or_default()
+    }
+
+    /// Get files under a top-level directory.
+    pub fn under_dir(&self, dir: &str) -> Vec<&PathBuf> {
+        self.by_top_dir.get(dir)
+            .map(|indices| indices.iter().map(|&i| &self.all[i]).collect())
+            .unwrap_or_default()
+    }
+}
+
 /// Context passed to each CheckRunner during scan.
 pub struct ScanContext {
     /// Absolute path to the project root directory.
     pub root: PathBuf,
-    /// Relative paths of all files discovered under `root`.
-    pub files: Vec<PathBuf>,
+    /// Pre-indexed file lookup.
+    pub file_index: FileIndex,
     /// Cached file contents keyed by path.
     pub file_contents: HashMap<PathBuf, String>,
     /// The project kind used to filter applicable checks.
@@ -119,12 +168,19 @@ pub struct ScanContext {
     pub cargo_manifest: Option<CargoManifest>,
 }
 
+impl ScanContext {
+    /// Get the list of all discovered files (backward compat accessor).
+    pub fn files(&self) -> &[PathBuf] {
+        self.file_index.files()
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Configuration and report types (formerly api::types)
 // ---------------------------------------------------------------------------
 
 /// Configuration for a scan.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct ScanConfig {
     /// The project kind used to filter applicable checks.
     /// `None` means auto-detect from Cargo.toml.
@@ -133,6 +189,19 @@ pub struct ScanConfig {
     pub checks: Option<Vec<u8>>,
     /// Optional path to a custom rules TOML file; `None` uses the built-in rules.
     pub rules_path: Option<PathBuf>,
+    /// Recursively scan workspace members.
+    pub recursive: bool,
+}
+
+impl Default for ScanConfig {
+    fn default() -> Self {
+        ScanConfig {
+            project_kind: None,
+            checks: None,
+            rules_path: None,
+            recursive: false,
+        }
+    }
 }
 
 /// Enriched check entry with metadata.
@@ -169,6 +238,22 @@ pub struct ScanReport {
     /// Aggregate pass/fail/skip counts.
     pub summary: ScanSummary,
     /// The project kind that was used during this scan.
+    pub project_kind: ProjectKind,
+    /// Per-member reports for workspace recursive scans.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub member_reports: Vec<MemberReport>,
+}
+
+/// Report for a single workspace member.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MemberReport {
+    /// Workspace member name (relative path).
+    pub member: String,
+    /// Per-check results for this member.
+    pub results: Vec<CheckEntry>,
+    /// Aggregate pass/fail/skip counts for this member.
+    pub summary: ScanSummary,
+    /// The project kind detected for this member.
     pub project_kind: ProjectKind,
 }
 
@@ -305,6 +390,8 @@ pub struct CargoManifest {
     pub has_workspace: bool,
     /// The `package.edition` value if set.
     pub edition: Option<String>,
+    /// Workspace member paths from `[workspace] members = [...]`.
+    pub workspace_members: Vec<String>,
 }
 
 /// A binary target from `[[bin]]`.

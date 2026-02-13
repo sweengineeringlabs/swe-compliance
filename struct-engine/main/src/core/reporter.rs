@@ -67,6 +67,53 @@ impl Reporter for TextReporter {
             report.summary.skipped,
         ));
 
+        // Render workspace member results
+        if !report.member_reports.is_empty() {
+            output.push_str("\nWorkspace Member Results:\n");
+            output.push_str(&"\u{2550}".repeat(60));
+            output.push('\n');
+
+            for mr in &report.member_reports {
+                output.push_str(&format!("\n## {} ({:?})\n", mr.member, mr.project_kind));
+
+                for entry in &mr.results {
+                    let status = match &entry.result {
+                        CheckResult::Pass => "PASS",
+                        CheckResult::Fail { .. } => "FAIL",
+                        CheckResult::Skip { .. } => "SKIP",
+                    };
+
+                    output.push_str(&format!(
+                        "  [{}] {}: {}\n",
+                        status, entry.id, entry.description
+                    ));
+
+                    if let CheckResult::Fail { violations } = &entry.result {
+                        for v in violations {
+                            let path_str = v.path.as_ref()
+                                .map(|p| p.to_string_lossy().to_string())
+                                .unwrap_or_default();
+                            if path_str.is_empty() {
+                                output.push_str(&format!("    -> {}\n", v.message));
+                            } else {
+                                output.push_str(&format!("    -> {}: {}\n", path_str, v.message));
+                            }
+                        }
+                    }
+
+                    if let CheckResult::Skip { reason } = &entry.result {
+                        output.push_str(&format!("    -> {}\n", reason));
+                    }
+                }
+
+                output.push_str(&format!(
+                    "  {}/{} passed, {} failed, {} skipped\n",
+                    mr.summary.passed, mr.summary.total,
+                    mr.summary.failed, mr.summary.skipped,
+                ));
+            }
+        }
+
         output
     }
 }
@@ -93,6 +140,7 @@ mod tests {
             results: entries,
             summary: ScanSummary { total, passed, failed, skipped },
             project_kind: ProjectKind::Library,
+            member_reports: vec![],
         }
     }
 

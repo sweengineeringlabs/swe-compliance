@@ -188,6 +188,7 @@ fn test_check_filter() {
         project_kind: Some(ProjectKind::Library),
         checks: Some(vec![1, 2, 3]),
         rules_path: None,
+        recursive: false,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     assert_eq!(report.results.len(), 3);
@@ -202,6 +203,7 @@ fn test_structure_checks_pass() {
         project_kind: Some(ProjectKind::Library),
         checks: Some(vec![1, 2, 3]),
         rules_path: None,
+        recursive: false,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     for entry in &report.results {
@@ -219,6 +221,7 @@ fn test_cargo_metadata_checks_pass() {
         project_kind: Some(ProjectKind::Library),
         checks: Some(vec![9, 10, 11, 12, 13]),
         rules_path: None,
+        recursive: false,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     for entry in &report.results {
@@ -236,6 +239,7 @@ fn test_naming_snake_case_pass() {
         project_kind: Some(ProjectKind::Library),
         checks: Some(vec![27]),
         rules_path: None,
+        recursive: false,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     assert!(matches!(report.results[0].result, CheckResult::Pass));
@@ -248,6 +252,7 @@ fn test_hygiene_checks_pass() {
         project_kind: Some(ProjectKind::Library),
         checks: Some(vec![43, 44]),
         rules_path: None,
+        recursive: false,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     for entry in &report.results {
@@ -265,6 +270,7 @@ fn test_documentation_checks() {
         project_kind: Some(ProjectKind::Library),
         checks: Some(vec![39, 42]),
         rules_path: None,
+        recursive: false,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     for entry in &report.results {
@@ -284,6 +290,7 @@ fn test_project_kind_skip() {
         project_kind: Some(ProjectKind::Library),
         checks: Some(vec![4, 5]),
         rules_path: None,
+        recursive: false,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     for entry in &report.results {
@@ -335,6 +342,7 @@ path = "Cargo.toml"
         project_kind: Some(ProjectKind::Library),
         checks: None,
         rules_path: Some(rules_path),
+        recursive: false,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     assert_eq!(report.results.len(), 1);
@@ -350,6 +358,7 @@ fn test_rustboot_project_with_rustboot_rules() {
         project_kind: Some(ProjectKind::Library),
         checks: Some(vec![1, 2, 3, 4, 5]),
         rules_path: Some(rules_path),
+        recursive: false,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     for entry in &report.results {
@@ -369,6 +378,7 @@ fn test_rustboot_naming_check() {
         project_kind: Some(ProjectKind::Library),
         checks: Some(vec![28]),
         rules_path: Some(rules_path),
+        recursive: false,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     assert!(
@@ -385,6 +395,7 @@ fn test_lib_path_check_pass() {
         project_kind: Some(ProjectKind::Library),
         checks: Some(vec![19]),
         rules_path: None,
+        recursive: false,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     assert!(
@@ -401,6 +412,7 @@ fn test_module_names_match_pass() {
         project_kind: Some(ProjectKind::Library),
         checks: Some(vec![31]),
         rules_path: None,
+        recursive: false,
     };
     let report = scan_with_config(tmp.path(), &config).unwrap();
     assert!(

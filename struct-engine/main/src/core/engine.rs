@@ -1,8 +1,10 @@
 use std::collections::HashMap;
 use std::path::Path;
 
+use rayon::prelude::*;
+
 use crate::api::traits::{ComplianceEngine, FileScanner};
-use crate::api::types::{ScanConfig, ScanReport, ScanSummary, CheckEntry, CheckResult, ProjectKind, ScanContext, ScanError};
+use crate::api::types::{ScanConfig, ScanReport, ScanSummary, CheckEntry, CheckResult, ProjectKind, ScanContext, ScanError, FileIndex, MemberReport};
 use super::cargo_manifest;
 use super::rules::{self, DEFAULT_RULES};
 use super::scanner::FileSystemScanner;
@@ -74,9 +76,10 @@ impl ComplianceEngine for StructComplianceEngine {
         let ruleset = rules::parse_rules(&rules_toml)?;
         let registry = rules::build_registry(&ruleset.rules)?;
 
-        // 3. Scanner discovers all files (single traversal)
+        // 3. Scanner discovers all files (single traversal), build FileIndex
         let scanner = FileSystemScanner;
         let files = scanner.scan_files(root);
+        let file_index = FileIndex::from_files(files);
 
         // 4. Parse Cargo.toml for context
         let cargo_manifest = cargo_manifest::parse_cargo_toml(root)
@@ -85,66 +88,96 @@ impl ComplianceEngine for StructComplianceEngine {
         // 5. Create ScanContext
         let ctx = ScanContext {
             root: root.to_path_buf(),
-            files,
+            file_index,
             file_contents: HashMap::new(),
             project_kind: resolved_kind.clone(),
-            cargo_manifest,
+            cargo_manifest: cargo_manifest.clone(),
         };
 
-        // 6. Filter and run checks
-        let mut results = Vec::new();
-        for runner in &registry {
-            let check_id = runner.id().0;
+        // 6. Filter and run checks in parallel via rayon
+        let results: Vec<CheckEntry> = registry
+            .par_iter()
+            .filter_map(|runner| {
+                let check_id = runner.id().0;
 
-            // Filter by --checks if specified
-            if let Some(ref check_ids) = config.checks {
-                if !check_ids.contains(&check_id) {
-                    continue;
-                }
-            }
-
-            // Filter by project_kind: find the matching rule def
-            let rule_def = ruleset.rules.iter().find(|r| r.id == check_id);
-            if let Some(rule) = rule_def {
-                if let Some(ref rule_kind) = rule.project_kind {
-                    if *rule_kind != resolved_kind {
-                        results.push(CheckEntry {
-                            id: runner.id(),
-                            category: runner.category().to_string(),
-                            description: runner.description().to_string(),
-                            result: CheckResult::Skip {
-                                reason: format!(
-                                    "Skipped: requires {:?} project (detected {:?})",
-                                    rule_kind, resolved_kind
-                                ),
-                            },
-                        });
-                        continue;
+                // Filter by --checks if specified
+                if let Some(ref check_ids) = config.checks {
+                    if !check_ids.contains(&check_id) {
+                        return None;
                     }
                 }
-            }
 
-            // 7. Run the check
-            let result = runner.run(&ctx);
-            results.push(CheckEntry {
-                id: runner.id(),
-                category: runner.category().to_string(),
-                description: runner.description().to_string(),
-                result,
-            });
-        }
+                // Filter by project_kind: find the matching rule def
+                let rule_def = ruleset.rules.iter().find(|r| r.id == check_id);
+                if let Some(rule) = rule_def {
+                    if let Some(ref rule_kind) = rule.project_kind {
+                        if *rule_kind != resolved_kind {
+                            return Some(CheckEntry {
+                                id: runner.id(),
+                                category: runner.category().to_string(),
+                                description: runner.description().to_string(),
+                                result: CheckResult::Skip {
+                                    reason: format!(
+                                        "Skipped: requires {:?} project (detected {:?})",
+                                        rule_kind, resolved_kind
+                                    ),
+                                },
+                            });
+                        }
+                    }
+                }
 
-        // 8. Compute summary
+                // Run the check
+                Some(CheckEntry {
+                    id: runner.id(),
+                    category: runner.category().to_string(),
+                    description: runner.description().to_string(),
+                    result: runner.run(&ctx),
+                })
+            })
+            .collect();
+
+        // 7. Compute summary
         let total = results.len() as u8;
         let passed = results.iter().filter(|e| matches!(e.result, CheckResult::Pass)).count() as u8;
         let failed = results.iter().filter(|e| matches!(e.result, CheckResult::Fail { .. })).count() as u8;
         let skipped = results.iter().filter(|e| matches!(e.result, CheckResult::Skip { .. })).count() as u8;
+
+        // 8. Recursive workspace member scanning
+        let member_reports: Vec<MemberReport> = if config.recursive {
+            if let Some(ref manifest) = cargo_manifest {
+                manifest.workspace_members.par_iter()
+                    .filter_map(|member| {
+                        let member_root = root.join(member);
+                        if !member_root.exists() { return None; }
+                        let member_config = ScanConfig {
+                            recursive: false,
+                            ..config.clone()
+                        };
+                        match StructComplianceEngine.scan_with_config(&member_root, &member_config) {
+                            Ok(report) => Some(MemberReport {
+                                member: member.clone(),
+                                results: report.results,
+                                summary: report.summary,
+                                project_kind: report.project_kind,
+                            }),
+                            Err(_) => None,
+                        }
+                    })
+                    .collect()
+            } else {
+                vec![]
+            }
+        } else {
+            vec![]
+        };
 
         // 9. Return ScanReport
         Ok(ScanReport {
             results,
             summary: ScanSummary { total, passed, failed, skipped },
             project_kind: resolved_kind,
+            member_reports,
         })
     }
 }
@@ -182,6 +215,7 @@ mod tests {
             project_kind: Some(ProjectKind::Library),
             checks: Some(vec![1, 2, 3]),
             rules_path: None,
+            recursive: false,
         };
         let report = engine.scan_with_config(tmp.path(), &config).unwrap();
         assert_eq!(report.results.len(), 3);

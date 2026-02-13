@@ -27,7 +27,7 @@ impl CheckRunner for ModuleNamesMatch {
     fn run(&self, ctx: &ScanContext) -> CheckResult {
         let mod_decl_re = Regex::new(r"(?m)^\s*(?:pub\s+)?mod\s+(\w+)\s*;").unwrap();
 
-        let source_files: Vec<_> = ctx.files.iter()
+        let source_files: Vec<_> = ctx.files().iter()
             .filter(|f| {
                 let s = f.to_string_lossy().replace('\\', "/");
                 (s.starts_with("src/") || s.starts_with("main/src/"))
@@ -53,7 +53,7 @@ impl CheckRunner for ModuleNamesMatch {
                 let file_path = parent.join(format!("{}.rs", mod_name));
                 let dir_path = parent.join(mod_name).join("mod.rs");
 
-                let file_exists = ctx.files.iter().any(|f| {
+                let file_exists = ctx.files().iter().any(|f| {
                     let s = f.to_string_lossy().replace('\\', "/");
                     let fp = file_path.to_string_lossy().replace('\\', "/");
                     let dp = dir_path.to_string_lossy().replace('\\', "/");
