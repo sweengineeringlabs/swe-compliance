@@ -285,6 +285,17 @@ impl KafkaProducer {
         }
     }
 
+    /// Create a producer from a [`KafkaConfig`](crate::KafkaConfig).
+    pub fn from_config(config: &crate::config::KafkaConfig) -> Self {
+        Self {
+            broker: config.broker.clone(),
+            topic: config.topic.clone(),
+            client_id: config.client_id.clone(),
+            partition: config.partition,
+            timeout_ms: config.timeout_ms,
+        }
+    }
+
     /// Produce a single message and return the broker-assigned offset.
     pub fn produce(&self, value: &[u8]) -> Result<i64, KafkaError> {
         let correlation_id = 1;

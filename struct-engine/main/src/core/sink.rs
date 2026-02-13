@@ -46,10 +46,8 @@ impl ReportSink for FileSink {
 /// Sends the report as JSON to a Kafka topic via the wire protocol.
 #[cfg(feature = "kafka")]
 pub struct KafkaSink {
-    /// The Kafka broker address (e.g. "localhost:9092").
-    pub broker: String,
-    /// The Kafka topic to publish reports to.
-    pub topic: String,
+    /// The Kafka configuration for this sink.
+    pub config: kafka_sink::KafkaConfig,
 }
 
 #[cfg(feature = "kafka")]
@@ -57,7 +55,7 @@ impl ReportSink for KafkaSink {
     fn emit(&self, report: &ScanReport) -> Result<(), ScanError> {
         let json = serde_json::to_string(report)
             .map_err(|e| ScanError::Config(format!("JSON serialization failed: {}", e)))?;
-        let producer = kafka_sink::KafkaProducer::new(&self.broker, &self.topic);
+        let producer = kafka_sink::KafkaProducer::from_config(&self.config);
         producer.produce(json.as_bytes())
             .map_err(|e| ScanError::Config(format!("Kafka produce failed: {}", e)))?;
         Ok(())
@@ -160,22 +158,26 @@ mod tests {
     #[cfg(feature = "kafka")]
     #[test]
     fn test_kafka_sink_construction() {
-        let sink = super::KafkaSink {
+        let config = kafka_sink::KafkaConfig {
             broker: "localhost:9092".to_string(),
             topic: "test-topic".to_string(),
+            ..kafka_sink::KafkaConfig::default()
         };
-        assert_eq!(sink.broker, "localhost:9092");
-        assert_eq!(sink.topic, "test-topic");
+        let sink = super::KafkaSink { config };
+        assert_eq!(sink.config.broker, "localhost:9092");
+        assert_eq!(sink.config.topic, "test-topic");
     }
 
     #[cfg(feature = "kafka")]
     #[test]
     fn test_kafka_sink_emit_no_broker() {
         use crate::api::traits::ReportSink;
-        let sink = super::KafkaSink {
+        let config = kafka_sink::KafkaConfig {
             broker: "127.0.0.1:1".to_string(),
             topic: "test-topic".to_string(),
+            ..kafka_sink::KafkaConfig::default()
         };
+        let sink = super::KafkaSink { config };
         let report = make_report();
         let result = sink.emit(&report);
         assert!(result.is_err());

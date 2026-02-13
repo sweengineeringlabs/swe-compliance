@@ -7,6 +7,8 @@ use clap::{Parser, Subcommand};
 
 use doc_engine_scan::{scan_with_config, ScanConfig, ProjectScope, ProjectType, StdoutSink, FileSink, ReportFormat};
 use doc_engine_scan::api::traits::ReportSink;
+#[cfg(feature = "kafka")]
+use doc_engine_scan::{KafkaConfig, KafkaSink};
 use doc_engine_scaffold::{scaffold_from_srs, ScaffoldConfig};
 
 #[cfg(feature = "ai")]
@@ -61,6 +63,36 @@ enum Commands {
         /// Save report to file (default: docs/7-operations/compliance/documentation_audit_report_v{version}.json)
         #[arg(long, short)]
         output: Option<PathBuf>,
+
+        /// Path to kafka.toml config file
+        #[cfg(feature = "kafka")]
+        #[arg(long = "kafka-config", value_name = "PATH")]
+        kafka_config: Option<PathBuf>,
+
+        /// Kafka broker address (overrides config/env)
+        #[cfg(feature = "kafka")]
+        #[arg(long = "kafka-broker", value_name = "ADDR")]
+        kafka_broker: Option<String>,
+
+        /// Kafka topic name (overrides config/env)
+        #[cfg(feature = "kafka")]
+        #[arg(long = "kafka-topic", value_name = "TOPIC")]
+        kafka_topic: Option<String>,
+
+        /// Kafka client ID (overrides config/env)
+        #[cfg(feature = "kafka")]
+        #[arg(long = "kafka-client-id", value_name = "ID")]
+        kafka_client_id: Option<String>,
+
+        /// Kafka partition (overrides config/env)
+        #[cfg(feature = "kafka")]
+        #[arg(long = "kafka-partition", value_name = "N")]
+        kafka_partition: Option<i32>,
+
+        /// Kafka produce timeout in ms (overrides config/env)
+        #[cfg(feature = "kafka")]
+        #[arg(long = "kafka-timeout", value_name = "MS")]
+        kafka_timeout: Option<i32>,
     },
     /// AI-powered compliance analysis (requires --features ai)
     #[cfg(feature = "ai")]
@@ -335,7 +367,21 @@ fn main() {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::Scan { path, json, checks, project_type, scope, rules, phase, module, output } => {
+        Commands::Scan {
+            path, json, checks, project_type, scope, rules, phase, module, output,
+            #[cfg(feature = "kafka")]
+            kafka_config,
+            #[cfg(feature = "kafka")]
+            kafka_broker,
+            #[cfg(feature = "kafka")]
+            kafka_topic,
+            #[cfg(feature = "kafka")]
+            kafka_client_id,
+            #[cfg(feature = "kafka")]
+            kafka_partition,
+            #[cfg(feature = "kafka")]
+            kafka_timeout,
+        } => {
             // Canonicalize path early so auto-detection can read LICENSE
             let root = match path.canonicalize() {
                 Ok(p) => p,
@@ -439,6 +485,45 @@ fn main() {
                         process::exit(2);
                     }
                     eprintln!("Report saved to {}", file_sink.path.display());
+
+                    // Kafka sink: emit report if any kafka flag is present
+                    #[cfg(feature = "kafka")]
+                    {
+                        let has_kafka = kafka_config.is_some()
+                            || kafka_broker.is_some()
+                            || kafka_topic.is_some()
+                            || kafka_client_id.is_some()
+                            || kafka_partition.is_some()
+                            || kafka_timeout.is_some();
+
+                        if has_kafka {
+                            // Resolution order: file -> env -> CLI flags
+                            let mut kconfig = match kafka_config {
+                                Some(ref p) => match KafkaConfig::from_file(p) {
+                                    Ok(c) => c,
+                                    Err(e) => {
+                                        eprintln!("Error: {}", e);
+                                        process::exit(2);
+                                    }
+                                },
+                                None => KafkaConfig::default(),
+                            };
+
+                            kconfig.merge_env();
+
+                            if let Some(ref v) = kafka_broker { kconfig.broker = v.clone(); }
+                            if let Some(ref v) = kafka_topic { kconfig.topic = v.clone(); }
+                            if let Some(ref v) = kafka_client_id { kconfig.client_id = v.clone(); }
+                            if let Some(v) = kafka_partition { kconfig.partition = v; }
+                            if let Some(v) = kafka_timeout { kconfig.timeout_ms = v; }
+
+                            let kafka_sink = KafkaSink { config: kconfig };
+                            if let Err(e) = kafka_sink.emit(&report) {
+                                eprintln!("Kafka error: {}", e);
+                                process::exit(2);
+                            }
+                        }
+                    }
 
                     if report.summary.failed > 0 {
                         process::exit(1);

@@ -40,6 +40,7 @@ path = "tests/scaffold_e2e_test.rs"
 [features]
 default = []
 ai = ["dep:doc-engine-compliance-audit", "dep:doc-engine-compliance-chat", "dep:doc-engine-command-generator", "dep:tokio"]
+kafka = ["doc-engine-scan/kafka"]
 
 [dependencies]
 clap = { version = "4", features = ["derive"] }
