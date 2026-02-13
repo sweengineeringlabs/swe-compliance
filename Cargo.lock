@@ -920,6 +920,7 @@ dependencies = [
 name = "doc-engine-scan"
 version = "0.1.0"
 dependencies = [
+ "kafka-sink",
  "regex",
  "serde",
  "serde_json",
@@ -1784,6 +1785,14 @@ dependencies = [
  "serde",
  "serde_json",
  "simple_asn1",
+]
+
+[[package]]
+name = "kafka-sink"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
@@ -3170,6 +3179,7 @@ version = "0.1.0"
 dependencies = [
  "assert_cmd",
  "clap",
+ "kafka-sink",
  "predicates",
  "rayon",
  "regex",
@@ -3211,6 +3221,7 @@ checksum = "b7401a30af6cb5818bb64852270bb722533397edcfc7344954a38f420819ece2"
 name = "swe-compliance-frontend"
 version = "0.1.0"
 dependencies = [
+ "js-sys",
  "rsc-compat",
  "rsc-e2e-test",
  "rsc-macros",

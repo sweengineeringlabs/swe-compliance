@@ -43,6 +43,25 @@ impl ReportSink for FileSink {
     }
 }
 
+/// Sends the report as JSON to a Kafka topic via the wire protocol.
+#[cfg(feature = "kafka")]
+pub struct KafkaSink {
+    pub broker: String,
+    pub topic: String,
+}
+
+#[cfg(feature = "kafka")]
+impl ReportSink for KafkaSink {
+    fn emit(&self, report: &ScanReport) -> Result<(), ScanError> {
+        let json = serde_json::to_string(report)
+            .map_err(|e| ScanError::Config(format!("JSON serialization failed: {}", e)))?;
+        let producer = kafka_sink::KafkaProducer::new(&self.broker, &self.topic);
+        producer.produce(json.as_bytes())
+            .map_err(|e| ScanError::Config(format!("Kafka produce failed: {}", e)))?;
+        Ok(())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -140,5 +159,29 @@ mod tests {
         assert_eq!(deserialized.summary.failed, 0);
 
         let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[cfg(feature = "kafka")]
+    #[test]
+    fn test_kafka_sink_construction() {
+        let sink = super::KafkaSink {
+            broker: "localhost:9092".to_string(),
+            topic: "test-topic".to_string(),
+        };
+        assert_eq!(sink.broker, "localhost:9092");
+        assert_eq!(sink.topic, "test-topic");
+    }
+
+    #[cfg(feature = "kafka")]
+    #[test]
+    fn test_kafka_sink_emit_no_broker() {
+        use crate::api::traits::ReportSink;
+        let sink = super::KafkaSink {
+            broker: "127.0.0.1:1".to_string(),
+            topic: "test-topic".to_string(),
+        };
+        let report = make_report();
+        let result = sink.emit(&report);
+        assert!(result.is_err());
     }
 }
