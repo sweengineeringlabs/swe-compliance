@@ -5,12 +5,25 @@ use regex::Regex;
 use crate::api::traits::CheckRunner;
 use crate::api::types::{RuleDef, CheckId, CheckResult, ScanContext, Violation};
 
-fn make_violation(def: &RuleDef, path: Option<&Path>, message: &str) -> Violation {
+fn make_violation(
+    def: &RuleDef,
+    path: Option<&Path>,
+    message: &str,
+    expected: Option<&str>,
+    actual: Option<&str>,
+    fix_hint: Option<&str>,
+) -> Violation {
     Violation {
         check_id: CheckId(def.id),
         path: path.map(|p| p.to_path_buf()),
         message: message.to_string(),
         severity: def.severity.clone(),
+        rule_type: def.rule_type.to_tag(),
+        expected: expected.map(String::from),
+        actual: actual.map(String::from),
+        fix_hint: fix_hint.map(String::from)
+            .unwrap_or_else(|| def.fix_hint.clone()
+                .unwrap_or_else(|| def.rule_type.auto_fix_hint())),
     }
 }
 
@@ -64,6 +77,9 @@ impl CheckRunner for TestFileSuffixes {
                         filename,
                         valid_suffixes.join(", ")
                     ),
+                    Some(&valid_suffixes.join(", ")),
+                    Some(&filename),
+                    Some("Rename test file with a valid suffix"),
                 ));
             }
         }
@@ -120,6 +136,9 @@ impl CheckRunner for TestFnPrefixes {
                         &self.def,
                         Some(file),
                         &format!("Test function '{}' does not use a valid category prefix", fn_name),
+                        Some(&valid_prefixes.join(", ")),
+                        Some(fn_name),
+                        Some("Rename test function with a valid category prefix (test_, e2e_, security_, etc.)"),
                     ));
                 }
             }
@@ -177,6 +196,9 @@ impl CheckRunner for TestFnSuffixes {
                         &self.def,
                         Some(file),
                         &format!("Test function '{}' does not use a valid scenario suffix", fn_name),
+                        Some(&valid_suffixes.join(", ")),
+                        Some(fn_name),
+                        Some("Rename test function with a valid scenario suffix (_happy, _error, _edge, etc.)"),
                     ));
                 }
             }
@@ -224,6 +246,9 @@ impl CheckRunner for IntTestsLocation {
                     &self.def,
                     Some(file),
                     &format!("Integration test '{}' should be in tests/src/", file.display()),
+                    Some("tests/src/"),
+                    Some(&file.to_string_lossy()),
+                    Some("Move integration test files to tests/src/"),
                 ));
             }
             return CheckResult::Fail { violations };
@@ -276,6 +301,9 @@ impl CheckRunner for UnitTestsColocated {
                     &self.def,
                     Some(file),
                     &format!("Source file '{}' has no colocated #[cfg(test)] module", file.display()),
+                    Some("#[cfg(test)] module"),
+                    Some("missing"),
+                    Some("Add a #[cfg(test)] mod tests { } block to this source file"),
                 ));
             }
         }
@@ -324,6 +352,9 @@ impl CheckRunner for NoTestInSrc {
                     &self.def,
                     Some(file),
                     &format!("Source file '{}' contains #[test] outside of #[cfg(test)]", file.display()),
+                    Some("no #[test] outside #[cfg(test)]"),
+                    Some("#[test] found outside #[cfg(test)]"),
+                    Some("Wrap test functions in a #[cfg(test)] mod tests { } block"),
                 ));
             }
         }

@@ -3,12 +3,25 @@ use std::path::Path;
 use crate::api::traits::CheckRunner;
 use crate::api::types::{RuleDef, CheckId, CheckResult, ScanContext, Violation};
 
-fn make_violation(def: &RuleDef, path: Option<&Path>, message: &str) -> Violation {
+fn make_violation(
+    def: &RuleDef,
+    path: Option<&Path>,
+    message: &str,
+    expected: Option<&str>,
+    actual: Option<&str>,
+    fix_hint: Option<&str>,
+) -> Violation {
     Violation {
         check_id: CheckId(def.id),
         path: path.map(|p| p.to_path_buf()),
         message: message.to_string(),
         severity: def.severity.clone(),
+        rule_type: def.rule_type.to_tag(),
+        expected: expected.map(String::from),
+        actual: actual.map(String::from),
+        fix_hint: fix_hint.map(String::from)
+            .unwrap_or_else(|| def.fix_hint.clone()
+                .unwrap_or_else(|| def.rule_type.auto_fix_hint())),
     }
 }
 
@@ -33,6 +46,9 @@ impl CheckRunner for CrateRootExists {
                     &self.def,
                     Some(Path::new("main/src/")),
                     "Neither main/src/lib.rs nor main/src/main.rs exists",
+                    Some("main/src/lib.rs or main/src/main.rs"),
+                    Some("missing"),
+                    Some("Create main/src/lib.rs for a library or main/src/main.rs for a binary"),
                 )],
             }
         }
@@ -60,6 +76,9 @@ impl CheckRunner for RustbootCrateRootExists {
                     &self.def,
                     Some(Path::new("main/src/")),
                     "Neither main/src/lib.rs nor main/src/main.rs exists",
+                    Some("main/src/lib.rs or main/src/main.rs"),
+                    Some("missing"),
+                    Some("Create main/src/lib.rs for a library or main/src/main.rs for a binary"),
                 )],
             }
         }
@@ -95,6 +114,9 @@ impl CheckRunner for BenchesDirIfDeclared {
                     &self.def,
                     Some(Path::new("benches")),
                     "[[bench]] targets declared but benches/ directory does not exist",
+                    Some("benches/"),
+                    Some("missing"),
+                    Some("Create the benches/ directory for benchmark source files"),
                 )],
             }
         }
@@ -145,6 +167,9 @@ impl CheckRunner for LicenseFieldExists {
                     &self.def,
                     Some(Path::new("Cargo.toml")),
                     "Neither package.license nor package.license-file found in Cargo.toml",
+                    Some("package.license or package.license-file"),
+                    Some("missing"),
+                    Some("Add package.license (e.g. \"MIT\") or package.license-file to Cargo.toml"),
                 )],
             }
         }
@@ -182,6 +207,9 @@ impl CheckRunner for LibPathCorrect {
                             &self.def,
                             Some(Path::new("Cargo.toml")),
                             &format!("[lib] path '{}' does not resolve to an existing file", path),
+                            Some(path),
+                            Some("missing"),
+                            Some(&format!("Create the file '{}' or fix the [lib] path in Cargo.toml", path)),
                         )],
                     }
                 }
@@ -196,6 +224,9 @@ impl CheckRunner for LibPathCorrect {
                             &self.def,
                             Some(Path::new("main/src/lib.rs")),
                             "Default lib path main/src/lib.rs does not exist",
+                            Some("main/src/lib.rs"),
+                            Some("missing"),
+                            Some("Create main/src/lib.rs or set an explicit [lib] path in Cargo.toml"),
                         )],
                     }
                 }
@@ -233,6 +264,9 @@ impl CheckRunner for BinPathCorrect {
                         &self.def,
                         Some(Path::new("Cargo.toml")),
                         &format!("[[bin]] '{}' path '{}' does not resolve to an existing file", bin.name, path),
+                        Some(path),
+                        Some("missing"),
+                        Some(&format!("Create the file '{}' or fix the [[bin]] path for '{}'", path, bin.name)),
                     ));
                 }
             }
@@ -316,6 +350,9 @@ impl CheckRunner for BenchHarnessFalse {
                         &self.def,
                         Some(Path::new("Cargo.toml")),
                         &format!("[[bench]] '{}' does not have harness = false", bench.name),
+                        Some("harness = false"),
+                        Some(&format!("harness = {:?}", bench.harness)),
+                        Some(&format!("Add harness = false to [[bench]] '{}'", bench.name)),
                     ));
                 }
             }
@@ -366,6 +403,9 @@ impl CheckRunner for NoUndeclaredTests {
                     &self.def,
                     Some(file),
                     &format!("Test file '{}' not declared in [[test]]", s),
+                    Some("declared in [[test]]"),
+                    Some("undeclared"),
+                    Some(&format!("Add a [[test]] entry for '{}' in Cargo.toml", s)),
                 ));
             }
         }
@@ -453,6 +493,9 @@ impl CheckRunner for TestPathsResolve {
                         &self.def,
                         Some(Path::new(path.as_str())),
                         &format!("[[test]] '{}' path '{}' does not exist", test.name, path),
+                        Some(path),
+                        Some("missing"),
+                        Some(&format!("Create the file '{}' or fix the [[test]] path for '{}'", path, test.name)),
                     ));
                 }
             }

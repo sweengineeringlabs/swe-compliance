@@ -76,6 +76,11 @@ impl CheckRunner for LinkResolution {
                                 path: Some(file.to_path_buf()),
                                 message: format!("Broken link: '{}' does not exist", target),
                                 severity: self.def.severity.clone(),
+                                rule_type: self.def.rule_type.to_tag(),
+                                expected: None,
+                                actual: None,
+                                fix_hint: self.def.fix_hint.clone()
+                                    .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                             });
                         }
                     }
@@ -87,6 +92,11 @@ impl CheckRunner for LinkResolution {
                                 path: Some(file.to_path_buf()),
                                 message: format!("Broken relative link: '{}' does not exist", target),
                                 severity: self.def.severity.clone(),
+                                rule_type: self.def.rule_type.to_tag(),
+                                expected: None,
+                                actual: None,
+                                fix_hint: self.def.fix_hint.clone()
+                                    .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                             });
                         }
                     }
@@ -123,6 +133,7 @@ mod tests {
             scope: None,
             depends_on: vec![],
             module_filter: None,
+            fix_hint: None,
         }
     }
 

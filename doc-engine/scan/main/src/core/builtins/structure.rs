@@ -54,6 +54,11 @@ impl CheckRunner for ModuleDocsPlural {
                             path: Some(format!("{}/doc", parent).into()),
                             message: format!("Module '{}' uses doc/ (singular); should use docs/", parent),
                             severity: self.def.severity.clone(),
+                            rule_type: self.def.rule_type.to_tag(),
+                            expected: None,
+                            actual: None,
+                            fix_hint: self.def.fix_hint.clone()
+                                .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                         }
                     }).collect();
                     CheckResult::Fail { violations }
@@ -71,6 +76,11 @@ impl CheckRunner for ModuleDocsPlural {
                             path: Some(parent.as_str().into()),
                             message: format!("Module '{}' has both doc/ and docs/", parent),
                             severity: self.def.severity.clone(),
+                            rule_type: self.def.rule_type.to_tag(),
+                            expected: None,
+                            actual: None,
+                            fix_hint: self.def.fix_hint.clone()
+                                .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                         }
                     }).collect();
                     CheckResult::Fail { violations }
@@ -127,6 +137,11 @@ impl CheckRunner for SdlcPhaseNumbering {
                             path: Some(format!("docs/{}", name).into()),
                             message: format!("Phase directory '{}' has number > 7", name),
                             severity: self.def.severity.clone(),
+                            rule_type: self.def.rule_type.to_tag(),
+                            expected: None,
+                            actual: None,
+                            fix_hint: self.def.fix_hint.clone()
+                                .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                         });
                     }
                 }
@@ -149,6 +164,11 @@ impl CheckRunner for SdlcPhaseNumbering {
                                 phase_dirs[i].1, phase_dirs[i - 1].1
                             ),
                             severity: self.def.severity.clone(),
+                            rule_type: self.def.rule_type.to_tag(),
+                            expected: None,
+                            actual: None,
+                            fix_hint: self.def.fix_hint.clone()
+                                .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                         });
                     }
                 }
@@ -205,6 +225,11 @@ impl CheckRunner for ChecklistCompleteness {
                         checkbox_count
                     ),
                     severity: self.def.severity.clone(),
+                    rule_type: self.def.rule_type.to_tag(),
+                    expected: None,
+                    actual: None,
+                    fix_hint: self.def.fix_hint.clone()
+                        .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                 }],
             }
         }
@@ -232,6 +257,11 @@ impl CheckRunner for OpenSourceCommunityFiles {
                     path: Some((*file).into()),
                     message: format!("{} does not exist", file),
                     severity: self.def.severity.clone(),
+                    rule_type: self.def.rule_type.to_tag(),
+                    expected: None,
+                    actual: None,
+                    fix_hint: self.def.fix_hint.clone()
+                        .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                 });
             }
         }
@@ -264,6 +294,11 @@ impl CheckRunner for OpenSourceGithubTemplates {
                 path: Some(".github/ISSUE_TEMPLATE".into()),
                 message: ".github/ISSUE_TEMPLATE/ directory does not exist".to_string(),
                 severity: self.def.severity.clone(),
+                rule_type: self.def.rule_type.to_tag(),
+                expected: None,
+                actual: None,
+                fix_hint: self.def.fix_hint.clone()
+                    .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
             });
         }
 
@@ -273,6 +308,11 @@ impl CheckRunner for OpenSourceGithubTemplates {
                 path: Some(".github/PULL_REQUEST_TEMPLATE.md".into()),
                 message: ".github/PULL_REQUEST_TEMPLATE.md does not exist".to_string(),
                 severity: self.def.severity.clone(),
+                rule_type: self.def.rule_type.to_tag(),
+                expected: None,
+                actual: None,
+                fix_hint: self.def.fix_hint.clone()
+                    .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
             });
         }
 
@@ -315,6 +355,11 @@ impl CheckRunner for TemplatesPopulated {
                     path: Some("docs/templates".into()),
                     message: "docs/templates/ exists but contains no template files".to_string(),
                     severity: self.def.severity.clone(),
+                    rule_type: self.def.rule_type.to_tag(),
+                    expected: None,
+                    actual: None,
+                    fix_hint: self.def.fix_hint.clone()
+                        .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                 }],
             }
         }
@@ -341,6 +386,7 @@ mod tests {
             scope: None,
             depends_on: vec![],
             module_filter: None,
+            fix_hint: None,
         }
     }
 

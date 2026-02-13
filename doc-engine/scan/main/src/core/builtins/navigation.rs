@@ -74,6 +74,11 @@ impl CheckRunner for W3hHub {
                         missing.join(", ")
                     ),
                     severity: self.def.severity.clone(),
+                    rule_type: self.def.rule_type.to_tag(),
+                    expected: None,
+                    actual: None,
+                    fix_hint: self.def.fix_hint.clone()
+                        .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                 }],
             }
         }
@@ -133,6 +138,11 @@ impl CheckRunner for HubLinksPhases {
                     path: Some("docs/README.md".into()),
                     message: format!("Hub does not link to phase directory '{}'", dir),
                     severity: self.def.severity.clone(),
+                    rule_type: self.def.rule_type.to_tag(),
+                    expected: None,
+                    actual: None,
+                    fix_hint: self.def.fix_hint.clone()
+                        .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                 });
             }
         }
@@ -184,6 +194,11 @@ impl CheckRunner for NoDeepLinks {
                         i + 1
                     ),
                     severity: self.def.severity.clone(),
+                    rule_type: self.def.rule_type.to_tag(),
+                    expected: None,
+                    actual: None,
+                    fix_hint: self.def.fix_hint.clone()
+                        .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                 });
             }
         }
@@ -244,6 +259,11 @@ impl CheckRunner for W3hExtended {
                         file_path, missing.join(", ")
                     ),
                     severity: self.def.severity.clone(),
+                    rule_type: self.def.rule_type.to_tag(),
+                    expected: None,
+                    actual: None,
+                    fix_hint: self.def.fix_hint.clone()
+                        .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                 });
             }
         }
@@ -276,6 +296,7 @@ mod tests {
             scope: None,
             depends_on: vec![],
             module_filter: None,
+            fix_hint: None,
         }
     }
 

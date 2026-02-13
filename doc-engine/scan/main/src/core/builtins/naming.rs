@@ -71,6 +71,11 @@ impl CheckRunner for SnakeLowerCase {
                             path: Some(file.to_path_buf()),
                             message: format!("Filename '{}' contains uppercase characters", filename),
                             severity: self.def.severity.clone(),
+                            rule_type: self.def.rule_type.to_tag(),
+                            expected: None,
+                            actual: None,
+                            fix_hint: self.def.fix_hint.clone()
+                                .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                         });
                     }
                 }
@@ -83,6 +88,11 @@ impl CheckRunner for SnakeLowerCase {
                             path: Some(file.to_path_buf()),
                             message: format!("Filename '{}' contains hyphens; use underscores", filename),
                             severity: self.def.severity.clone(),
+                            rule_type: self.def.rule_type.to_tag(),
+                            expected: None,
+                            actual: None,
+                            fix_hint: self.def.fix_hint.clone()
+                                .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                         });
                     }
                 }
@@ -94,6 +104,11 @@ impl CheckRunner for SnakeLowerCase {
                             path: Some(file.to_path_buf()),
                             message: format!("Filename '{}' contains spaces", filename),
                             severity: self.def.severity.clone(),
+                            rule_type: self.def.rule_type.to_tag(),
+                            expected: None,
+                            actual: None,
+                            fix_hint: self.def.fix_hint.clone()
+                                .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                         });
                     }
                 }
@@ -151,6 +166,11 @@ impl CheckRunner for GuideNaming {
                         filename
                     ),
                     severity: self.def.severity.clone(),
+                    rule_type: self.def.rule_type.to_tag(),
+                    expected: None,
+                    actual: None,
+                    fix_hint: self.def.fix_hint.clone()
+                        .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                 });
             }
         }
@@ -195,6 +215,11 @@ impl CheckRunner for TestingFilePlacement {
                         filename
                     ),
                     severity: self.def.severity.clone(),
+                    rule_type: self.def.rule_type.to_tag(),
+                    expected: None,
+                    actual: None,
+                    fix_hint: self.def.fix_hint.clone()
+                        .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                 });
             }
         }
@@ -241,6 +266,11 @@ impl CheckRunner for FrNaming {
                         path_str
                     ),
                     severity: self.def.severity.clone(),
+                    rule_type: self.def.rule_type.to_tag(),
+                    expected: None,
+                    actual: None,
+                    fix_hint: self.def.fix_hint.clone()
+                        .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                 });
             } else if !FR_VALID_RE.is_match(&path_str) {
                 violations.push(Violation {
@@ -251,6 +281,11 @@ impl CheckRunner for FrNaming {
                         path_str
                     ),
                     severity: self.def.severity.clone(),
+                    rule_type: self.def.rule_type.to_tag(),
+                    expected: None,
+                    actual: None,
+                    fix_hint: self.def.fix_hint.clone()
+                        .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                 });
             }
         }
@@ -283,6 +318,7 @@ mod tests {
             scope: None,
             depends_on: vec![],
             module_filter: None,
+            fix_hint: None,
         }
     }
 

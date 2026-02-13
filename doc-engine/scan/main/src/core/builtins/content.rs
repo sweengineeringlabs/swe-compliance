@@ -62,6 +62,11 @@ impl CheckRunner for TldrConditional {
                                 line_count
                             ),
                             severity: self.def.severity.clone(),
+                            rule_type: self.def.rule_type.to_tag(),
+                            expected: None,
+                            actual: None,
+                            fix_hint: self.def.fix_hint.clone()
+                                .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                         });
                     }
                 }
@@ -76,6 +81,11 @@ impl CheckRunner for TldrConditional {
                                 line_count
                             ),
                             severity: self.def.severity.clone(),
+                            rule_type: self.def.rule_type.to_tag(),
+                            expected: None,
+                            actual: None,
+                            fix_hint: self.def.fix_hint.clone()
+                                .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                         });
                     }
                 }
@@ -130,6 +140,11 @@ impl CheckRunner for GlossaryFormat {
                         i + 1
                     ),
                     severity: self.def.severity.clone(),
+                    rule_type: self.def.rule_type.to_tag(),
+                    expected: None,
+                    actual: None,
+                    fix_hint: self.def.fix_hint.clone()
+                        .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                 });
             }
         }
@@ -189,6 +204,11 @@ impl CheckRunner for GlossaryAlphabetized {
                         terms[i], terms[i - 1]
                     ),
                     severity: self.def.severity.clone(),
+                    rule_type: self.def.rule_type.to_tag(),
+                    expected: None,
+                    actual: None,
+                    fix_hint: self.def.fix_hint.clone()
+                        .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                 });
             }
         }
@@ -247,6 +267,11 @@ impl CheckRunner for GlossaryAcronyms {
                                 i + 1, term
                             ),
                             severity: self.def.severity.clone(),
+                            rule_type: self.def.rule_type.to_tag(),
+                            expected: None,
+                            actual: None,
+                            fix_hint: self.def.fix_hint.clone()
+                                .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                         });
                     }
                 }
@@ -300,6 +325,11 @@ impl CheckRunner for ReadmeLineCount {
                         line_count
                     ),
                     severity: self.def.severity.clone(),
+                    rule_type: self.def.rule_type.to_tag(),
+                    expected: None,
+                    actual: None,
+                    fix_hint: self.def.fix_hint.clone()
+                        .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                 }],
             }
         }
@@ -357,6 +387,11 @@ impl CheckRunner for HardcodedPathDetection {
                             m.as_str()
                         ),
                         severity: self.def.severity.clone(),
+                        rule_type: self.def.rule_type.to_tag(),
+                        expected: None,
+                        actual: None,
+                        fix_hint: self.def.fix_hint.clone()
+                            .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                     });
                 }
             }
@@ -390,6 +425,7 @@ mod tests {
             scope: None,
             depends_on: vec![],
             module_filter: None,
+            fix_hint: None,
         }
     }
 

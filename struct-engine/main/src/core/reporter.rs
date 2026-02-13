@@ -49,6 +49,9 @@ impl Reporter for TextReporter {
                         } else {
                             output.push_str(&format!("    -> {}: {}\n", path_str, v.message));
                         }
+                        if !v.fix_hint.is_empty() {
+                            output.push_str(&format!("       Fix: {}\n", v.fix_hint));
+                        }
                     }
                 }
 
@@ -97,6 +100,9 @@ impl Reporter for TextReporter {
                                 output.push_str(&format!("    -> {}\n", v.message));
                             } else {
                                 output.push_str(&format!("    -> {}: {}\n", path_str, v.message));
+                            }
+                            if !v.fix_hint.is_empty() {
+                                output.push_str(&format!("       Fix: {}\n", v.fix_hint));
                             }
                         }
                     }
@@ -178,6 +184,10 @@ mod tests {
                         path: Some("src".into()),
                         message: "violation msg".to_string(),
                         severity: Severity::Error,
+                        rule_type: String::new(),
+                        expected: None,
+                        actual: None,
+                        fix_hint: String::new(),
                     }],
                 },
             },
@@ -250,6 +260,10 @@ mod tests {
                         path: Some("src".into()),
                         message: "bad".to_string(),
                         severity: Severity::Warning,
+                        rule_type: String::new(),
+                        expected: None,
+                        actual: None,
+                        fix_hint: String::new(),
                     }],
                 },
             },

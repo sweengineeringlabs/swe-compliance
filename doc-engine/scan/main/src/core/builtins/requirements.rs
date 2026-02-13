@@ -202,6 +202,11 @@ impl CheckRunner for Srs29148Attributes {
                     path: Some("docs/1-requirements/srs.md".into()),
                     message: "File 'docs/1-requirements/srs.md' does not exist".to_string(),
                     severity: self.def.severity.clone(),
+                    rule_type: self.def.rule_type.to_tag(),
+                    expected: None,
+                    actual: None,
+                    fix_hint: self.def.fix_hint.clone()
+                        .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                 }],
             };
         }
@@ -275,6 +280,11 @@ impl CheckRunner for Srs29148Attributes {
                         if missing.len() > 1 { "s" } else { "" }
                     ),
                     severity: self.def.severity.clone(),
+                    rule_type: self.def.rule_type.to_tag(),
+                    expected: None,
+                    actual: None,
+                    fix_hint: self.def.fix_hint.clone()
+                        .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                 });
             }
         }
@@ -370,6 +380,11 @@ impl CheckRunner for Arch42010Sections {
                             missing.join(", ")
                         ),
                         severity: self.def.severity.clone(),
+                        rule_type: self.def.rule_type.to_tag(),
+                        expected: None,
+                        actual: None,
+                        fix_hint: self.def.fix_hint.clone()
+                            .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                     });
                 }
             }
@@ -394,6 +409,11 @@ impl CheckRunner for Arch42010Sections {
                                 missing.join(", ")
                             ),
                             severity: self.def.severity.clone(),
+                            rule_type: self.def.rule_type.to_tag(),
+                            expected: None,
+                            actual: None,
+                            fix_hint: self.def.fix_hint.clone()
+                                .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                         });
                     }
                 }
@@ -447,6 +467,11 @@ impl CheckRunner for Test29119Sections {
                             missing.join(", ")
                         ),
                         severity: self.def.severity.clone(),
+                        rule_type: self.def.rule_type.to_tag(),
+                        expected: None,
+                        actual: None,
+                        fix_hint: self.def.fix_hint.clone()
+                            .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                     });
                 }
             }
@@ -471,6 +496,11 @@ impl CheckRunner for Test29119Sections {
                                 missing.join(", ")
                             ),
                             severity: self.def.severity.clone(),
+                            rule_type: self.def.rule_type.to_tag(),
+                            expected: None,
+                            actual: None,
+                            fix_hint: self.def.fix_hint.clone()
+                                .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                         });
                     }
                 }
@@ -514,6 +544,11 @@ impl CheckRunner for ProdReadinessExists {
                     path: Some("docs/6-deployment/production_readiness.md".into()),
                     message: "Production readiness document does not exist".to_string(),
                     severity: self.def.severity.clone(),
+                    rule_type: self.def.rule_type.to_tag(),
+                    expected: None,
+                    actual: None,
+                    fix_hint: self.def.fix_hint.clone()
+                        .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                 }],
             }
         }
@@ -563,6 +598,11 @@ impl CheckRunner for ProdReadiness25010Sections {
                                 missing.join(", ")
                             ),
                             severity: self.def.severity.clone(),
+                            rule_type: self.def.rule_type.to_tag(),
+                            expected: None,
+                            actual: None,
+                            fix_hint: self.def.fix_hint.clone()
+                                .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                         }],
                     }
                 }
@@ -618,6 +658,11 @@ impl CheckRunner for ProdReadiness12207Sections {
                                 missing.join(", ")
                             ),
                             severity: self.def.severity.clone(),
+                            rule_type: self.def.rule_type.to_tag(),
+                            expected: None,
+                            actual: None,
+                            fix_hint: self.def.fix_hint.clone()
+                                .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                         }],
                     }
                 }
@@ -672,6 +717,11 @@ impl CheckRunner for ProdReadiness25010SuppSections {
                                 missing.join(", ")
                             ),
                             severity: self.def.severity.clone(),
+                            rule_type: self.def.rule_type.to_tag(),
+                            expected: None,
+                            actual: None,
+                            fix_hint: self.def.fix_hint.clone()
+                                .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                         }],
                     }
                 }
@@ -723,6 +773,11 @@ impl CheckRunner for ProdReadiness25040Sections {
                                 missing.join(", ")
                             ),
                             severity: self.def.severity.clone(),
+                            rule_type: self.def.rule_type.to_tag(),
+                            expected: None,
+                            actual: None,
+                            fix_hint: self.def.fix_hint.clone()
+                                .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                         }],
                     }
                 }
@@ -775,6 +830,11 @@ impl CheckRunner for AuditReport1028Sections {
                                 missing.join(", ")
                             ),
                             severity: self.def.severity.clone(),
+                            rule_type: self.def.rule_type.to_tag(),
+                            expected: None,
+                            actual: None,
+                            fix_hint: self.def.fix_hint.clone()
+                                .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                         }],
                     }
                 }
@@ -826,6 +886,11 @@ impl CheckRunner for TestPlan29119Sections {
                                 missing.join(", ")
                             ),
                             severity: self.def.severity.clone(),
+                            rule_type: self.def.rule_type.to_tag(),
+                            expected: None,
+                            actual: None,
+                            fix_hint: self.def.fix_hint.clone()
+                                .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                         }],
                     }
                 }
@@ -877,6 +942,11 @@ impl CheckRunner for TestDesign29119Sections {
                                 missing.join(", ")
                             ),
                             severity: self.def.severity.clone(),
+                            rule_type: self.def.rule_type.to_tag(),
+                            expected: None,
+                            actual: None,
+                            fix_hint: self.def.fix_hint.clone()
+                                .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                         }],
                     }
                 }
@@ -928,6 +998,11 @@ impl CheckRunner for TestCases29119Sections {
                                 missing.join(", ")
                             ),
                             severity: self.def.severity.clone(),
+                            rule_type: self.def.rule_type.to_tag(),
+                            expected: None,
+                            actual: None,
+                            fix_hint: self.def.fix_hint.clone()
+                                .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                         }],
                     }
                 }
@@ -979,6 +1054,11 @@ impl CheckRunner for VerificationReport29119Sections {
                                 missing.join(", ")
                             ),
                             severity: self.def.severity.clone(),
+                            rule_type: self.def.rule_type.to_tag(),
+                            expected: None,
+                            actual: None,
+                            fix_hint: self.def.fix_hint.clone()
+                                .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                         }],
                     }
                 }
@@ -1033,6 +1113,11 @@ impl CheckRunner for DevGuide26514Sections {
                             missing.join(", ")
                         ),
                         severity: self.def.severity.clone(),
+                        rule_type: self.def.rule_type.to_tag(),
+                        expected: None,
+                        actual: None,
+                        fix_hint: self.def.fix_hint.clone()
+                            .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                     });
                 }
             }
@@ -1057,6 +1142,11 @@ impl CheckRunner for DevGuide26514Sections {
                                 missing.join(", ")
                             ),
                             severity: self.def.severity.clone(),
+                            rule_type: self.def.rule_type.to_tag(),
+                            expected: None,
+                            actual: None,
+                            fix_hint: self.def.fix_hint.clone()
+                                .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                         });
                     }
                 }
@@ -1118,6 +1208,11 @@ impl CheckRunner for BacklogSections {
                                 missing.join(", ")
                             ),
                             severity: self.def.severity.clone(),
+                            rule_type: self.def.rule_type.to_tag(),
+                            expected: None,
+                            actual: None,
+                            fix_hint: self.def.fix_hint.clone()
+                                .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                         }],
                     }
                 }
@@ -1216,6 +1311,11 @@ impl CheckRunner for SrsNoTechDetails {
                                 req_id, attr_name
                             ),
                             severity: self.def.severity.clone(),
+                            rule_type: self.def.rule_type.to_tag(),
+                            expected: None,
+                            actual: None,
+                            fix_hint: self.def.fix_hint.clone()
+                                .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                         });
                         break; // one violation per block
                     }
@@ -1319,6 +1419,11 @@ impl CheckRunner for SrsNoDownstreamRefs {
                                 req_id, attr_name
                             ),
                             severity: self.def.severity.clone(),
+                            rule_type: self.def.rule_type.to_tag(),
+                            expected: None,
+                            actual: None,
+                            fix_hint: self.def.fix_hint.clone()
+                                .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                         });
                         break; // one violation per block
                     }
@@ -1354,6 +1459,7 @@ mod tests {
             scope: None,
             depends_on: vec![],
             module_filter: None,
+            fix_hint: None,
         }
     }
 
@@ -1586,6 +1692,7 @@ mod tests {
             scope: None,
             depends_on: vec![],
             module_filter: None,
+            fix_hint: None,
         }
     }
 
@@ -1690,6 +1797,7 @@ mod tests {
             scope: None,
             depends_on: vec![],
             module_filter: None,
+            fix_hint: None,
         }
     }
 
@@ -1891,6 +1999,7 @@ mod tests {
             scope: None,
             depends_on: vec![],
             module_filter: None,
+            fix_hint: None,
         }
     }
 
@@ -1935,6 +2044,7 @@ mod tests {
             scope: None,
             depends_on: vec![],
             module_filter: None,
+            fix_hint: None,
         }
     }
 
@@ -2063,6 +2173,7 @@ mod tests {
             scope: None,
             depends_on: vec![],
             module_filter: None,
+            fix_hint: None,
         }
     }
 
@@ -2170,6 +2281,7 @@ mod tests {
             scope: None,
             depends_on: vec![],
             module_filter: None,
+            fix_hint: None,
         }
     }
 
@@ -2355,6 +2467,7 @@ mod tests {
             scope: None,
             depends_on: vec![],
             module_filter: None,
+            fix_hint: None,
         }
     }
 
@@ -2489,6 +2602,7 @@ mod tests {
             scope: None,
             depends_on: vec![],
             module_filter: None,
+            fix_hint: None,
         }
     }
 
@@ -2618,6 +2732,7 @@ mod tests {
             scope: None,
             depends_on: vec![],
             module_filter: None,
+            fix_hint: None,
         }
     }
 
@@ -2742,6 +2857,7 @@ mod tests {
             scope: None,
             depends_on: vec![],
             module_filter: None,
+            fix_hint: None,
         }
     }
 
@@ -2833,6 +2949,7 @@ mod tests {
             scope: None,
             depends_on: vec![],
             module_filter: None,
+            fix_hint: None,
         }
     }
 
@@ -2918,6 +3035,7 @@ mod tests {
             scope: None,
             depends_on: vec![],
             module_filter: None,
+            fix_hint: None,
         }
     }
 
@@ -3003,6 +3121,7 @@ mod tests {
             scope: None,
             depends_on: vec![],
             module_filter: None,
+            fix_hint: None,
         }
     }
 
@@ -3088,6 +3207,7 @@ mod tests {
             scope: None,
             depends_on: vec![],
             module_filter: None,
+            fix_hint: None,
         }
     }
 
@@ -3172,6 +3292,7 @@ mod tests {
             scope: None,
             depends_on: vec![89],
             module_filter: None,
+            fix_hint: None,
         }
     }
 
@@ -3325,6 +3446,7 @@ mod tests {
             scope: None,
             depends_on: vec![89],
             module_filter: None,
+            fix_hint: None,
         }
     }
 

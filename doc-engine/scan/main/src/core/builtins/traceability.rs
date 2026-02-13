@@ -97,6 +97,11 @@ impl CheckRunner for PhaseArtifactPresence {
                         dir, expected
                     ),
                     severity: self.def.severity.clone(),
+                    rule_type: self.def.rule_type.to_tag(),
+                    expected: None,
+                    actual: None,
+                    fix_hint: self.def.fix_hint.clone()
+                        .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                 });
             }
         }
@@ -160,6 +165,11 @@ impl CheckRunner for DesignTracesRequirements {
                         file.display()
                     ),
                     severity: self.def.severity.clone(),
+                    rule_type: self.def.rule_type.to_tag(),
+                    expected: None,
+                    actual: None,
+                    fix_hint: self.def.fix_hint.clone()
+                        .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                 });
             }
         }
@@ -221,6 +231,11 @@ impl CheckRunner for PlanTracesDesign {
                         file.display()
                     ),
                     severity: self.def.severity.clone(),
+                    rule_type: self.def.rule_type.to_tag(),
+                    expected: None,
+                    actual: None,
+                    fix_hint: self.def.fix_hint.clone()
+                        .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                 });
             }
         }
@@ -268,6 +283,11 @@ impl CheckRunner for BacklogTracesRequirements {
                     path: Some("docs/2-planning/backlog.md".into()),
                     message: "Backlog does not reference requirements (expected: srs.md, requirements.md, FR-N, STK-N, SRS, 1-requirements, or BL-N)".to_string(),
                     severity: self.def.severity.clone(),
+                    rule_type: self.def.rule_type.to_tag(),
+                    expected: None,
+                    actual: None,
+                    fix_hint: self.def.fix_hint.clone()
+                        .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                 }],
             }
         }
@@ -294,6 +314,7 @@ mod tests {
             scope: None,
             depends_on: vec![],
             module_filter: None,
+            fix_hint: None,
         }
     }
 

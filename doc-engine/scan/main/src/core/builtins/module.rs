@@ -159,6 +159,11 @@ impl CheckRunner for ModuleReadmeW3h {
                         m.name, missing.join(", ")
                     ),
                     severity: self.def.severity.clone(),
+                    rule_type: self.def.rule_type.to_tag(),
+                    expected: None,
+                    actual: None,
+                    fix_hint: self.def.fix_hint.clone()
+                        .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                 });
             }
         }
@@ -205,6 +210,11 @@ impl CheckRunner for ModuleExamplesTests {
                             path: Some(m.path.join("examples")),
                             message: format!("Module '{}' missing examples/ directory with files", m.name),
                             severity: self.def.severity.clone(),
+                            rule_type: self.def.rule_type.to_tag(),
+                            expected: None,
+                            actual: None,
+                            fix_hint: self.def.fix_hint.clone()
+                                .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                         });
                     }
                 }
@@ -217,6 +227,11 @@ impl CheckRunner for ModuleExamplesTests {
                             path: Some(m.path.join("tests")),
                             message: format!("Module '{}' missing tests/ directory with files", m.name),
                             severity: self.def.severity.clone(),
+                            rule_type: self.def.rule_type.to_tag(),
+                            expected: None,
+                            actual: None,
+                            fix_hint: self.def.fix_hint.clone()
+                                .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                         });
                     }
                 }
@@ -262,6 +277,11 @@ impl CheckRunner for ModuleToolchainDocs {
                     path: Some(m.path.join("docs/3-design/toolchain.md")),
                     message: format!("Module '{}' missing docs/3-design/toolchain.md", m.name),
                     severity: self.def.severity.clone(),
+                    rule_type: self.def.rule_type.to_tag(),
+                    expected: None,
+                    actual: None,
+                    fix_hint: self.def.fix_hint.clone()
+                        .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                 });
             }
         }
@@ -315,6 +335,11 @@ impl CheckRunner for ModuleDeploymentDocs {
                             m.name, file
                         ),
                         severity: self.def.severity.clone(),
+                        rule_type: self.def.rule_type.to_tag(),
+                        expected: None,
+                        actual: None,
+                        fix_hint: self.def.fix_hint.clone()
+                            .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
                     });
                 }
             }
@@ -359,6 +384,7 @@ mod tests {
             scope: None,
             depends_on: vec![],
             module_filter: None,
+            fix_hint: None,
         }
     }
 

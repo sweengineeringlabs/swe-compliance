@@ -43,6 +43,18 @@ pub struct Violation {
     pub message: String,
     /// Severity level of this violation.
     pub severity: Severity,
+    /// Machine-readable rule type tag (e.g. `"file_exists"`, `"builtin:module_docs_plural"`).
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub rule_type: String,
+    /// What the rule expected (e.g. a path, pattern, or key).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub expected: Option<String>,
+    /// What was actually found (e.g. `"missing"`, an actual value).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub actual: Option<String>,
+    /// Actionable remediation hint.
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub fix_hint: String,
 }
 
 /// Outcome of running a single check.
@@ -263,6 +275,8 @@ pub struct RuleDef {
     pub depends_on: Vec<u8>,
     /// Optional per-rule module name filter from rules.toml.
     pub module_filter: Option<Vec<String>>,
+    /// Optional custom fix hint from TOML; overrides auto-generated hint.
+    pub fix_hint: Option<String>,
 }
 
 /// The type of a rule -- declarative or builtin.
@@ -336,6 +350,54 @@ pub enum RuleType {
         /// Name of the builtin handler function.
         handler: String,
     },
+}
+
+impl RuleType {
+    /// Return a stable machine-readable tag for this rule type.
+    pub fn to_tag(&self) -> String {
+        match self {
+            RuleType::FileExists { .. } => "file_exists".to_string(),
+            RuleType::DirExists { .. } => "dir_exists".to_string(),
+            RuleType::DirNotExists { .. } => "dir_not_exists".to_string(),
+            RuleType::FileContentMatches { .. } => "file_content_matches".to_string(),
+            RuleType::FileContentNotMatches { .. } => "file_content_not_matches".to_string(),
+            RuleType::GlobContentMatches { .. } => "glob_content_matches".to_string(),
+            RuleType::GlobContentNotMatches { .. } => "glob_content_not_matches".to_string(),
+            RuleType::GlobNamingMatches { .. } => "glob_naming_matches".to_string(),
+            RuleType::GlobNamingNotMatches { .. } => "glob_naming_not_matches".to_string(),
+            RuleType::Builtin { handler } => format!("builtin:{}", handler),
+        }
+    }
+
+    /// Return a default remediation hint derived from this rule type.
+    pub fn auto_fix_hint(&self) -> String {
+        match self {
+            RuleType::FileExists { path } => format!("Create the file '{}'", path),
+            RuleType::DirExists { path } => format!("Create the directory '{}'", path),
+            RuleType::DirNotExists { path, .. } => format!("Remove the directory '{}'", path),
+            RuleType::FileContentMatches { path, pattern } => {
+                format!("Update '{}' so its content matches pattern '{}'", path, pattern)
+            }
+            RuleType::FileContentNotMatches { path, pattern } => {
+                format!("Remove content matching '{}' from '{}'", pattern, path)
+            }
+            RuleType::GlobContentMatches { glob, pattern } => {
+                format!("Ensure files matching '{}' contain pattern '{}'", glob, pattern)
+            }
+            RuleType::GlobContentNotMatches { glob, pattern, .. } => {
+                format!("Remove content matching '{}' from files matching '{}'", pattern, glob)
+            }
+            RuleType::GlobNamingMatches { glob, pattern } => {
+                format!("Rename files matching '{}' to conform to pattern '{}'", glob, pattern)
+            }
+            RuleType::GlobNamingNotMatches { glob, pattern, .. } => {
+                format!("Rename files matching '{}' so they no longer match pattern '{}'", glob, pattern)
+            }
+            RuleType::Builtin { handler } => {
+                format!("Fix the issue detected by builtin check '{}'", handler)
+            }
+        }
+    }
 }
 
 #[cfg(test)]

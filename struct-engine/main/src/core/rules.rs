@@ -30,6 +30,7 @@ struct RawRule {
     message: Option<String>,
     project_kind: Option<String>,
     key: Option<String>,
+    fix_hint: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -167,6 +168,7 @@ fn convert_raw_rule(raw: RawRule) -> Result<RuleDef, ScanError> {
         severity,
         rule_type,
         project_kind,
+        fix_hint: raw.fix_hint,
     })
 }
 
@@ -318,6 +320,7 @@ type = "cargo_key_exists"
             severity: Severity::Error,
             rule_type: RuleType::FileExists { path: "Cargo.toml".to_string() },
             project_kind: None,
+            fix_hint: None,
         }];
         let reg = build_registry(&rules).unwrap();
         assert_eq!(reg.len(), 1);
@@ -333,6 +336,7 @@ type = "cargo_key_exists"
             severity: Severity::Error,
             rule_type: RuleType::Builtin { handler: "crate_root_exists".to_string() },
             project_kind: None,
+            fix_hint: None,
         }];
         let reg = build_registry(&rules).unwrap();
         assert_eq!(reg.len(), 1);
@@ -348,6 +352,7 @@ type = "cargo_key_exists"
             severity: Severity::Error,
             rule_type: RuleType::Builtin { handler: "nonexistent".to_string() },
             project_kind: None,
+            fix_hint: None,
         }];
         let result = build_registry(&rules);
         assert!(result.is_err());
@@ -363,6 +368,7 @@ type = "cargo_key_exists"
                 severity: Severity::Error,
                 rule_type: RuleType::FileExists { path: "x".to_string() },
                 project_kind: None,
+                fix_hint: None,
             },
             RuleDef {
                 id: 1,
@@ -371,6 +377,7 @@ type = "cargo_key_exists"
                 severity: Severity::Error,
                 rule_type: RuleType::DirExists { path: "y".to_string() },
                 project_kind: None,
+                fix_hint: None,
             },
         ];
         let reg = build_registry(&rules).unwrap();

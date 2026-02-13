@@ -47,12 +47,23 @@ impl CheckRunner for DeclarativeCheck {
 }
 
 impl DeclarativeCheck {
-    fn make_violation(&self, path: Option<&Path>, message: &str) -> Violation {
+    fn make_violation(
+        &self,
+        path: Option<&Path>,
+        message: &str,
+        expected: Option<&str>,
+        actual: Option<&str>,
+    ) -> Violation {
         Violation {
             check_id: CheckId(self.def.id),
             path: path.map(|p| p.to_path_buf()),
             message: message.to_string(),
             severity: self.def.severity.clone(),
+            rule_type: self.def.rule_type.to_tag(),
+            expected: expected.map(String::from),
+            actual: actual.map(String::from),
+            fix_hint: self.def.fix_hint.clone()
+                .unwrap_or_else(|| self.def.rule_type.auto_fix_hint()),
         }
     }
 
@@ -65,6 +76,8 @@ impl DeclarativeCheck {
                 violations: vec![self.make_violation(
                     Some(Path::new(path)),
                     &format!("File '{}' does not exist", path),
+                    Some(path),
+                    Some("missing"),
                 )],
             }
         }
@@ -79,6 +92,8 @@ impl DeclarativeCheck {
                 violations: vec![self.make_violation(
                     Some(Path::new(path)),
                     &format!("Directory '{}' does not exist", path),
+                    Some(path),
+                    Some("missing"),
                 )],
             }
         }
@@ -88,7 +103,12 @@ impl DeclarativeCheck {
         let full = ctx.root.join(path);
         if full.exists() && full.is_dir() {
             CheckResult::Fail {
-                violations: vec![self.make_violation(Some(Path::new(path)), message)],
+                violations: vec![self.make_violation(
+                    Some(Path::new(path)),
+                    message,
+                    Some("absent"),
+                    Some(path),
+                )],
             }
         } else {
             CheckResult::Pass
@@ -128,6 +148,8 @@ impl DeclarativeCheck {
                 violations: vec![self.make_violation(
                     Some(Path::new(path)),
                     &format!("File '{}' does not match pattern '{}'", path, pattern),
+                    Some(pattern),
+                    Some("no match"),
                 )],
             }
         }
@@ -162,6 +184,8 @@ impl DeclarativeCheck {
                 violations: vec![self.make_violation(
                     Some(Path::new(path)),
                     &format!("File '{}' contains forbidden pattern '{}'", path, pattern),
+                    Some("no match"),
+                    Some("matched"),
                 )],
             }
         } else {
@@ -205,9 +229,12 @@ impl DeclarativeCheck {
             };
 
             if !content_re.is_match(&content) {
+                let file_name = file.to_string_lossy();
                 violations.push(self.make_violation(
                     Some(file),
                     &format!("File does not match pattern '{}'", pattern),
+                    Some(pattern),
+                    Some(&format!("no match in {}", file_name)),
                 ));
             }
         }
@@ -280,9 +307,12 @@ impl DeclarativeCheck {
                             continue;
                         }
                     }
+                    let file_name = file.to_string_lossy();
                     violations.push(self.make_violation(
                         Some(file),
                         &format!("File contains forbidden pattern '{}'", pattern),
+                        Some("no match"),
+                        Some(&format!("matched in {}", file_name)),
                     ));
                     break; // one violation per file
                 }
@@ -333,6 +363,8 @@ impl DeclarativeCheck {
                 violations.push(self.make_violation(
                     Some(file),
                     &format!("Filename '{}' does not match pattern '{}'", filename, pattern),
+                    Some(pattern),
+                    Some(&filename),
                 ));
             }
         }
@@ -400,7 +432,12 @@ impl DeclarativeCheck {
             if name_re.is_match(&filename) {
                 let msg = self.def.rule_type.custom_message()
                     .unwrap_or_else(|| format!("Filename '{}' matches forbidden pattern '{}'", filename, pattern));
-                violations.push(self.make_violation(Some(file), &msg));
+                violations.push(self.make_violation(
+                    Some(file),
+                    &msg,
+                    Some(&format!("not matching {}", pattern)),
+                    Some(&filename),
+                ));
             }
         }
 
@@ -487,6 +524,7 @@ mod tests {
             scope: None,
             depends_on: vec![],
             module_filter: None,
+            fix_hint: None,
         }
     }
 

@@ -5,12 +5,25 @@ use regex::Regex;
 use crate::api::traits::CheckRunner;
 use crate::api::types::{RuleDef, CheckId, CheckResult, ScanContext, Violation};
 
-fn make_violation(def: &RuleDef, path: Option<&Path>, message: &str) -> Violation {
+fn make_violation(
+    def: &RuleDef,
+    path: Option<&Path>,
+    message: &str,
+    expected: Option<&str>,
+    actual: Option<&str>,
+    fix_hint: Option<&str>,
+) -> Violation {
     Violation {
         check_id: CheckId(def.id),
         path: path.map(|p| p.to_path_buf()),
         message: message.to_string(),
         severity: def.severity.clone(),
+        rule_type: def.rule_type.to_tag(),
+        expected: expected.map(String::from),
+        actual: actual.map(String::from),
+        fix_hint: fix_hint.map(String::from)
+            .unwrap_or_else(|| def.fix_hint.clone()
+                .unwrap_or_else(|| def.rule_type.auto_fix_hint())),
     }
 }
 
@@ -71,6 +84,9 @@ impl CheckRunner for ModuleNamesMatch {
                             mod_name,
                             mod_name
                         ),
+                        Some(&format!("{}.rs or {}/mod.rs", mod_name, mod_name)),
+                        Some("missing"),
+                        Some(&format!("Create '{}.rs' or '{}/mod.rs'", mod_name, mod_name)),
                     ));
                 }
             }
@@ -116,6 +132,9 @@ impl CheckRunner for BinNamesValid {
                         "Binary name '{}' should use only lowercase letters, digits, hyphens, or underscores",
                         bin.name
                     ),
+                    Some("^[a-z][a-z0-9_-]*$"),
+                    Some(&bin.name),
+                    Some("Rename binary to use lowercase, digits, hyphens, or underscores"),
                 ));
             }
         }

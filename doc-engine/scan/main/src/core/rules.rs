@@ -33,6 +33,7 @@ struct RawRule {
     scope: Option<String>,
     depends_on: Option<Vec<u8>>,
     module_filter: Option<Vec<String>>,
+    fix_hint: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -166,6 +167,7 @@ fn convert_raw_rule(raw: RawRule) -> Result<RuleDef, ScanError> {
         scope,
         depends_on: raw.depends_on.unwrap_or_default(),
         module_filter: raw.module_filter,
+        fix_hint: raw.fix_hint,
     })
 }
 
@@ -460,6 +462,7 @@ path = "x"
             scope: None,
             depends_on: vec![],
             module_filter: None,
+            fix_hint: None,
         }];
         let reg = build_registry(&rules).unwrap();
         assert_eq!(reg.len(), 1);
@@ -478,6 +481,7 @@ path = "x"
             scope: None,
             depends_on: vec![],
             module_filter: None,
+            fix_hint: None,
         }];
         let reg = build_registry(&rules).unwrap();
         assert_eq!(reg.len(), 1);
@@ -496,6 +500,7 @@ path = "x"
             scope: None,
             depends_on: vec![],
             module_filter: None,
+            fix_hint: None,
         }];
         let result = build_registry(&rules);
         assert!(result.is_err());
@@ -515,6 +520,7 @@ path = "x"
                 scope: None,
                 depends_on: vec![],
                 module_filter: None,
+                fix_hint: None,
             },
             RuleDef {
                 id: 1,
@@ -526,6 +532,7 @@ path = "x"
                 scope: None,
                 depends_on: vec![],
                 module_filter: None,
+                fix_hint: None,
             },
         ];
         let reg = build_registry(&rules).unwrap();
