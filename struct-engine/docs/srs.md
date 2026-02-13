@@ -4,7 +4,7 @@
 
 ## TLDR
 
-This SRS defines requirements for struct-engine, a Rust CLI tool and library that audits Rust project structure against configurable compliance rules. It enforces the `{main,tests}` layout, SEA layering, Cargo target paths, naming conventions, test organization, documentation, hygiene, umbrella workspace validation, and optional directory placement. The engine currently supports 44 checks across 7 categories with a target of ~59 checks across 10 categories. It covers stakeholder needs, functional requirements for rule evaluation and reporting, non-functional requirements for performance and extensibility, and traceability from stakeholder goals to implementation modules.
+This SRS defines requirements for struct-engine, a Rust CLI tool and library that audits Rust project structure against configurable compliance rules. It enforces the `{main,tests}` layout, SEA layering, Cargo target paths, naming conventions, test organization, documentation, hygiene, umbrella workspace validation, and optional directory placement. The engine currently supports 44 checks across 7 categories with a target of ~59 checks across 10 categories. It supports recursive workspace member scanning with parallel check execution via `rayon`, uses a `FileIndex` for efficient indexed file lookups, and emits reports through a pluggable `ReportSink` SPI (stdout, file, or Kafka). Violations carry machine-actionable remediation fields (`rule_type`, `expected`, `actual`, `fix_hint`) for automated fix workflows. It covers stakeholder needs, functional requirements for rule evaluation, reporting, workspace scanning, and report sinking, non-functional requirements for performance and extensibility, and traceability from stakeholder goals to implementation modules.
 
 **Version**: 1.0
 **Date**: 2026-02-10
@@ -23,8 +23,12 @@ This SRS defines the stakeholder, system, and software requirements for **struct
 struct-engine is a single-crate Rust project within the `swe-compliance` workspace. It:
 
 - Scans any Rust project directory for structural compliance
+- Recursively scans workspace members when `--recursive` is enabled, producing per-member reports
 - Sources rules from a TOML configuration file (declarative + builtin handlers)
-- Reports results as text or JSON
+- Uses a `FileIndex` for O(1) lookups by file extension or top-level directory
+- Executes checks in parallel via `rayon` for faster compliance audits
+- Reports results as text or JSON via pluggable `ReportSink` implementations (stdout, file, Kafka)
+- Produces enriched `Violation` records with machine-actionable remediation fields (`rule_type`, `expected`, `actual`, `fix_hint`)
 - Is usable as both a CLI binary and a Rust library
 - Auto-detects project kind (library, binary, both, workspace) from `Cargo.toml`
 
@@ -46,6 +50,16 @@ struct-engine does **not**:
 | **Project kind** | Auto-detected type: Library, Binary, Both, or Workspace |
 | **Umbrella** | A virtual workspace (`[workspace]` only, no `[package]`) grouping 2+ sub-crates |
 | **Compliance check** | A single rule that produces Pass, Fail (with violations), or Skip |
+| **FileIndex** | A pre-indexed file lookup structure built from a single directory walk; provides O(1) access by extension or top-level directory |
+| **MemberReport** | A per-workspace-member scan result containing the member name, check results, summary counts, and detected project kind |
+| **ReportSink** | A trait (`fn emit(&self, report: &ScanReport) -> Result<(), ScanError>`) for pluggable report destinations; implementations include `StdoutSink`, `FileSink`, and `KafkaSink` |
+| **StdoutSink** | A `ReportSink` implementation that writes the scan report to stdout in a configurable format (text or JSON) |
+| **FileSink** | A `ReportSink` implementation that writes the scan report as pretty-printed JSON to a file, creating parent directories as needed |
+| **KafkaSink** | A `ReportSink` implementation (feature-gated behind `kafka`) that sends the scan report as JSON to a Kafka topic via the wire protocol |
+| **ReportFormat** | An enum (`Text`, `Json`) that controls how `StdoutSink` formats the scan report |
+| **swe-messaging** | An external Rust crate providing Kafka wire protocol producer, CRC32, and `KafkaConfig` types; consumed as an optional dependency via the `kafka` feature flag |
+| **KafkaConfig** | A configuration struct from `swe-messaging` supporting three-layer resolution: configuration file, environment variables, and CLI arguments |
+| **Remediation fields** | Machine-actionable fields on the `Violation` struct (`rule_type`, `expected`, `actual`, `fix_hint`) that enable automated fix workflows and rich violation display |
 
 ### 1.4 References
 
@@ -62,10 +76,10 @@ struct-engine does **not**:
 
 | Stakeholder | Role | Needs |
 |-------------|------|-------|
-| Developer | Runs scans during local development | Fast feedback on structure compliance, clear violation messages |
-| Architect | Audits projects, defines structure standards | Customizable rules, comprehensive coverage of layout/naming/SEA conventions |
-| CI system | Automated gate in pipeline | JSON output, deterministic exit codes, non-interactive |
-| Library consumer | Integrates scanning programmatically | Clean public API, well-typed report structures |
+| Developer | Runs scans during local development | Fast feedback on structure compliance, clear violation messages with fix hints |
+| Architect | Audits projects, defines structure standards | Customizable rules, comprehensive coverage of layout/naming/SEA conventions, workspace-wide scanning |
+| CI system | Automated gate in pipeline | JSON output, deterministic exit codes, non-interactive, pluggable report sinks (file, Kafka) |
+| Library consumer | Integrates scanning programmatically | Clean public API, well-typed report structures, custom ReportSink implementations |
 | Documentation maintainer | Tweaks rules without coding | Declarative TOML rules, no recompilation for simple changes |
 
 ### 2.2 Operational Scenarios
@@ -98,6 +112,14 @@ A developer runs `struct-engine scan . --checks 1-8` to validate only the struct
 
 A developer with a binary crate that also has library components runs `struct-engine scan . --kind both` to ensure both library and binary checks are applied.
 
+#### OS-8: Workspace-wide scan
+
+An architect runs `struct-engine scan . --recursive` on a workspace with 5 member crates. The tool scans each member in parallel, producing per-member results aggregated into a single report with `member_reports` containing individual summaries.
+
+#### OS-9: Kafka report streaming
+
+A CI job runs `struct-engine scan . --json --kafka-broker kafka:9092 --kafka-topic compliance-reports`. The tool emits the scan report to stdout (JSON) and simultaneously produces it to the Kafka topic for downstream consumers.
+
 ### 2.3 Stakeholder Requirements
 
 | ID | Requirement | Source | Priority | Rationale |
@@ -109,6 +131,9 @@ A developer with a binary crate that also has library components runs `struct-en
 | STK-05 | The tool shall report clear, actionable violation messages with file paths | Developer feedback | Must | Developers need to locate and fix issues quickly |
 | STK-06 | The tool shall run without network access | Security constraint | Must | Scans local file system only |
 | STK-07 | The tool shall auto-detect project kind and scope checks accordingly | Developer feedback | Must | Library-only checks should not apply to binaries |
+| STK-08 | The tool shall recursively scan workspace members and aggregate results | Architect feedback | Should | Workspaces need unified compliance view across all member crates |
+| STK-09 | The tool shall support pluggable report destinations (stdout, file, Kafka) | CI pipeline needs | Should | Different environments need different output targets |
+| STK-10 | The tool shall produce machine-actionable violation records with remediation guidance | Developer, CI needs | Should | Structured fields enable automated fix workflows and dashboard drill-downs |
 
 ---
 
@@ -133,22 +158,25 @@ struct-engine scan <project>                   ← audits any Rust project
 | SYS-01 | Rule loading | Parse TOML rules file (embedded default or external override) |
 | SYS-02 | File discovery | Recursively scan project directory for all files |
 | SYS-03 | Project kind detection | Auto-detect library/binary/both/workspace from Cargo.toml |
-| SYS-04 | Check execution | Run each rule against the project (declarative or builtin) |
-| SYS-05 | Result aggregation | Collect pass/fail/skip per check, compute summary |
+| SYS-04 | Check execution | Run each rule against the project (declarative or builtin), in parallel via rayon |
+| SYS-05 | Result aggregation | Collect pass/fail/skip per check, compute summary, aggregate workspace member reports |
 | SYS-06 | Reporting | Output results as human-readable text or machine-readable JSON |
+| SYS-07 | Report sinking | Emit scan reports to pluggable destinations (stdout, file, Kafka) via ReportSink SPI |
+| SYS-08 | Workspace scanning | Recursively scan workspace members and produce per-member reports |
 
 ### 3.3 System Constraints
 
 - **Language**: Rust (2021 edition)
 - **Architecture**: Single-Crate Modular SEA (API/Core/SAF)
-- **No async**: Synchronous file system operations only
-- **No network**: Local file system scanning only
+- **No async**: Synchronous file system operations only (parallel via `rayon`, not async)
+- **No network** (default): Local file system scanning only; the `kafka` feature requires network access for Kafka broker connections
 - **Platform**: Linux, macOS, Windows (via standard Rust cross-compilation)
 
 ### 3.4 Assumptions and Dependencies
 
 - Projects being scanned have a `Cargo.toml` at the root
-- External crate dependencies: `walkdir`, `regex`, `toml`, `clap`, `serde`, `serde_json`
+- External crate dependencies: `walkdir`, `regex`, `toml`, `clap`, `serde`, `serde_json`, `rayon`
+- (Kafka feature only) `swe-messaging` from `langboot/rustratify/crates/swe-messaging` — Kafka wire protocol producer, CRC32, and `KafkaConfig` types
 - Dev dependencies: `tempfile`, `assert_cmd`, `predicates`
 
 ---
@@ -437,10 +465,23 @@ Each check shall produce one of: **Pass**, **Fail** (with `Violation` records), 
 | **Priority** | Must |
 | **State** | Implemented |
 | **Verification** | Inspection |
-| **Traces to** | STK-05 -> `api/types.rs` |
-| **Acceptance** | Each `Violation` contains check ID, optional file path, message, and severity |
+| **Traces to** | STK-05, STK-10 -> `api/types.rs` |
+| **Acceptance** | Each `Violation` contains check ID, optional file path, message, severity, and four machine-actionable remediation fields: `rule_type`, `expected`, `actual`, and `fix_hint`; remediation fields use `#[serde(default, skip_serializing_if)]` for backward-compatible serialization |
 
-Each violation shall contain: Check ID (u8), file path (optional), message (string), severity (error/warning/info).
+Each violation shall contain:
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `check_id` | CheckId (u8) | Yes | The check that produced this violation |
+| `path` | Option\<PathBuf\> | No | File path relevant to the violation |
+| `message` | String | Yes | Human-readable violation message |
+| `severity` | Severity | Yes | `error`, `warning`, or `info` |
+| `rule_type` | String | No | Machine-readable rule type tag (e.g. `"file_exists"`, `"builtin:crate_root_exists"`) |
+| `expected` | Option\<String\> | No | What the rule expected (e.g. a path, pattern, or key) |
+| `actual` | Option\<String\> | No | What was actually found (e.g. `"missing"`, an actual value) |
+| `fix_hint` | String | No | Actionable remediation hint for operators |
+
+The four remediation fields (`rule_type`, `expected`, `actual`, `fix_hint`) enable machine-actionable workflows: automated fix suggestions, dashboard drill-downs, and structured error reporting. They are populated by both declarative and builtin check runners. Empty/None values are omitted from JSON serialization for backward compatibility.
 
 ### 4.5 Reporting
 
@@ -578,7 +619,7 @@ The library shall expose `scan_with_config(root: &Path, config: &ScanConfig) -> 
 | **Traces to** | STK-04 -> `saf/mod.rs` |
 | **Acceptance** | All listed types are importable from `struct_engine::` |
 
-Public via SAF: `ScanConfig`, `ScanReport`, `ScanSummary`, `ProjectKind`, `CheckId`, `CheckResult`, `Severity`, `Violation`, `CheckEntry`, `ScanError`, `RuleDef`, `RuleType`, `RuleSet`, `CargoManifest`.
+Public via SAF: `ScanConfig`, `ScanReport`, `ScanSummary`, `ProjectKind`, `CheckId`, `CheckResult`, `Severity`, `Violation`, `CheckEntry`, `ScanError`, `RuleDef`, `RuleType`, `RuleSet`, `CargoManifest`, `BinTarget`, `TestTarget`, `BenchTarget`, `ExampleTarget`, `FileIndex`, `MemberReport`, `ScanContext`, `ReportSink` (trait), `StdoutSink`, `FileSink`, `ReportFormat`. Kafka feature: `KafkaSink`, `KafkaConfig` (re-exported from `swe-messaging`).
 
 #### FR-603: Report formatters
 
@@ -968,6 +1009,144 @@ These requirements define new checks for recognized directories per the [backlog
 | **Traces to** | STK-01, Backlog B-7.2 -> `core/builtins/` |
 | **Acceptance** | A new check produces Info when `docs/`, `infra/`, or `scripts/` directories exist inside a crate (they belong at project/umbrella level) |
 
+### 4.16 FileIndex and Parallel Execution
+
+#### FR-780: FileIndex pre-indexed lookup
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Must |
+| **State** | Implemented |
+| **Verification** | Test |
+| **Traces to** | STK-01 -> `api/types.rs` (`FileIndex`) |
+| **Acceptance** | `FileIndex::from_files(files)` builds an index from a flat file list; `with_extension("rs")` returns all `.rs` files in O(1); `under_dir("src")` returns all files under `src/` in O(1); `files()` returns the original flat list for backward compatibility |
+
+The engine shall build a `FileIndex` from a single directory walk. The index provides O(1) lookups by file extension (`by_extension`) and top-level directory (`by_top_dir`), eliminating repeated linear scans during check execution. `ScanContext` uses `FileIndex` instead of a flat file vector.
+
+#### FR-781: ScanContext with FileIndex
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Must |
+| **State** | Implemented |
+| **Verification** | Inspection |
+| **Traces to** | STK-01 -> `api/types.rs` (`ScanContext`) |
+| **Acceptance** | `ScanContext` contains `file_index: FileIndex`, `file_contents: HashMap<PathBuf, String>`, `project_kind: ProjectKind`, and `cargo_manifest: Option<CargoManifest>`; `ScanContext::files()` delegates to `file_index.files()` for backward compatibility |
+
+#### FR-782: Parallel check execution
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Should |
+| **State** | Implemented |
+| **Verification** | Test |
+| **Traces to** | STK-01 -> `core/engine.rs` |
+| **Acceptance** | Check execution uses `rayon::prelude::par_iter()` for parallel dispatch; output ordering is deterministic (sorted by check ID after collection); a scan with 44 checks completes faster than sequential execution on multi-core systems |
+
+The engine shall execute compliance checks in parallel using `rayon`. Results are collected and sorted by check ID to maintain deterministic output ordering regardless of execution order.
+
+### 4.17 Workspace Scanning
+
+#### FR-790: Recursive workspace member scanning
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Should |
+| **State** | Implemented |
+| **Verification** | Test |
+| **Traces to** | STK-08 -> `core/engine.rs` |
+| **Acceptance** | When `ScanConfig { recursive: true }` is set, the engine parses `[workspace] members` from `Cargo.toml`, scans each member directory in parallel (with `recursive: false`), and aggregates results into `ScanReport.member_reports`; members that do not exist are silently skipped |
+
+The engine shall support recursive workspace scanning. When enabled, the engine discovers workspace members from `Cargo.toml`, scans each in parallel using `rayon::par_iter()`, and produces a `MemberReport` for each successfully scanned member.
+
+#### FR-791: Recursive flag
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Should |
+| **State** | Implemented |
+| **Verification** | Test |
+| **Traces to** | STK-08 -> `main.rs`, `api/types.rs` |
+| **Acceptance** | `--recursive` flag enables workspace member scanning; `ScanConfig.recursive` defaults to `false`; running without the flag produces a single-package scan (backward compatible) |
+
+```
+struct-engine scan <PATH> [--json] [--checks SPEC] [--kind KIND] [--rules FILE] [--recursive]
+```
+
+#### FR-792: MemberReport aggregation
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Should |
+| **State** | Implemented |
+| **Verification** | Test |
+| **Traces to** | STK-08 -> `api/types.rs` |
+| **Acceptance** | `ScanReport.member_reports` contains a `Vec<MemberReport>` where each entry has `member` (workspace member name), `results` (per-check results), `summary` (pass/fail/skip counts), and `project_kind`; the field is `#[serde(skip_serializing_if = "Vec::is_empty")]` for backward compatibility |
+
+#### FR-793: Workspace member auto-detection
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Should |
+| **State** | Implemented |
+| **Verification** | Test |
+| **Traces to** | STK-08 -> `core/engine.rs` |
+| **Acceptance** | `CargoManifest` parsing extracts `workspace.members` from `Cargo.toml`; if no `[workspace]` section exists or `members` is empty, the recursive scan produces no member reports |
+
+### 4.18 Report Sinks
+
+#### FR-800: ReportSink SPI trait
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Must |
+| **State** | Implemented |
+| **Verification** | Inspection |
+| **Traces to** | STK-09 -> `api/traits.rs` |
+| **Acceptance** | The `ReportSink` trait exposes `fn emit(&self, report: &ScanReport) -> Result<(), ScanError>`; at least three implementations (`StdoutSink`, `FileSink`, `KafkaSink`) exist; library consumers can implement custom sinks without modifying engine code |
+
+The engine shall define a `ReportSink` trait that decouples scan report generation from output destination. Implementations persist or transmit the report without modifying its content. The trait is exported via the SAF layer for library consumers.
+
+#### FR-801: StdoutSink
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Must |
+| **State** | Implemented |
+| **Verification** | Test |
+| **Traces to** | STK-05, FR-400, FR-401 -> `core/sink.rs` |
+| **Acceptance** | `StdoutSink { format: ReportFormat::Text }` writes human-readable text to stdout; `StdoutSink { format: ReportFormat::Json }` writes pretty-printed JSON to stdout |
+
+#### FR-802: FileSink
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Must |
+| **State** | Implemented |
+| **Verification** | Test |
+| **Traces to** | STK-09 -> `core/sink.rs` |
+| **Acceptance** | `FileSink { path }` writes the scan report as pretty-printed JSON to the specified path; parent directories are created automatically; IO errors produce `ScanError` |
+
+#### FR-803: KafkaSink (feature-gated)
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Should |
+| **State** | Implemented |
+| **Verification** | Test |
+| **Traces to** | STK-09 -> `core/sink.rs`, `swe-messaging` |
+| **Acceptance** | When built with `--features kafka`, `KafkaSink { config: KafkaConfig }` serializes the report as JSON and produces it to the configured Kafka topic via the wire protocol; the default build has no Kafka dependencies |
+
+#### FR-804: KafkaConfig three-layer resolution
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Should |
+| **State** | Implemented |
+| **Verification** | Test |
+| **Traces to** | STK-09 -> `swe-messaging::KafkaConfig`, `main.rs` |
+| **Acceptance** | `KafkaConfig` supports three-layer configuration resolution: (1) configuration file, (2) environment variables, (3) CLI arguments (`--kafka-broker`, `--kafka-topic`); later layers override earlier ones |
+
 ---
 
 ## 5. Non-Functional Requirements
@@ -1030,7 +1209,7 @@ The scanner shall discover files in a single directory walk.
 | **State** | Implemented |
 | **Verification** | Test |
 | **Traces to** | STK-01 |
-| **Acceptance** | Scan completes in < 1 second for projects with < 10,000 files |
+| **Acceptance** | Single-package scan completes in < 1 second for projects with < 10,000 files; parallel check execution via `rayon` reduces wall-clock time on multi-core systems |
 
 ### 5.3 Portability
 
@@ -1110,8 +1289,9 @@ IO errors and missing files shall produce `Skip` results or clear error messages
 | Direction | Data | Type |
 |-----------|------|------|
 | Input | Project root | `&Path` |
-| Input | Configuration | `&ScanConfig` (optional) |
-| Output | Report | `Result<ScanReport, ScanError>` |
+| Input | Configuration | `&ScanConfig` (optional, includes `recursive: bool`) |
+| Output | Report | `Result<ScanReport, ScanError>` (includes `member_reports: Vec<MemberReport>` when recursive) |
+| Output | Report sinking | `ReportSink::emit(&ScanReport)` via `StdoutSink`, `FileSink`, or `KafkaSink` |
 
 ### 6.3 Rules File Interface
 
@@ -1134,6 +1314,10 @@ IO errors and missing files shall produce `Skip` results or clear error messages
 | Legacy `src/` vs `main/src/` transition creates confusion | Medium | High | Keep both check variants during migration; clear deprecation warnings (FR-711) |
 | Builtin handler logic diverges from convention intent | Medium | Low | Each handler traces to specific check IDs; test against fixture projects |
 | Umbrella detection conflicts with workspace member detection | Medium | Medium | Clear project kind hierarchy: workspace > both > library > binary |
+| Recursive workspace scan fails on missing member directory | Low | Low | Missing members are silently skipped; `MemberReport` only includes successfully scanned members |
+| Parallel check execution produces non-deterministic output | Medium | Low | Results are collected and sorted by check ID after parallel execution; output is deterministic |
+| Kafka broker unavailability causes scan failure | Medium | Low | `KafkaSink` errors propagate as `ScanError`; scan results are not lost (stdout sink runs independently) |
+| swe-messaging API changes break KafkaSink | Low | Low | Feature-gated dependency; version-pinned; compile-time detection of breaking changes |
 
 ---
 
@@ -1150,6 +1334,9 @@ IO errors and missing files shall produce `Skip` results or clear error messages
 | STK-05 | SYS-05, SYS-06 |
 | STK-06 | SYS-02 |
 | STK-07 | SYS-03, SYS-04 |
+| STK-08 | SYS-08 |
+| STK-09 | SYS-06, SYS-07 |
+| STK-10 | SYS-04, SYS-05 |
 
 ### Stakeholder -> Software
 
@@ -1162,6 +1349,9 @@ IO errors and missing files shall produce `Skip` results or clear error messages
 | STK-05 | FR-302, FR-303, FR-400, NFR-500 |
 | STK-06 | FR-201, NFR-200 |
 | STK-07 | FR-250, FR-251, FR-252, FR-503 |
+| STK-08 | FR-790, FR-791, FR-792, FR-793 |
+| STK-09 | FR-800, FR-801, FR-802, FR-803, FR-804 |
+| STK-10 | FR-303 |
 
 ### Software -> Architecture
 
@@ -1184,6 +1374,9 @@ IO errors and missing files shall produce `Skip` results or clear error messages
 | FR-750-752 | `config/rules.toml` (proposed) |
 | FR-760-763 | `core/builtins/` (proposed) |
 | FR-770-771 | `core/builtins/` (proposed) |
+| FR-780-782 | `api/types.rs` (`FileIndex`, `ScanContext`), `core/engine.rs` (parallel execution) |
+| FR-790-793 | `core/engine.rs` (workspace scanning), `api/types.rs` (`MemberReport`, `ScanConfig`), `main.rs` |
+| FR-800-804 | `api/traits.rs` (`ReportSink`), `core/sink.rs` (`StdoutSink`, `FileSink`, `KafkaSink`), `saf/mod.rs`, `swe-messaging` (external) |
 | NFR-100-101 | Module structure — see `docs/3-design/architecture.md` |
 | NFR-400-401 | `config/rules.toml`, `core/declarative.rs`, `core/builtins/` |
 | NFR-500-501 | `core/engine.rs`, `core/rules.rs` |

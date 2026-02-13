@@ -4,7 +4,7 @@
 
 ## TLDR
 
-This SRS defines requirements for doc-engine, a Rust CLI tool that audits project documentation against 128 compliance checks across 18 categories, mapped to 8 ISO/IEC/IEEE standards, IEEE 1028, and PMBOK. It also scaffolds SDLC spec files from an SRS document, generating per-domain spec, architecture, test plan, deployment, and test execution plan files. An opt-in AI subsystem (`doc-engine-ai` crate, feature-gated behind `--features ai`) provides LLM-powered compliance analysis and conversational auditing via the rustratify agent framework. It covers stakeholder needs, functional requirements for rule evaluation, reporting, scaffolding, and AI-powered analysis, non-functional requirements for performance and extensibility, and traceability from stakeholder goals to implementation modules.
+This SRS defines requirements for doc-engine, a Rust CLI tool that audits project documentation against 128 compliance checks across 18 categories, mapped to 8 ISO/IEC/IEEE standards, IEEE 1028, and PMBOK. It also scaffolds SDLC spec files from an SRS document, generating per-domain spec, architecture, test plan, deployment, and test execution plan files. A pluggable ReportSink SPI allows scan results to be emitted to stdout, files, or Kafka topics (feature-gated behind `kafka`). Violations carry machine-actionable remediation fields (`rule_type`, `expected`, `actual`, `fix_hint`) for automated fix workflows. An opt-in AI subsystem (`doc-engine-ai` crate, feature-gated behind `--features ai`) provides LLM-powered compliance analysis and conversational auditing via the rustratify agent framework. It covers stakeholder needs, functional requirements for rule evaluation, reporting, report sinking, scaffolding, and AI-powered analysis, non-functional requirements for performance and extensibility, and traceability from stakeholder goals to implementation modules.
 
 **Version**: 1.0
 **Date**: 2026-02-07
@@ -29,6 +29,8 @@ doc-engine is a multi-crate Rust workspace within the `swe-compliance` workspace
 - Validates spec files in two formats: YAML (`.spec.yaml`, `.arch.yaml`, `.test.yaml`, `.deploy.yaml`) and markdown (`.spec`, `.arch`, `.test`, `.deploy`) for structure, cross-references, and SDLC coverage
 - Generates markdown documentation from YAML spec files
 - Scaffolds per-domain SDLC spec files from an SRS markdown document, including test execution plans (`.manual.exec`, `.auto.exec`), with optional `--phase` filtering by SDLC phase
+- Emits scan reports through pluggable `ReportSink` implementations: `StdoutSink` (text/JSON to stdout), `FileSink` (JSON to file), and `KafkaSink` (JSON to Kafka topic, feature-gated behind `kafka`)
+- Produces enriched `Violation` records with machine-actionable remediation fields (`rule_type`, `expected`, `actual`, `fix_hint`) for downstream tooling and dashboards
 - (Opt-in, `--features ai`) Provides AI-powered compliance analysis via the `doc-engine-ai` crate, using the rustratify agent framework (chat-engine, llm-provider, tool, agent-controller) to deliver conversational auditing and LLM-analysed scan reports
 
 doc-engine does **not** (default build):
@@ -71,6 +73,14 @@ doc-engine does **not** (default build):
 | **ComplianceScanTool** | An AI tool wrapping `scan_with_config()` so that the LLM agent can run compliance scans within a conversation |
 | **DocEngineAiService** | The public trait for AI features, exposing `chat()` and `audit()` methods; implemented by `DefaultDocEngineAiService` |
 | **Feature gate** | A Cargo feature flag (`ai`) that conditionally compiles the AI subsystem; the default build has no AI, async, or network dependencies |
+| **ReportSink** | A trait (`fn emit(&self, report: &ScanReport) -> Result<(), ScanError>`) for pluggable report destinations; implementations include `StdoutSink`, `FileSink`, and `KafkaSink` |
+| **StdoutSink** | A `ReportSink` implementation that writes the scan report to stdout in a configurable format (text or JSON) |
+| **FileSink** | A `ReportSink` implementation that writes the scan report as pretty-printed JSON to a file, creating parent directories as needed |
+| **KafkaSink** | A `ReportSink` implementation (feature-gated behind `kafka`) that sends the scan report as JSON to a Kafka topic via the wire protocol |
+| **ReportFormat** | An enum (`Text`, `Json`) that controls how `StdoutSink` formats the scan report |
+| **swe-messaging** | An external Rust crate providing Kafka wire protocol producer, CRC32, and `KafkaConfig` types; consumed as an optional dependency via the `kafka` feature flag |
+| **KafkaConfig** | A configuration struct from `swe-messaging` supporting three-layer resolution: configuration file, environment variables, and CLI arguments |
+| **Remediation fields** | Machine-actionable fields on the `Violation` struct (`rule_type`, `expected`, `actual`, `fix_hint`) that enable automated fix workflows and rich violation display |
 
 ### 1.4 References
 
@@ -173,6 +183,8 @@ An architect runs `doc-engine ai audit /path/to/project --scope medium`. The too
 | STK-10 | The tool shall scope checks by project size (small/medium/large) so that smaller projects are not burdened by large-project requirements | Developer feedback | Must | Different project sizes have different documentation needs |
 | STK-11 | The tool shall scaffold a complete set of SDLC spec files from an SRS document, including actionable manual and automated test execution plans | Architect feedback | Should | Bootstraps documentation structure from requirements, ensuring consistent traceability from day one |
 | STK-12 | The tool shall provide opt-in AI-powered compliance analysis that explains scan results, prioritises failures, and suggests fixes using natural language | AI user feedback | Should | Compliance scan output is dense; LLM analysis provides accessible summaries and actionable guidance |
+| STK-13 | The tool shall support pluggable report destinations so that scan results can be emitted to stdout, files, or message queues without modifying engine code | CI pipeline needs, Library consumer needs | Should | Different environments need different output targets (local dev → stdout, CI → file, streaming → Kafka) |
+| STK-14 | The tool shall produce machine-actionable violation records with remediation guidance so that downstream tools can automate fix suggestions | Developer feedback, CI pipeline needs | Should | Plain-text violation messages require manual interpretation; structured fields enable automated workflows |
 
 ---
 
@@ -205,6 +217,7 @@ doc-engine scan <project> --scope <tier>  ← audits any project against them
 | SYS-03 | Check execution | Run each rule against the project (declarative or builtin) |
 | SYS-04 | Result aggregation | Collect pass/fail/skip per check, compute summary |
 | SYS-05 | Reporting | Output results as human-readable text or machine-readable JSON |
+| SYS-05a | Report sinking | Emit scan reports to pluggable destinations (stdout, file, Kafka) via ReportSink SPI |
 | SYS-06 | YAML spec processing | Parse, validate, cross-reference, and generate markdown from YAML spec files |
 | SYS-07 | SRS scaffold | Parse SRS document, extract domains/requirements, generate per-domain SDLC spec files and test execution plans |
 | SYS-08 | AI compliance analysis | (Opt-in) Run compliance scans via LLM-integrated tool, analyse results with agent, produce natural-language summaries and recommendations |
@@ -214,13 +227,14 @@ doc-engine scan <project> --scope <tier>  ← audits any project against them
 - **Language**: Rust (2021 edition)
 - **Architecture**: Multi-crate workspace (cli, scan, scaffold, ai) following Modular SEA
 - **No async** (default): Synchronous file system operations only; the `ai` feature introduces `tokio` for LLM API calls
-- **No network** (default): Local file system scanning only; the `ai` feature requires network access for LLM API calls
+- **No network** (default): Local file system scanning only; the `ai` feature requires network access for LLM API calls; the `kafka` feature requires network access for Kafka broker connections
 - **Platform**: Linux, macOS, Windows (via standard Rust cross-compilation)
 
 ### 3.4 Assumptions and Dependencies
 
 - Projects being scanned follow a recognizable directory structure (not necessarily fully compliant)
 - External crate dependencies: `walkdir`, `regex`, `toml`, `clap`, `serde`, `serde_json`, `serde_yaml`
+- (Kafka feature only) `swe-messaging` from `langboot/rustratify/crates/swe-messaging` — Kafka wire protocol producer, CRC32, and `KafkaConfig` types
 - (AI feature only) rustratify crates from local Cargo registry: `chat-engine`, `llm-provider`, `react`, `tool`, `agent-controller`, `agent-cache`; `tokio` async runtime; a valid LLM API key (e.g., `ANTHROPIC_API_KEY`)
 
 ---
@@ -512,12 +526,25 @@ Each check shall produce one of: **Pass**, **Fail** (with `Violation` records), 
 | Attribute | Value |
 |-----------|-------|
 | **Priority** | Must |
-| **State** | Approved |
+| **State** | Implemented |
 | **Verification** | Inspection |
-| **Traces to** | STK-05 -> `spi/types.rs` |
-| **Acceptance** | Each `Violation` contains check ID, optional file path, message, and severity |
+| **Traces to** | STK-05 -> `api/types.rs` |
+| **Acceptance** | Each `Violation` contains check ID, optional file path, message, severity, and four machine-actionable remediation fields: `rule_type`, `expected`, `actual`, and `fix_hint`; remediation fields use `#[serde(default, skip_serializing_if)]` for backward-compatible serialization |
 
-Each violation shall contain: Check ID (u8), file path (optional), message (string), severity (error/warning/info).
+Each violation shall contain:
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `check_id` | CheckId (u8) | Yes | The check that produced this violation |
+| `path` | Option\<PathBuf\> | No | File path relevant to the violation |
+| `message` | String | Yes | Human-readable violation message |
+| `severity` | Severity | Yes | `error`, `warning`, or `info` |
+| `rule_type` | String | No | Machine-readable rule type tag (e.g. `"file_exists"`, `"builtin:module_docs_plural"`) |
+| `expected` | Option\<String\> | No | What the rule expected (e.g. a path, pattern, or key) |
+| `actual` | Option\<String\> | No | What was actually found (e.g. `"missing"`, an actual value) |
+| `fix_hint` | String | No | Actionable remediation hint for operators |
+
+The four remediation fields (`rule_type`, `expected`, `actual`, `fix_hint`) enable machine-actionable workflows: automated fix suggestions, dashboard drill-downs, and structured error reporting. They are populated by both declarative and builtin check runners. Empty/None values are omitted from JSON serialization for backward compatibility.
 
 #### FR-305: Check dependency graph
 
@@ -848,7 +875,7 @@ The library shall expose `scan_with_config(root: &Path, config: &ScanConfig) -> 
 | **Traces to** | STK-04 -> `saf/mod.rs` |
 | **Acceptance** | All listed types are importable from `doc_engine::` |
 
-Public via SAF: `ScanConfig`, `ScanReport`, `ScanSummary`, `ProjectType`, `ProjectScope`, `CheckId`, `CheckResult`, `Severity`, `Violation`, `RuleDef`, `RuleType`, `SpecFormat`, `SpecKind`, `SpecStatus`, `Priority`, `DiscoveredSpec`, `BrdSpec`, `FeatureRequestSpec`, `ArchSpec`, `TestSpec`, `DeploySpec`, `MarkdownSpec`, `MarkdownTestCase`, `SpecEnvelope`, `ParsedSpec`, `SpecValidationReport`, `CrossRefReport`, `SpecDiagnostic`, `CrossRefResult`.
+Public via SAF: `ScanConfig`, `ScanReport`, `ScanSummary`, `ProjectType`, `ProjectScope`, `CheckId`, `CheckResult`, `Severity`, `Violation`, `RuleDef`, `RuleType`, `SpecFormat`, `SpecKind`, `SpecStatus`, `Priority`, `DiscoveredSpec`, `BrdSpec`, `FeatureRequestSpec`, `ArchSpec`, `TestSpec`, `DeploySpec`, `MarkdownSpec`, `MarkdownTestCase`, `SpecEnvelope`, `ParsedSpec`, `SpecValidationReport`, `CrossRefReport`, `SpecDiagnostic`, `CrossRefResult`, `ReportSink` (trait), `StdoutSink`, `FileSink`, `ReportFormat`. Kafka feature: `KafkaSink`, `KafkaConfig` (re-exported from `swe-messaging`).
 
 ### 4.7 Spec File Parsing
 
@@ -1823,7 +1850,69 @@ When `--report <path>` is provided, the scaffold command shall serialize a `Scaf
 | Conflict | `--feature ai --exclude-feature` | Error: flags are mutually exclusive |
 | No flag (default) | _(omitted)_ | Include all domains (backward compatible) |
 
-### 4.15 AI-Powered Compliance Analysis
+### 4.16 Report Sinks
+
+#### FR-839: ReportSink SPI trait
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Must |
+| **State** | Implemented |
+| **Verification** | Inspection |
+| **Traces to** | STK-03, STK-04, STK-09 -> `api/traits.rs` |
+| **Acceptance** | The `ReportSink` trait exposes `fn emit(&self, report: &ScanReport) -> Result<(), ScanError>`; at least three implementations (`StdoutSink`, `FileSink`, `KafkaSink`) exist; library consumers can implement custom sinks without modifying engine code |
+
+The engine shall define a `ReportSink` trait that decouples scan report generation from output destination. Implementations persist or transmit the report without modifying its content. The trait is exported via the SAF layer for library consumers.
+
+#### FR-840: StdoutSink
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Must |
+| **State** | Implemented |
+| **Verification** | Test |
+| **Traces to** | STK-05, FR-400, FR-401 -> `core/sink.rs` |
+| **Acceptance** | `StdoutSink { format: ReportFormat::Text }` writes human-readable text to stdout; `StdoutSink { format: ReportFormat::Json }` writes pretty-printed JSON to stdout; the output matches existing `--json` / default behavior |
+
+`StdoutSink` writes the scan report to stdout using a configurable `ReportFormat` (`Text` or `Json`). It replaces the previous hardcoded print logic in the CLI binary.
+
+#### FR-841: FileSink
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Must |
+| **State** | Implemented |
+| **Verification** | Test |
+| **Traces to** | STK-09, FR-403, FR-831 -> `core/sink.rs` |
+| **Acceptance** | `FileSink { path }` writes the scan report as pretty-printed JSON to the specified path; parent directories are created automatically; IO errors produce `ScanError` |
+
+`FileSink` writes the scan report as pretty-printed JSON to a file path, creating parent directories as needed. It replaces the previous hardcoded file-write logic in the CLI binary.
+
+#### FR-842: KafkaSink (feature-gated)
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Should |
+| **State** | Implemented |
+| **Verification** | Test |
+| **Traces to** | STK-03 -> `core/sink.rs`, `swe-messaging` |
+| **Acceptance** | When built with `--features kafka`, `KafkaSink { config: KafkaConfig }` serializes the report as JSON and produces it to the configured Kafka topic via the wire protocol; the `kafka` feature flag adds `swe-messaging` as a dependency; the default build has no Kafka dependencies |
+
+`KafkaSink` sends the scan report as JSON to a Kafka topic using the `swe-messaging` crate's wire protocol producer. The sink is feature-gated behind `kafka` to keep the default build lightweight.
+
+#### FR-843: KafkaConfig three-layer resolution
+
+| Attribute | Value |
+|-----------|-------|
+| **Priority** | Should |
+| **State** | Implemented |
+| **Verification** | Test |
+| **Traces to** | STK-03 -> `swe-messaging::KafkaConfig`, `cli/src/main.rs` |
+| **Acceptance** | `KafkaConfig` supports three-layer configuration resolution: (1) configuration file, (2) environment variables, (3) CLI arguments (`--kafka-broker`, `--kafka-topic`); later layers override earlier ones; the CLI passes resolved config to `KafkaSink` |
+
+The Kafka configuration follows a three-layer resolution strategy: file-based defaults, environment variable overrides, and CLI argument overrides. The `KafkaConfig` type is provided by the `swe-messaging` crate and re-exported via the SAF layer when the `kafka` feature is enabled.
+
+### 4.17 AI-Powered Compliance Analysis
 
 All requirements in this section are feature-gated behind `#[cfg(feature = "ai")]` and implemented in the `doc-engine-ai` crate. The default build is unaffected.
 
@@ -2083,6 +2172,7 @@ IO errors and missing files shall produce `Skip` results or clear error messages
 | Input | Project root | `&Path` |
 | Input | Configuration | `&ScanConfig` (optional) |
 | Output | Report | `ScanReport` |
+| Output | Report sinking | `ReportSink::emit(&ScanReport)` via `StdoutSink`, `FileSink`, or `KafkaSink` |
 
 ### 6.3 Rules File Interface
 
@@ -2127,6 +2217,8 @@ IO errors and missing files shall produce `Skip` results or clear error messages
 | LLM hallucination produces incorrect compliance advice | Medium | Medium | `audit()` always includes raw scan results alongside LLM summary; users can verify recommendations against the structured data |
 | AI feature bloats default build with async/network dependencies | Medium | Low | Feature gate (`--features ai`) ensures default build has zero AI dependencies; NFR-600 enforces this |
 | LLM provider API changes break AI feature | Medium | Low | `llm-provider` crate abstracts provider details; `CompletionBuilder` provides a stable interface |
+| Kafka broker unavailability causes scan failure | Medium | Low | `KafkaSink` errors propagate as `ScanError`; CLI reports the error and exits with code 2; scan results are not lost (stdout sink runs independently) |
+| swe-messaging API changes break KafkaSink | Low | Low | Feature-gated dependency; version-pinned via Cargo.toml; compile-time detection of breaking changes |
 
 ---
 
@@ -2148,6 +2240,8 @@ IO errors and missing files shall produce `Skip` results or clear error messages
 | STK-10 | SYS-03 |
 | STK-11 | SYS-07 |
 | STK-12 | SYS-08 |
+| STK-13 | SYS-05, SYS-05a |
+| STK-14 | SYS-04 |
 
 ### Stakeholder -> Software
 
@@ -2165,6 +2259,8 @@ IO errors and missing files shall produce `Skip` results or clear error messages
 | STK-10 | FR-505 |
 | STK-11 | FR-822, FR-823, FR-824, FR-825, FR-826, FR-827, FR-828, FR-829, FR-830 |
 | STK-12 | FR-900, FR-901, FR-902, FR-903, FR-904, FR-905, FR-906, FR-907, FR-908, NFR-600, NFR-601, NFR-602 |
+| STK-13 | FR-839, FR-840, FR-841, FR-842, FR-843 |
+| STK-14 | FR-304 |
 
 ### Software -> Architecture
 
@@ -2189,6 +2285,7 @@ IO errors and missing files shall produce `Skip` results or clear error messages
 | NFR-100-101 | Module structure — see `docs/3-design/architecture.md` |
 | NFR-400-401 | `rules.toml`, `core/declarative.rs`, `core/builtins/` |
 | NFR-500-501 | `core/engine.rs`, `core/rules.rs` |
+| FR-839-843 | `api/traits.rs` (`ReportSink`), `core/sink.rs` (`StdoutSink`, `FileSink`, `KafkaSink`), `saf/mod.rs`, `swe-messaging` (external) |
 | FR-900-908 | `ai/src/spi/config.rs`, `ai/src/core/tools/compliance_scan_tool.rs`, `ai/src/core/agents/factory.rs`, `ai/src/core/agents/manager.rs`, `ai/src/api/types.rs`, `ai/src/api/service.rs`, `cli/src/main.rs` |
 | NFR-600-602 | `cli/Cargo.toml` (`[features]`), `ai/Cargo.toml`, `ai/src/` module structure |
 

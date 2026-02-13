@@ -408,7 +408,7 @@ The API shall accept scan requests and execute them asynchronously, invoking the
 | **State** | Proposed |
 | **Verification** | Demonstration |
 | **Traces to** | STK-03 -> `ui/violations/` |
-| **Acceptance** | Given a completed scan, the violation browser displays all failed checks with: check ID, category, description, severity (error/warning/info), and each violation's file path and message; the data is derived from `CheckEntry` objects where `result.status == "fail"` |
+| **Acceptance** | Given a completed scan, the violation browser displays all failed checks with: check ID, category, description, severity (error/warning/info), and each violation's file path, message, and machine-actionable remediation fields (`rule_type`, `expected`, `actual`, `fix_hint`); the data is derived from `CheckEntry` objects where `result.status == "fail"` |
 
 #### FR-401: Violation filtering
 
@@ -438,7 +438,7 @@ The API shall accept scan requests and execute them asynchronously, invoking the
 | **State** | Proposed |
 | **Verification** | Demonstration |
 | **Traces to** | STK-03 -> `ui/violations/` |
-| **Acceptance** | Clicking a violation expands a detail panel showing: the check's full description from `rules.toml`, the violation file path, the expected condition (from the rule definition), and a suggested fix action |
+| **Acceptance** | Clicking a violation expands a detail panel showing: the check's full description from `rules.toml`, the violation file path, the `expected` value (what the rule expected), the `actual` value (what was found), the `rule_type` tag, and the `fix_hint` as a suggested remediation action; these fields are sourced from the enriched `Violation` struct's machine-actionable remediation fields |
 
 #### FR-404: Violation export
 
@@ -756,7 +756,7 @@ The API proxies chat requests to `ComplianceChat::chat()` from the `doc-engine-c
 | **State** | Proposed |
 | **Verification** | Test |
 | **Traces to** | STK-10 -> `api/scans.rs`, `ui/struct-engine/` |
-| **Acceptance** | `GET /api/v1/scans/{id}` for a struct-engine scan returns the struct-engine `ScanReport` JSON (containing results with check_id, category, description, result per check across 7 categories: structure, cargo_metadata, cargo_targets, naming, test_org, documentation, hygiene) |
+| **Acceptance** | `GET /api/v1/scans/{id}` for a struct-engine scan returns the struct-engine `ScanReport` JSON (containing results with check_id, category, description, result per check across 7 categories: structure, cargo_metadata, cargo_targets, naming, test_org, documentation, hygiene; for workspace scans, includes `member_reports` with per-crate results, summaries, and project kinds) |
 
 #### FR-1101: Crate layout visualization
 
@@ -1046,7 +1046,7 @@ The API proxies chat requests to `ComplianceChat::chat()` from the `doc-engine-c
 | Direction | Data | Type |
 |-----------|------|------|
 | Input (doc-engine scan) | Project root, config | `&Path`, `&ScanConfig` |
-| Output (doc-engine scan) | Report | `Result<ScanReport, ScanError>` |
+| Output (doc-engine scan) | Report | `Result<ScanReport, ScanError>` (`Violation` includes `rule_type`, `expected`, `actual`, `fix_hint` remediation fields) |
 | Input (doc-engine scaffold) | SRS content, config | `&ScaffoldConfig` |
 | Output (doc-engine scaffold) | Result | `Result<ScaffoldResult, ScaffoldError>` |
 | Input (compliance chat) | Message | `&str` |
@@ -1055,8 +1055,8 @@ The API proxies chat requests to `ComplianceChat::chat()` from the `doc-engine-c
 | Output (compliance audit) | Response | `Result<AuditResponse, AuditError>` |
 | Input (command gen) | Request | `&GenerateCommandsRequest` |
 | Output (command gen) | Response | `Result<GenerateCommandsResponse, CommandGeneratorError>` |
-| Input (struct-engine scan) | Project root, config | `&Path`, `&ScanConfig` |
-| Output (struct-engine scan) | Report | `Result<ScanReport, ScanError>` |
+| Input (struct-engine scan) | Project root, config | `&Path`, `&ScanConfig` (includes `recursive: bool` for workspace scanning) |
+| Output (struct-engine scan) | Report | `Result<ScanReport, ScanError>` (includes `member_reports: Vec<MemberReport>` when recursive; `Violation` includes `rule_type`, `expected`, `actual`, `fix_hint` remediation fields) |
 
 ### 6.5 File System Interface
 
