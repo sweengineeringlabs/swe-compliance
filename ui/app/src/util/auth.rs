@@ -24,6 +24,10 @@ impl Default for AuthState {
 }
 
 /// Authentication context provider.
+///
+/// Renders BOTH the login form and the children into the DOM, wrapped
+/// in data-attribute containers.  A reactive effect watches
+/// `state.authenticated` and toggles visibility between the two.
 #[component]
 pub fn auth_provider(
     state: Signal<AuthState>,
@@ -31,10 +35,39 @@ pub fn auth_provider(
 ) -> View {
     provide_context(state.clone());
 
-    if state.get().authenticated {
-        View::fragment(children)
-    } else {
-        login_form(state)
+    // Reactive effect: toggle login vs app display based on auth state
+    {
+        let state = state;
+        effect(move || {
+            let authed = state.get().authenticated;
+            let (login_display, app_display) = if authed {
+                ("none", "block")
+            } else {
+                ("block", "none")
+            };
+            let js = format!(
+                r#"(function(){{
+                    var login=document.querySelector('[data-auth-view="login"]');
+                    var app=document.querySelector('[data-auth-view="app"]');
+                    if(login)login.style.display='{}';
+                    if(app)app.style.display='{}';
+                }})()"#,
+                login_display, app_display
+            );
+            let _ = js_sys::eval(&js);
+        });
+    }
+
+    let initial_app_display = if state.get().authenticated { "block" } else { "none" };
+    let initial_login_display = if state.get().authenticated { "none" } else { "block" };
+
+    view! {
+        <div data-auth-view="login" style={format!("display: {};", initial_login_display)}>
+            {login_form(state)}
+        </div>
+        <div data-auth-view="app" style={format!("display: {};", initial_app_display)}>
+            {View::fragment(children)}
+        </div>
     }
 }
 
@@ -82,8 +115,10 @@ pub fn login_form(auth_state: Signal<AuthState>) -> View {
                     local_storage_set("swe_auth_token", token);
                     local_storage_set("swe_auth_username", &user);
 
+                    // Set the auth state — the reactive effect in
+                    // auth_provider will toggle login/app visibility.
                     auth_state2.set(AuthState {
-                        token: Some(token.into()),
+                        token: Some(token.to_string()),
                         username: Some(user),
                         authenticated: true,
                     });
