@@ -1,3 +1,3 @@
 [workspace]
-members = ["struct-engine", "ui/server", "ui/app", "kafka-sink"]
+members = ["struct-engine", "ui/server", "ui/app"]
 resolver = "2"

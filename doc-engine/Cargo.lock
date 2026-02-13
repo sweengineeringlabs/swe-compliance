@@ -606,10 +606,10 @@ dependencies = [
 name = "doc-engine-scan"
 version = "0.1.0"
 dependencies = [
- "kafka-sink",
  "regex",
  "serde",
  "serde_json",
+ "swe-messaging",
  "tempfile",
  "toml",
  "walkdir",
@@ -1176,15 +1176,6 @@ checksum = "8c942ebf8e95485ca0d52d97da7c5a2c387d0e7f0ba4c35e93bfcaee045955b3"
 dependencies = [
  "once_cell",
  "wasm-bindgen",
-]
-
-[[package]]
-name = "kafka-sink"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
- "toml",
 ]
 
 [[package]]
@@ -1940,6 +1931,15 @@ name = "subtle"
 version = "2.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "13c2bddecc57b384dee18652358fb23172facb8a2c51ccc10d74c157bdea3292"
+
+[[package]]
+name = "swe-messaging"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "toml",
+]
 
 [[package]]
 name = "syn"

@@ -27,7 +27,7 @@ path = "tests/struct_engine_int_test.rs"
 
 [features]
 default = []
-kafka = ["kafka-sink"]
+kafka = ["swe-messaging/kafka"]
 
 [dependencies]
 clap = { version = "4", features = ["derive"] }
@@ -37,7 +37,7 @@ toml = "0.8"
 walkdir = "2"
 regex = "1"
 rayon = "1"
-kafka-sink = { path = "../kafka-sink", optional = true }
+swe-messaging = { path = "../../langboot/rustratify/crates/swe-messaging", optional = true }
 
 [dev-dependencies]
 tempfile = "3"

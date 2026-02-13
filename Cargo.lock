@@ -920,10 +920,10 @@ dependencies = [
 name = "doc-engine-scan"
 version = "0.1.0"
 dependencies = [
- "kafka-sink",
  "regex",
  "serde",
  "serde_json",
+ "swe-messaging",
  "tempfile",
  "toml",
  "walkdir",
@@ -1785,15 +1785,6 @@ dependencies = [
  "serde",
  "serde_json",
  "simple_asn1",
-]
-
-[[package]]
-name = "kafka-sink"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
- "toml",
 ]
 
 [[package]]
@@ -3180,12 +3171,12 @@ version = "0.1.0"
 dependencies = [
  "assert_cmd",
  "clap",
- "kafka-sink",
  "predicates",
  "rayon",
  "regex",
  "serde",
  "serde_json",
+ "swe-messaging",
  "tempfile",
  "toml",
  "walkdir",
@@ -3265,6 +3256,15 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "uuid",
+]
+
+[[package]]
+name = "swe-messaging"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "toml",
 ]
 
 [[package]]

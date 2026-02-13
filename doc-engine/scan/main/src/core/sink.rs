@@ -46,7 +46,7 @@ impl ReportSink for FileSink {
 /// Sends the report as JSON to a Kafka topic via the wire protocol.
 #[cfg(feature = "kafka")]
 pub struct KafkaSink {
-    pub config: kafka_sink::KafkaConfig,
+    pub config: swe_messaging::KafkaConfig,
 }
 
 #[cfg(feature = "kafka")]
@@ -54,8 +54,8 @@ impl ReportSink for KafkaSink {
     fn emit(&self, report: &ScanReport) -> Result<(), ScanError> {
         let json = serde_json::to_string(report)
             .map_err(|e| ScanError::Config(format!("JSON serialization failed: {}", e)))?;
-        let producer = kafka_sink::KafkaProducer::from_config(&self.config);
-        producer.produce(json.as_bytes())
+        let producer = swe_messaging::KafkaProducer::from_config(&self.config);
+        swe_messaging::Producer::produce(&producer, json.as_bytes())
             .map_err(|e| ScanError::Config(format!("Kafka produce failed: {}", e)))?;
         Ok(())
     }
@@ -163,10 +163,10 @@ mod tests {
     #[cfg(feature = "kafka")]
     #[test]
     fn test_kafka_sink_construction() {
-        let config = kafka_sink::KafkaConfig {
+        let config = swe_messaging::KafkaConfig {
             broker: "localhost:9092".to_string(),
             topic: "test-topic".to_string(),
-            ..kafka_sink::KafkaConfig::default()
+            ..swe_messaging::KafkaConfig::default()
         };
         let sink = super::KafkaSink { config };
         assert_eq!(sink.config.broker, "localhost:9092");
@@ -177,10 +177,10 @@ mod tests {
     #[test]
     fn test_kafka_sink_emit_no_broker() {
         use crate::api::traits::ReportSink;
-        let config = kafka_sink::KafkaConfig {
+        let config = swe_messaging::KafkaConfig {
             broker: "127.0.0.1:1".to_string(),
             topic: "test-topic".to_string(),
-            ..kafka_sink::KafkaConfig::default()
+            ..swe_messaging::KafkaConfig::default()
         };
         let sink = super::KafkaSink { config };
         let report = make_report();

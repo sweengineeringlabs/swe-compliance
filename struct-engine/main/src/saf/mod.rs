@@ -17,7 +17,7 @@ pub use crate::core::sink::{StdoutSink, FileSink};
 #[cfg(feature = "kafka")]
 pub use crate::core::sink::KafkaSink;
 #[cfg(feature = "kafka")]
-pub use kafka_sink::KafkaConfig;
+pub use swe_messaging::KafkaConfig;
 
 // Re-export detect_project_kind for library consumers
 pub use crate::core::engine::detect_project_kind;
