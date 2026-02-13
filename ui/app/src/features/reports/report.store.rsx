@@ -39,13 +39,16 @@ impl ReportsStore {
 
 /// Derived signal: true when a report has been generated.
 pub fn has_report(store: &ReportsStore) -> bool {
-    derived(move || store.report_data.get().is_some()).get()
+    let report_data = store.report_data.clone();
+    derived(move || report_data.get().is_some()).get()
 }
 
 /// Derived signal: true when both scan IDs are set for comparison.
 pub fn can_compare(store: &ReportsStore) -> bool {
+    let selected_scan_id = store.selected_scan_id.clone();
+    let compare_scan_id = store.compare_scan_id.clone();
     derived(move || {
-        store.selected_scan_id.get().is_some() && store.compare_scan_id.get().is_some()
+        selected_scan_id.get().is_some() && compare_scan_id.get().is_some()
     }).get()
 }
 

@@ -42,11 +42,15 @@ impl ViolationsStore {
         let current_page = signal(0_u32);
         let page_size = signal(DEFAULT_PAGE_SIZE);
 
-        let filtered_violations = derived(|| {
-            let all = all_violations.get();
-            let f = filter.get();
-            let sf = sort_field.get();
-            let sd = sort_direction.get();
+        let all_violations_clone = all_violations.clone();
+        let filter_clone = filter.clone();
+        let sort_field_clone = sort_field.clone();
+        let sort_direction_clone = sort_direction.clone();
+        let filtered_violations = derived(move || {
+            let all = all_violations_clone.get();
+            let f = filter_clone.get();
+            let sf = sort_field_clone.get();
+            let sd = sort_direction_clone.get();
 
             // --- Filter ---
             let search_lower = f.search.to_lowercase();

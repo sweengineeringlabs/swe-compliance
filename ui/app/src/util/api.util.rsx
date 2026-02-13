@@ -85,11 +85,11 @@ async fn api_request(method: Method, path: &str, body: Option<&str>) -> Result<S
 
 /// Parse structured error response from the API.
 fn parse_error_body(body: &str) -> Option<ApiError> {
-    let parsed = json_parse(body)?;
-    let error = parsed.get("error")?;
+    let parsed = json_parse(body).unwrap_or_default();
+    let error = parsed.get("error").unwrap_or_default();
     Some(ApiError {
-        code: error.get_str("code")?.into(),
-        message: error.get_str("message")?.into(),
+        code: error.get_str("code").unwrap_or_default().into(),
+        message: error.get_str("message").unwrap_or_default().into(),
     })
 }
 

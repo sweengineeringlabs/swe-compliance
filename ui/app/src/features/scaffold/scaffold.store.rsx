@@ -1,6 +1,7 @@
 use crate::features::scaffold::scaffold_type::{
     ParsedDomain, ScaffoldResult,
 };
+use crate::features::scaffold::scaffold_service as service;
 
 /// Central reactive store for the scaffold feature.
 /// All scaffold components read from these signals to ensure consistency.
@@ -112,6 +113,55 @@ pub fn toggle_file_type(store: &ScaffoldStore, file_type: &str) {
         types.push(file_type.to_string());
     }
     store.selected_file_types.set(types);
+}
+
+/// Parse the current SRS content and populate parsed_domains (FR-500).
+pub fn parse(store: &ScaffoldStore) {
+    store.loading.set(true);
+    store.error.set(None);
+
+    let content = store.srs_content.get().clone();
+    let parsed_domains = store.parsed_domains;
+    let loading = store.loading;
+    let error = store.error;
+
+    spawn(async move {
+        match service::parse_srs(&content).await {
+            Ok(domains) => {
+                parsed_domains.set(domains);
+                loading.set(false);
+            }
+            Err(msg) => {
+                error.set(Some(msg));
+                loading.set(false);
+            }
+        }
+    });
+}
+
+/// Execute scaffolding with current selections (FR-502).
+pub fn execute(store: &ScaffoldStore) {
+    store.loading.set(true);
+    store.error.set(None);
+
+    let phases = store.selected_phases.get().clone();
+    let file_types = store.selected_file_types.get().clone();
+    let scaffold_result = store.scaffold_result;
+    let loading = store.loading;
+    let error = store.error;
+
+    spawn(async move {
+        match service::execute_scaffold(".", ".", &phases, &file_types, false).await {
+            Ok(result) => {
+                scaffold_result.set(Some(result));
+                loading.set(false);
+            }
+            Err(msg) => {
+                error.set(Some(msg));
+                loading.set(false);
+            }
+        }
+    });
 }
 
 /// Reset the store to its initial state, clearing all data and selections.

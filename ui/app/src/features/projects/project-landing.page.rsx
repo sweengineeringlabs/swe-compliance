@@ -1,11 +1,13 @@
 use rsc_ui::prelude::*;
-use crate::features::projects::projects_store as store;
+use crate::features::projects::store::{self, ProjectsStore};
 use crate::features::projects::project_form::ProjectForm;
 use crate::features::projects::project_list::ProjectList;
 
 /// Projects management page (FR-100..104).
 component ProjectsLanding() {
-    effect(|| { store::load_projects(); });
+    let s = use_context::<ProjectsStore>();
+
+    { let s = s.clone(); effect(move || { store::load_projects(&s); }); }
 
     style {
         .projects { display: flex; flex-direction: column; gap: var(--space-4); }
@@ -16,18 +18,17 @@ component ProjectsLanding() {
         <div class="projects" data-testid="projects-landing">
             <div class="projects__header">
                 <h2>"Projects"</h2>
-                <Button label="New Project" variant="primary" on:click={|| store::form_open.set(true)} data-testid="new-project-btn" />
+                <Button label="New Project" variant="primary" on:click={{ let s = s.clone(); move || store::open_create_form(&s) }} data-testid="new-project-btn" />
             </div>
-            @if store::form_open.get() {
+            @if store::use_form_open(&s).get() {
                 <ProjectForm
-                    on_submit={|req| store::create_project(req)}
-                    on_cancel={|| store::form_open.set(false)}
+                    project={store::use_selected_project(&s).get()}
+                    editing={store::use_editing(&s).get()}
+                    on_cancel={Some(Box::new({ let s = s.clone(); move || store::close_form(&s) }))}
                 />
             }
             <ProjectList
-                projects={store::projects.clone()}
-                on_edit={|id| store::start_edit(&id)}
-                on_delete={|id| store::delete_project(&id)}
+                projects={store::use_projects(&s)}
             />
         </div>
     }

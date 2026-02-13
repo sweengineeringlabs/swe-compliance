@@ -1,11 +1,12 @@
 use rsc_ui::prelude::*;
-use crate::features::violations::violations_store as store;
+use crate::features::violations::store::ViolationsStore;
 use crate::features::violations::violation_list::ViolationList;
-use crate::features::violations::violation_filter::ViolationFilter;
+use crate::features::violations::violation_filter::ViolationFilterBar;
 use crate::features::violations::violation_detail::ViolationDetail;
 
 /// Violations browser page (FR-400..404).
 component ViolationsLanding() {
+    let s = use_context::<ViolationsStore>();
     let selected_idx = signal(Option::<usize>::None);
 
     style {
@@ -14,13 +15,13 @@ component ViolationsLanding() {
 
     render {
         <div class="violations" data-testid="violations-landing">
-            <ViolationFilter />
+            <ViolationFilterBar />
             <ViolationList
-                violations={store::filtered_violations.clone()}
-                on_select={|idx| selected_idx.set(Some(idx))}
+                violations={s.filtered_violations.clone()}
+                on_select={Some(Box::new(move |idx: usize| selected_idx.set(Some(idx))))}
             />
             @if let Some(idx) = selected_idx.get() {
-                @if let Some(v) = store::filtered_violations.get().get(idx) {
+                @if let Some(v) = s.filtered_violations.get().get(idx) {
                     <ViolationDetail violation={v.clone()} />
                 }
             }

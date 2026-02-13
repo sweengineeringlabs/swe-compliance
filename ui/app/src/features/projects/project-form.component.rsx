@@ -18,7 +18,7 @@ component ProjectForm(
     /// Whether the form is in editing mode.
     editing: bool,
     /// Callback invoked when the user cancels the form.
-    on_cancel: Box<dyn Fn()>,
+    on_cancel: Option<Box<dyn Fn()>>,
 ) {
     // Form field signals, initialized from the project prop when editing.
     let name = signal(
@@ -38,8 +38,9 @@ component ProjectForm(
             .unwrap_or_else(|| "open_source".to_string())
     );
 
-    let loading = projects_store::use_loading();
-    let error = projects_store::use_error();
+    let store = use_context::<projects_store::ProjectsStore>();
+    let loading = projects_store::use_loading(&store);
+    let error = projects_store::use_error(&store);
 
     // Derived validation: name and root_path are required.
     let form_valid = derived(|| {
@@ -128,7 +129,7 @@ component ProjectForm(
                 <FormField label="Project Name">
                     <Input
                         value={name}
-                        on:input={move |v: String| name.set(v)}
+                        on:input={let n = name.clone(); move |v: String| n.set(v)}
                         placeholder="Enter project name"
                         disabled={loading.get()}
                         data-testid="project-form-name"
@@ -138,7 +139,7 @@ component ProjectForm(
                 <FormField label="Root Path">
                     <Input
                         value={root_path}
-                        on:input={move |v: String| root_path.set(v)}
+                        on:input={let rp = root_path.clone(); move |v: String| rp.set(v)}
                         placeholder="/path/to/project"
                         disabled={editing || loading.get()}
                         data-testid="project-form-root-path"
@@ -148,7 +149,7 @@ component ProjectForm(
                 <FormField label="Scope">
                     <Select
                         value={scope}
-                        on:change={move |v: String| scope.set(v)}
+                        on:change={let sc = scope.clone(); move |v: String| sc.set(v)}
                         disabled={loading.get()}
                         data-testid="project-form-scope"
                     >
@@ -161,7 +162,7 @@ component ProjectForm(
                 <FormField label="Project Type">
                     <Select
                         value={project_type}
-                        on:change={move |v: String| project_type.set(v)}
+                        on:change={let pt = project_type.clone(); move |v: String| pt.set(v)}
                         disabled={loading.get()}
                         data-testid="project-form-type"
                     >
@@ -175,7 +176,7 @@ component ProjectForm(
                     <Button
                         label="Cancel"
                         variant="secondary"
-                        on:click={move || (on_cancel)()}
+                        on:click={move || { if let Some(ref cb) = on_cancel { cb() } }}
                         disabled={loading.get()}
                         data-testid="project-form-cancel"
                     />

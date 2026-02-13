@@ -21,7 +21,7 @@ impl ServerConfig {
             port: std::env::var("SWE_PORT")
                 .ok()
                 .and_then(|p| p.parse().ok())
-                .unwrap_or(8080),
+                .unwrap_or(8081),
             jwt_secret: std::env::var("SWE_JWT_SECRET")
                 .unwrap_or_else(|_| "dev-secret-change-in-production".into()),
             db_path: std::env::var("SWE_DB_PATH")

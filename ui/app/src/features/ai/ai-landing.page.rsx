@@ -1,5 +1,5 @@
 use rsc_ui::prelude::*;
-use crate::features::ai::ai_store as store;
+use crate::features::ai::store::{self, AiStore};
 use crate::features::ai::chat_panel::ChatPanel;
 use crate::features::ai::audit_view::AuditView;
 use crate::features::ai::command_gen::CommandGen;
@@ -8,8 +8,10 @@ use crate::features::ai::ai_status::AiStatusBadge;
 /// AI compliance landing page (FR-800..805).
 /// Provides tabbed access to chat, audit, and command generation features.
 component AiLanding() {
+    let s = use_context::<AiStore>();
+
     // Load AI status on mount.
-    effect(|| { store::load_status(); });
+    { let s2 = s.clone(); effect(move || { store::load_status(&s2); }); }
 
     style {
         .ai-landing {
@@ -21,33 +23,33 @@ component AiLanding() {
 
     render {
         <div class="ai-landing" data-testid="ai-landing">
-            <AiStatusBadge status={store::status.clone()} />
+            <AiStatusBadge status={s.status.clone()} />
 
             <Tabs
-                active={store::active_tab.clone()}
-                on:change={|tab| store::active_tab.set(tab)}
+                active={s.active_tab.clone()}
+                on:change={{ let tab = s.active_tab.clone(); move |v: String| tab.set(v) }}
                 data-testid="ai-tabs"
             >
                 <Tab id="chat" label="Chat">
                     <ChatPanel
-                        messages={store::messages.clone()}
-                        input={store::current_input.clone()}
-                        on_send={|| store::send_message()}
-                        loading={store::loading.get()}
+                        messages={s.messages.clone()}
+                        input={s.current_input.clone()}
+                        on_send={Some(Box::new({ let s2 = s.clone(); move || store::send_message(&s2) }))}
+                        loading={s.loading.get()}
                     />
                 </Tab>
                 <Tab id="audit" label="Audit">
                     <AuditView
-                        result={store::audit_result.clone()}
-                        loading={store::loading.get()}
-                        on_run={|path, scope| store::run_audit(path, scope)}
+                        result={s.audit_result.clone()}
+                        loading={s.loading.get()}
+                        on_run={Some(Box::new({ let s2 = s.clone(); move |path: String, scope: String| store::run_audit(&s2, &path, &scope) }))}
                     />
                 </Tab>
                 <Tab id="commands" label="Commands">
                     <CommandGen
-                        result={store::command_result.clone()}
-                        loading={store::loading.get()}
-                        on_generate={|reqs, ctx| store::generate_commands(reqs, ctx)}
+                        result={s.command_result.clone()}
+                        loading={s.loading.get()}
+                        on_generate={Some(Box::new({ let s2 = s.clone(); move |reqs: String, ctx: String| store::generate_commands(&s2, &reqs, &ctx) }))}
                     />
                 </Tab>
             </Tabs>

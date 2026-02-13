@@ -1,17 +1,14 @@
 use rsc_ui::prelude::*;
-use crate::page::app::App;
+use crate::page::app::AppShell;
 use crate::util::auth::{AuthProvider, AuthState};
 
-/// Application entry point.
-/// Mounts the root App component with authentication context.
-fn main() {
+/// Root component — wraps AppShell with authentication context.
+component App {
     let auth_state = signal(AuthState::default());
 
-    mount(|| {
-        render {
-            <AuthProvider state={auth_state}>
-                <App />
-            </AuthProvider>
-        }
-    });
+    render {
+        <AuthProvider state={auth_state}>
+            <AppShell />
+        </AuthProvider>
+    }
 }

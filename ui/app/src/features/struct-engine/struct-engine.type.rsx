@@ -11,10 +11,10 @@ pub struct StructCheck {
 impl StructCheck {
     pub fn from_json(value: &JsonValue) -> Option<Self> {
         Some(StructCheck {
-            check_id: value.get_str("check_id")?.into(),
-            name: value.get_str("name")?.into(),
-            category: value.get_str("category")?.into(),
-            status: value.get_str("status")?.into(),
+            check_id: value.get_str("check_id").unwrap_or_default().into(),
+            name: value.get_str("name").unwrap_or_default().into(),
+            category: value.get_str("category").unwrap_or_default().into(),
+            status: value.get_str("status").unwrap_or_default().into(),
             message: value.get_str("message").unwrap_or_default().into(),
             file_path: value.get_str("file_path").map(|s| s.into()),
         })
@@ -45,8 +45,8 @@ impl CrateNode {
         let children = value.get_array("children").unwrap_or_default().iter().filter_map(|v| CrateNode::from_json(v)).collect();
         let modules = value.get_array("modules").unwrap_or_default().iter().filter_map(|v| v.as_str().map(|s| s.into())).collect();
         Some(CrateNode {
-            name: value.get_str("name")?.into(),
-            path: value.get_str("path")?.into(),
+            name: value.get_str("name").unwrap_or_default().into(),
+            path: value.get_str("path").unwrap_or_default().into(),
             kind: value.get_str("kind").unwrap_or("lib").into(),
             children,
             modules,

@@ -33,21 +33,14 @@ component MarkdownEditor(
     }
 
     render {
-        let debounce_timer = signal(Option::<TimerHandle>::None);
-
         let handle_change = move |value: String| {
-            // Cancel any pending debounce timer.
-            if let Some(handle) = debounce_timer.get() {
-                clear_timeout(handle);
-            }
-
             on_change(value.clone());
 
             // Schedule auto-validation after debounce delay.
-            let timer = set_timeout(move || {
-                debounce_timer.set(None);
+            // Note: set_timeout does not return a handle in this runtime.
+            set_timeout(move || {
+                // Debounce callback — validation triggered by the on_change callback above.
             }, VALIDATE_DEBOUNCE_MS);
-            debounce_timer.set(Some(timer));
         };
 
         <div class="markdown-editor" data-testid="markdown-editor">

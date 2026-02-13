@@ -1,5 +1,6 @@
 use rsc_ui::prelude::*;
 use crate::features::specs::specs_store as store;
+use crate::features::specs::specs_store::SpecsStore;
 use crate::features::specs::spec_tree::SpecTree;
 use crate::features::specs::spec_content::SpecContent;
 use crate::features::specs::brd_overview::BrdOverview;
@@ -7,11 +8,14 @@ use crate::features::specs::brd_overview::BrdOverview;
 /// Specs landing page combining tree browser, content viewer, and BRD overview
 /// (FR-1000..1003).
 component SpecsLanding() {
-    effect(|| {
-        store::load_tree();
-        store::load_specs();
-        store::load_brd_entries();
-    });
+    let s = use_context::<SpecsStore>();
+
+    // Load data on mount.
+    { let s2 = s.clone(); effect(move || {
+        store::load_tree(&s2, "default");
+        store::load_specs(&s2, "default");
+        store::load_brd_entries(&s2, "default");
+    }); }
 
     style {
         .specs { display: flex; flex-direction: column; gap: var(--space-4); }
@@ -24,24 +28,24 @@ component SpecsLanding() {
             <div class="specs__search" data-testid="specs-search">
                 <Input
                     placeholder="Search specs..."
-                    value={store::search_query.get()}
-                    on:input={|val| store::set_search_query(val)}
+                    value={s.search_query.get()}
+                    on:input={{ let s2 = s.clone(); move |v: String| store::set_search_query(&s2, v) }}
                     data-testid="specs-search-input"
                 />
             </div>
             <div class="specs__browser" data-testid="specs-browser">
                 <SpecTree
-                    tree={store::tree.clone()}
-                    on_select={|f| store::select_file(f)}
+                    tree={s.tree.clone()}
+                    on_select={Some(Box::new({ let s2 = s.clone(); move |f| store::select_file(&s2, "default", f) }))}
                 />
-                @if let Some(ref content) = store::file_content.get() {
+                @if let Some(ref content) = s.file_content.get().as_ref() {
                     <SpecContent
-                        file={store::selected_file.clone()}
+                        file={s.selected_file.clone()}
                         content={content.clone()}
                     />
                 }
             </div>
-            <BrdOverview entries={store::brd_entries.clone()} />
+            <BrdOverview entries={s.brd_entries.clone()} />
         </div>
     }
 }

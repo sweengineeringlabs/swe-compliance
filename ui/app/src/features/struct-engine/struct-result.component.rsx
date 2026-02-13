@@ -1,6 +1,6 @@
 use rsc_ui::prelude::*;
-use crate::features::struct_engine::struct_engine_type::StructCheck;
-use crate::features::struct_engine::struct_engine_store as store;
+use crate::features::struct_engine::types::StructCheck;
+use crate::features::struct_engine::store::StructEngineStore;
 
 /// Table displaying StructCheck scan results with filtering and sorting (FR-1100).
 /// Columns: Check ID, Name, Category, Status (Badge), Message.
@@ -9,6 +9,7 @@ component StructResults(
     checks: Vec<StructCheck>,
     loading: bool,
 ) {
+    let s = use_context::<StructEngineStore>();
     let sort_column = signal("check_id".to_string());
     let sort_asc = signal(true);
 
@@ -54,20 +55,20 @@ component StructResults(
                 <div class="struct-results__filters" data-testid="struct-results-filters">
                     <FormField label="Category">
                         <Select
-                            value={store::category_filter.get().unwrap_or_default()}
-                            on:change={|v: String| store::set_category_filter(if v.is_empty() { None } else { Some(v) })}
+                            value={s.category_filter.get().unwrap_or_default()}
+                            on:change={{ let s2 = s.clone(); move |v: String| s2.set_category_filter(if v.is_empty() { None } else { Some(v) }) }}
                             data-testid="struct-filter-category"
                         >
                             <option value="">"All Categories"</option>
-                            @for cat in store::categories().iter() {
+                            @for cat in s.categories().iter() {
                                 <option value={cat.clone()}>{cat}</option>
                             }
                         </Select>
                     </FormField>
                     <FormField label="Status">
                         <Select
-                            value={store::status_filter.get().unwrap_or_default()}
-                            on:change={|v: String| store::set_status_filter(if v.is_empty() { None } else { Some(v) })}
+                            value={s.status_filter.get().unwrap_or_default()}
+                            on:change={{ let s2 = s.clone(); move |v: String| s2.set_status_filter(if v.is_empty() { None } else { Some(v) }) }}
                             data-testid="struct-filter-status"
                         >
                             <option value="">"All Statuses"</option>
@@ -77,9 +78,9 @@ component StructResults(
                             <option value="warning">"Warning"</option>
                         </Select>
                     </FormField>
-                    <Badge variant="success" data-testid="struct-pass-count">{format!("{} pass", store::pass_count())}</Badge>
-                    <Badge variant="danger" data-testid="struct-fail-count">{format!("{} fail", store::fail_count())}</Badge>
-                    <Badge variant="secondary" data-testid="struct-skip-count">{format!("{} skip", store::skip_count())}</Badge>
+                    <Badge variant="success" data-testid="struct-pass-count">{format!("{} pass", s.pass_count())}</Badge>
+                    <Badge variant="danger" data-testid="struct-fail-count">{format!("{} fail", s.fail_count())}</Badge>
+                    <Badge variant="secondary" data-testid="struct-skip-count">{format!("{} skip", s.skip_count())}</Badge>
                 </div>
 
                 @if loading {

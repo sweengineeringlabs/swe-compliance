@@ -32,6 +32,9 @@ pub fn use_scan_progress(scan_id: Signal<Option<String>>) -> (Signal<Option<Scan
     let ws_handle = signal(Option::<WebSocket>::None);
     let reconnect_attempts = signal(0u32);
 
+    // Clone ws_handle so both effect() and on_cleanup() can capture it.
+    let ws_handle_cleanup = ws_handle.clone();
+
     // Connect or disconnect when scan_id changes.
     effect(move || {
         // Close any existing connection first.
@@ -61,7 +64,7 @@ pub fn use_scan_progress(scan_id: Signal<Option<String>>) -> (Signal<Option<Scan
 
     // Cleanup on unmount.
     on_cleanup(move || {
-        if let Some(ws) = ws_handle.get() {
+        if let Some(ws) = ws_handle_cleanup.get() {
             ws.close();
         }
     });
@@ -83,20 +86,27 @@ fn connect_ws(
     let ws = api_ws(&path);
     let scan_id_owned = scan_id.to_string();
 
+    // Clone signals for on_open closure.
+    let ws_state_open = ws_state.clone();
+    let reconnect_open = reconnect_attempts.clone();
     ws.on_open(move || {
-        ws_state.set(WsState::Connected);
-        reconnect_attempts.set(0);
+        ws_state_open.set(WsState::Connected);
+        reconnect_open.set(0);
     });
 
+    // Clone signals for on_message closure.
+    let progress_msg = progress.clone();
+    let ws_state_msg = ws_state.clone();
+    let ws_handle_msg = ws_handle.clone();
     ws.on_message(move |data: String| {
         if let Some(parsed) = json_parse(&data) {
             if let Some(msg) = ScanProgress::from_json(&parsed) {
                 let is_complete = msg.is_complete();
-                progress.set(Some(msg));
+                progress_msg.set(Some(msg));
 
                 if is_complete {
-                    ws_state.set(WsState::Completed);
-                    if let Some(handle) = ws_handle.get() {
+                    ws_state_msg.set(WsState::Completed);
+                    if let Some(handle) = ws_handle_msg.get() {
                         handle.close();
                     }
                 }
@@ -104,10 +114,13 @@ fn connect_ws(
         }
     });
 
+    // Clone ws_state for on_error closure.
+    let ws_state_err = ws_state.clone();
     ws.on_error(move || {
-        ws_state.set(WsState::Disconnected);
+        ws_state_err.set(WsState::Disconnected);
     });
 
+    // on_close is the last closure — it can consume the original signals.
     ws.on_close(move || {
         // Only attempt reconnection if the scan is not complete.
         let current_state = ws_state.get();

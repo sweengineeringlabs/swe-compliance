@@ -78,7 +78,7 @@ component CommandGen(
                         <Input
                             value={requirements_json.clone()}
                             on:input={|v| requirements_json.set(v)}
-                            placeholder='[{"id":"REQ-001","title":"...","description":"..."}]'
+                            placeholder={"[{\"id\":\"REQ-001\",\"title\":\"...\",\"description\":\"...\"}]"}
                             data-testid="command-gen-reqs-input"
                         />
                     </FormField>

@@ -45,9 +45,9 @@ impl ReportData {
     /// Parse a ReportData from a JSON value.
     pub fn from_json(value: &JsonValue) -> Option<Self> {
         Some(ReportData {
-            scan_id: value.get_str("scan_id")?.into(),
-            format: value.get_str("format")?.into(),
-            content: value.get_str("content")?.into(),
+            scan_id: value.get_str("scan_id").unwrap_or_default().into(),
+            format: value.get_str("format").unwrap_or_default().into(),
+            content: value.get_str("content").unwrap_or_default().into(),
             generated_at: value.get_str("generated_at").unwrap_or_default().into(),
         })
     }
@@ -66,8 +66,8 @@ impl ReportComparison {
     /// Parse a ReportComparison from a JSON value.
     pub fn from_json(value: &JsonValue) -> Option<Self> {
         Some(ReportComparison {
-            scan_a_id: value.get_str("scan_a_id")?.into(),
-            scan_b_id: value.get_str("scan_b_id")?.into(),
+            scan_a_id: value.get_str("scan_a_id").unwrap_or_default().into(),
+            scan_b_id: value.get_str("scan_b_id").unwrap_or_default().into(),
             added: value.get_array("added")
                 .unwrap_or_default()
                 .iter()

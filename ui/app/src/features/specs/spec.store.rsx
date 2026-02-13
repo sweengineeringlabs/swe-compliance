@@ -45,10 +45,13 @@ impl SpecsStore {
 
 /// Derived: filtered specs based on search_query and kind_filter.
 pub fn filtered_specs(store: &SpecsStore) -> Signal<Vec<SpecFile>> {
+    let search_query = store.search_query.clone();
+    let kind_filter = store.kind_filter.clone();
+    let specs = store.specs.clone();
     derived(move || {
-        let query = store.search_query.get().to_lowercase();
-        let kind = store.kind_filter.get();
-        store.specs.get().iter().filter(|f| {
+        let query = search_query.get().to_lowercase();
+        let kind = kind_filter.get();
+        specs.get().iter().filter(|f| {
             let matches_query = query.is_empty()
                 || f.name.to_lowercase().contains(&query)
                 || f.path.to_lowercase().contains(&query);
@@ -60,7 +63,8 @@ pub fn filtered_specs(store: &SpecsStore) -> Signal<Vec<SpecFile>> {
 
 /// Derived: total file count across all specs.
 pub fn file_count(store: &SpecsStore) -> Signal<usize> {
-    derived(move || store.specs.get().len())
+    let specs = store.specs.clone();
+    derived(move || specs.get().len())
 }
 
 /// Load the flat spec list for the given project (FR-1000).

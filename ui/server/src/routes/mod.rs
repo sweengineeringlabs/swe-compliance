@@ -12,6 +12,7 @@ pub mod specs;
 use axum::middleware;
 use axum::routing::{delete, get, patch, post, put};
 use axum::Router;
+use tower_http::services::{ServeDir, ServeFile};
 
 use crate::auth::JwtSecret;
 use crate::middleware::{rate_limit_middleware, RateLimiter, ScanSemaphore};
@@ -77,9 +78,18 @@ pub fn build_router(state: AppState) -> Router {
         .route("/api/v1/projects/{id}/specs", get(specs::get_specs))
         .layer(middleware::from_fn(rate_limit_middleware));
 
+    // Serve frontend static files from ui/app/dist/, falling back to
+    // index.html for SPA client-side routing.
+    let dist_dir = std::env::var("SWE_DIST_DIR")
+        .unwrap_or_else(|_| "ui/app/dist".to_string());
+    let index_path = format!("{}/index.html", dist_dir);
+    let spa_fallback = ServeDir::new(&dist_dir)
+        .fallback(ServeFile::new(&index_path));
+
     Router::new()
         .merge(public)
         .merge(api)
+        .fallback_service(spa_fallback)
         .layer(axum::Extension(jwt_secret))
         .layer(axum::Extension(rate_limiter))
         .with_state(state)

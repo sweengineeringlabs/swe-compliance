@@ -51,10 +51,13 @@ pub static error: Signal<Option<String>> = STORE.error;
 
 /// Derived: checks filtered by category and status.
 pub fn filtered_checks() -> Vec<StructCheck> {
+    let checks_clone = checks.clone();
+    let category_filter_clone = category_filter.clone();
+    let status_filter_clone = status_filter.clone();
     derived(move || {
-        let all = checks.get();
-        let cat = category_filter.get();
-        let stat = status_filter.get();
+        let all = checks_clone.get();
+        let cat = category_filter_clone.get();
+        let stat = status_filter_clone.get();
 
         all.iter()
             .filter(|c| {
@@ -77,29 +80,33 @@ pub fn filtered_checks() -> Vec<StructCheck> {
 
 /// Derived: count of checks with status "pass".
 pub fn pass_count() -> usize {
+    let checks_clone = checks.clone();
     derived(move || {
-        checks.get().iter().filter(|c| c.status == "pass").count()
+        checks_clone.get().iter().filter(|c| c.status == "pass").count()
     })
 }
 
 /// Derived: count of checks with status "fail".
 pub fn fail_count() -> usize {
+    let checks_clone = checks.clone();
     derived(move || {
-        checks.get().iter().filter(|c| c.status == "fail").count()
+        checks_clone.get().iter().filter(|c| c.status == "fail").count()
     })
 }
 
 /// Derived: count of checks with status "skip".
 pub fn skip_count() -> usize {
+    let checks_clone = checks.clone();
     derived(move || {
-        checks.get().iter().filter(|c| c.status == "skip").count()
+        checks_clone.get().iter().filter(|c| c.status == "skip").count()
     })
 }
 
 /// Derived: unique category names from current checks.
 pub fn categories() -> Vec<String> {
+    let checks_clone = checks.clone();
     derived(move || {
-        let mut cats: Vec<String> = checks
+        let mut cats: Vec<String> = checks_clone
             .get()
             .iter()
             .map(|c| c.category.clone())

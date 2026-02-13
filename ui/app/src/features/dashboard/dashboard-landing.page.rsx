@@ -1,5 +1,6 @@
 use rsc_ui::prelude::*;
-use crate::features::dashboard::dashboard_store as store;
+use crate::features::dashboard::store::{self, DashboardStore};
+use crate::features::dashboard::service;
 use crate::features::dashboard::project_card::ProjectCard;
 use crate::features::dashboard::category_chart::CategoryChart;
 use crate::features::dashboard::trend_chart::TrendChart;
@@ -7,9 +8,14 @@ use crate::features::dashboard::engine_summary::EngineSummary;
 
 /// Main dashboard page composing project cards, engine summary, and trend chart (FR-200..203).
 component DashboardLanding() {
-    effect(|| { store::load_projects(); });
+    let s = use_context::<DashboardStore>();
 
-    let handle_select = move |id: String| { store::select_project(&id); };
+    { let s = s.clone(); effect(move || {
+        let s = s.clone();
+        spawn(async move { service::load_dashboard(&s).await; });
+    }); }
+
+    let handle_select = { let s = s.clone(); move |id: String| { store::select_project(&s, &id); } };
 
     style {
         .dashboard { display: flex; flex-direction: column; gap: var(--space-6); }
@@ -19,23 +25,23 @@ component DashboardLanding() {
 
     render {
         <div class="dashboard" data-testid="dashboard-landing">
-            @if store::loading.get() {
+            @if s.loading.get() {
                 <Progress indeterminate={true} data-testid="dashboard-loading" />
             }
             <Grid class="dashboard__grid" data-testid="dashboard-projects-grid">
-                @for project in store::projects.get().iter() {
+                @for project in s.projects.get().iter() {
                     <ProjectCard
                         project={project.clone()}
                         on_select={handle_select.clone()}
                     />
                 }
             </Grid>
-            @if store::selected_project.get().is_some() {
+            @if s.selected_project.get().is_some() {
                 <div class="dashboard__details" data-testid="dashboard-details">
-                    <EngineSummary categories={store::category_breakdown.clone()} />
-                    <CategoryChart categories={store::category_breakdown.clone()} />
+                    <EngineSummary categories={s.category_breakdown.clone()} />
+                    <CategoryChart categories={s.category_breakdown.clone()} />
                 </div>
-                <TrendChart trend_data={store::trend_data.clone()} />
+                <TrendChart trend_data={s.trend_data.clone()} />
             }
         </div>
     }

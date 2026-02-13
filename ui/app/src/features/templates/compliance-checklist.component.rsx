@@ -41,7 +41,7 @@ component ComplianceChecklist(
                             <Checkbox
                                 label={&item.label}
                                 checked={item.checked}
-                                on:change={let id = item.id.clone(); move |_| on_toggle(id.clone())}
+                                on:change={let id = item.id.clone(); move |_v: String| on_toggle(id.clone())}
                                 data-testid={format!("checklist-item-{}", item.id)}
                             />
                         }

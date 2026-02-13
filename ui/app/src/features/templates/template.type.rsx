@@ -15,7 +15,7 @@ pub struct TemplateEntry {
 impl TemplateEntry {
     pub fn from_json(value: &JsonValue) -> Option<Self> {
         Some(TemplateEntry {
-            name: value.get_str("name")?.into(),
+            name: value.get_str("name").unwrap_or_default().into(),
             description: value.get_str("description").unwrap_or_default().into(),
             category: value.get_str("category").unwrap_or_default().into(),
             file_count: value.get_u32("file_count").unwrap_or(0),
@@ -42,8 +42,8 @@ pub struct ChecklistItem {
 impl ChecklistItem {
     pub fn from_json(value: &JsonValue) -> Option<Self> {
         Some(ChecklistItem {
-            id: value.get_str("id")?.into(),
-            label: value.get_str("label")?.into(),
+            id: value.get_str("id").unwrap_or_default().into(),
+            label: value.get_str("label").unwrap_or_default().into(),
             checked: value.get_bool("checked").unwrap_or(false),
         })
     }
@@ -62,8 +62,8 @@ pub struct TemplateCopyResult {
 impl TemplateCopyResult {
     pub fn from_json(value: &JsonValue) -> Option<Self> {
         Some(TemplateCopyResult {
-            template_name: value.get_str("template_name")?.into(),
-            destination: value.get_str("destination")?.into(),
+            template_name: value.get_str("template_name").unwrap_or_default().into(),
+            destination: value.get_str("destination").unwrap_or_default().into(),
             files_copied: value.get_u32("files_copied").unwrap_or(0),
         })
     }

@@ -10,7 +10,7 @@ pub struct ValidationResult {
 impl ValidationResult {
     pub fn from_json(value: &JsonValue) -> Option<Self> {
         Some(ValidationResult {
-            valid: value.get_bool("valid")?,
+            valid: value.get_bool("valid").unwrap_or_default(),
             domain_count: value.get_u32("domain_count").unwrap_or(0),
             requirement_count: value.get_u32("requirement_count").unwrap_or(0),
             errors: value.get_array("errors").unwrap_or_default().iter().filter_map(|v| ValidationError::from_json(v)).collect(),
@@ -27,8 +27,8 @@ pub struct ValidationError {
 impl ValidationError {
     pub fn from_json(value: &JsonValue) -> Option<Self> {
         Some(ValidationError {
-            line: value.get_u32("line")?,
-            message: value.get_str("message")?.into(),
+            line: value.get_u32("line").unwrap_or_default(),
+            message: value.get_str("message").unwrap_or_default().into(),
         })
     }
 }
@@ -43,8 +43,8 @@ pub struct SrsDocument {
 impl SrsDocument {
     pub fn from_json(value: &JsonValue) -> Option<Self> {
         Some(SrsDocument {
-            project_id: value.get_str("project_id")?.into(),
-            content: value.get_str("content")?.into(),
+            project_id: value.get_str("project_id").unwrap_or_default().into(),
+            content: value.get_str("content").unwrap_or_default().into(),
             updated_at: value.get_str("updated_at").unwrap_or_default().into(),
         })
     }

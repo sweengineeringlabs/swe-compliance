@@ -10,9 +10,9 @@ pub struct SpecFile {
 impl SpecFile {
     pub fn from_json(value: &JsonValue) -> Option<Self> {
         Some(SpecFile {
-            path: value.get_str("path")?.into(),
-            name: value.get_str("name")?.into(),
-            kind: value.get_str("kind")?.into(),
+            path: value.get_str("path").unwrap_or_default().into(),
+            name: value.get_str("name").unwrap_or_default().into(),
+            kind: value.get_str("kind").unwrap_or_default().into(),
             size: value.get_u64("size").unwrap_or(0),
             modified: value.get_str("modified").unwrap_or_default().into(),
         })
@@ -52,8 +52,8 @@ impl SpecDirectory {
         let files = value.get_array("files").unwrap_or_default().iter().filter_map(|v| SpecFile::from_json(v)).collect();
         let children = value.get_array("children").unwrap_or_default().iter().filter_map(|v| SpecDirectory::from_json(v)).collect();
         Some(SpecDirectory {
-            name: value.get_str("name")?.into(),
-            path: value.get_str("path")?.into(),
+            name: value.get_str("name").unwrap_or_default().into(),
+            path: value.get_str("path").unwrap_or_default().into(),
             files,
             children,
         })
@@ -75,8 +75,8 @@ pub struct BrdEntry {
 impl BrdEntry {
     pub fn from_json(value: &JsonValue) -> Option<Self> {
         Some(BrdEntry {
-            id: value.get_str("id")?.into(),
-            title: value.get_str("title")?.into(),
+            id: value.get_str("id").unwrap_or_default().into(),
+            title: value.get_str("title").unwrap_or_default().into(),
             status: value.get_str("status").unwrap_or("unknown").into(),
             spec_files: value.get_array("spec_files").unwrap_or_default().iter().filter_map(|v| v.as_str().map(|s| s.into())).collect(),
         })

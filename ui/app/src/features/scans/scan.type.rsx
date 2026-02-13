@@ -85,11 +85,11 @@ impl Scan {
     /// Parse a Scan from a JSON value.
     pub fn from_json(value: &JsonValue) -> Option<Self> {
         Some(Scan {
-            id: value.get_str("id")?.into(),
-            project_id: value.get_str("project_id")?.into(),
-            engine: value.get_str("engine")?.into(),
-            status: value.get_str("status")?.into(),
-            started_at: value.get_str("started_at")?.into(),
+            id: value.get_str("id").unwrap_or_default().into(),
+            project_id: value.get_str("project_id").unwrap_or_default().into(),
+            engine: value.get_str("engine").unwrap_or_default().into(),
+            status: value.get_str("status").unwrap_or_default().into(),
+            started_at: value.get_str("started_at").unwrap_or_default().into(),
             finished_at: value.get_str("finished_at").map(|s| s.into()),
             report: value.get_str("report").map(|s| s.into()),
         })
@@ -149,19 +149,19 @@ impl ScanRequest {
 
         if let Some(ref checks) = self.checks {
             if !checks.is_empty() {
-                obj.insert("checks", json_value_string(checks));
+                obj.as_object_mut().unwrap().insert("checks".to_string(), JsonValue::String(checks.clone()));
             }
         }
 
         if let Some(ref phase) = self.phase {
             if !phase.is_empty() {
-                obj.insert("phase", json_value_string(phase));
+                obj.as_object_mut().unwrap().insert("phase".to_string(), JsonValue::String(phase.clone()));
             }
         }
 
         if let Some(ref module) = self.module {
             if !module.is_empty() {
-                obj.insert("module", json_value_string(module));
+                obj.as_object_mut().unwrap().insert("module".to_string(), JsonValue::String(module.clone()));
             }
         }
 
@@ -183,12 +183,12 @@ impl ScanProgress {
     /// Parse a ScanProgress from a JSON value (WebSocket message payload).
     pub fn from_json(value: &JsonValue) -> Option<Self> {
         Some(ScanProgress {
-            scan_id: value.get_str("scan_id")?.into(),
-            check_id: value.get_u32("check_id")?,
-            check_description: value.get_str("check_description")?.into(),
-            status: value.get_str("status")?.into(),
-            current: value.get_u32("current")?,
-            total: value.get_u32("total")?,
+            scan_id: value.get_str("scan_id").unwrap_or_default().into(),
+            check_id: value.get_u32("check_id").unwrap_or_default(),
+            check_description: value.get_str("check_description").unwrap_or_default().into(),
+            status: value.get_str("status").unwrap_or_default().into(),
+            current: value.get_u32("current").unwrap_or_default(),
+            total: value.get_u32("total").unwrap_or_default(),
         })
     }
 

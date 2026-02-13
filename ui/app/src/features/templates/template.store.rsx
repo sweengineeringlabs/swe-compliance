@@ -1,6 +1,7 @@
 use crate::features::templates::templates_type::{
     TemplateEntry, ChecklistItem, TemplateCopyResult,
 };
+use crate::features::templates::templates_service as service;
 
 /// Central reactive store for the templates feature.
 /// All template components read from these signals to ensure consistency.
@@ -88,6 +89,34 @@ pub fn toggle_checklist_item(store: &TemplatesStore, item_id: &str) {
         item.checked = !item.checked;
     }
     store.checklist_items.set(items);
+}
+
+/// Copy the currently selected template to the default project location (FR-602).
+pub fn copy_selected(store: &TemplatesStore) {
+    let tpl = match store.selected_template.get().clone() {
+        Some(t) => t,
+        None => return,
+    };
+    store.loading.set(true);
+    store.error.set(None);
+
+    let copy_result = store.copy_result;
+    let loading = store.loading;
+    let error = store.error;
+    let name = tpl.name.clone();
+
+    spawn(async move {
+        match service::copy_template(&name, "", ".").await {
+            Ok(result) => {
+                copy_result.set(Some(result));
+                loading.set(false);
+            }
+            Err(msg) => {
+                error.set(Some(msg));
+                loading.set(false);
+            }
+        }
+    });
 }
 
 /// Reset the store to its initial state, clearing all data and selections.

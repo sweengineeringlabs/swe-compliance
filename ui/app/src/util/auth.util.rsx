@@ -130,7 +130,7 @@ component LoginForm(auth_state: Signal<AuthState>) {
                     <FormField label="Username">
                         <Input
                             value={username}
-                            on:input={move |v| username.set(v)}
+                            on:input={let u = username.clone(); move |v: String| u.set(v)}
                             placeholder="Enter username"
                             data-testid="login-username"
                         />
@@ -139,7 +139,7 @@ component LoginForm(auth_state: Signal<AuthState>) {
                     <FormField label="Password">
                         <Input
                             value={password}
-                            on:input={move |v| password.set(v)}
+                            on:input={let p = password.clone(); move |v: String| p.set(v)}
                             input_type="password"
                             placeholder="Enter password"
                             data-testid="login-password"

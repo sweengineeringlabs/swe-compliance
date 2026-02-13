@@ -11,7 +11,7 @@ impl AiStatus {
     /// Parse an AiStatus from a JSON value.
     pub fn from_json(value: &JsonValue) -> Option<Self> {
         Some(AiStatus {
-            enabled: value.get_bool("enabled")?,
+            enabled: value.get_bool("enabled").unwrap_or_default(),
             provider: value.get_str("provider").map(|s| s.into()),
         })
     }
@@ -50,8 +50,8 @@ impl ChatMessage {
     /// Parse a ChatMessage from a JSON value.
     pub fn from_json(value: &JsonValue) -> Option<Self> {
         Some(ChatMessage {
-            role: value.get_str("role")?.into(),
-            content: value.get_str("content")?.into(),
+            role: value.get_str("role").unwrap_or_default().into(),
+            content: value.get_str("content").unwrap_or_default().into(),
         })
     }
 
@@ -88,7 +88,7 @@ pub struct AuditResult {
 impl AuditResult {
     /// Parse an AuditResult from a JSON value.
     pub fn from_json(value: &JsonValue) -> Option<Self> {
-        let summary = value.get_str("summary")?.into();
+        let summary = value.get_str("summary").unwrap_or_default().into();
         let scan_results = value.get("scan_results").cloned().unwrap_or(json!({}));
         let rec_array = value.get_array("recommendations").unwrap_or_default();
         let recommendations = rec_array
@@ -123,8 +123,8 @@ impl RequirementInput {
     /// Parse a RequirementInput from a JSON value.
     pub fn from_json(value: &JsonValue) -> Option<Self> {
         Some(RequirementInput {
-            id: value.get_str("id")?.into(),
-            title: value.get_str("title")?.into(),
+            id: value.get_str("id").unwrap_or_default().into(),
+            title: value.get_str("title").unwrap_or_default().into(),
             verification: value.get_str("verification").unwrap_or_default().into(),
             acceptance: value.get_str("acceptance").unwrap_or_default().into(),
             traces_to: value.get_str("traces_to").unwrap_or_default().into(),
@@ -180,8 +180,8 @@ impl SkippedReq {
     /// Parse a SkippedReq from a JSON value.
     pub fn from_json(value: &JsonValue) -> Option<Self> {
         Some(SkippedReq {
-            id: value.get_str("id")?.into(),
-            reason: value.get_str("reason")?.into(),
+            id: value.get_str("id").unwrap_or_default().into(),
+            reason: value.get_str("reason").unwrap_or_default().into(),
         })
     }
 }
@@ -197,15 +197,21 @@ pub struct CommandGenResult {
 impl CommandGenResult {
     /// Parse a CommandGenResult from a JSON value.
     pub fn from_json(value: &JsonValue) -> Option<Self> {
-        let commands_obj = value.get("commands")?;
+        let empty_map = serde_json::Map::new();
+        let commands_obj = value.get("commands")
+            .and_then(|v| v.as_object())
+            .unwrap_or(&empty_map);
         let mut commands = Map::new();
-        for (key, val) in commands_obj.entries() {
+        for (key, val) in commands_obj.iter() {
             if let Some(cmd) = val.as_str() {
-                commands.insert(key.into(), cmd.into());
+                commands.insert(key.clone(), cmd.into());
             }
         }
 
-        let skipped_arr = value.get_array("skipped").unwrap_or_default();
+        let skipped_arr = value.get("skipped")
+            .and_then(|v| v.as_array())
+            .cloned()
+            .unwrap_or_default();
         let skipped = skipped_arr
             .iter()
             .filter_map(|v| SkippedReq::from_json(v))

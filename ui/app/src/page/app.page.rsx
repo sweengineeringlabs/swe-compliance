@@ -1,10 +1,48 @@
 use rsc_ui::prelude::*;
 use crate::util::auth::use_auth;
+use crate::features::ai::ai_landing::AiLanding;
+use crate::features::dashboard::dashboard_landing::DashboardLanding;
+use crate::features::editor::editor_landing::EditorLanding;
+use crate::features::projects::project_landing::ProjectsLanding;
+use crate::features::reports::report_landing::ReportsLanding;
+use crate::features::scaffold::scaffold_landing::ScaffoldLanding;
+use crate::features::scans::scan_landing::ScansLanding;
+use crate::features::specs::spec_landing::SpecsLanding;
+use crate::features::struct_engine::struct_engine_landing::StructEngineLanding;
+use crate::features::templates::template_landing::TemplatesLanding;
+use crate::features::violations::violation_landing::ViolationsLanding;
 
-/// Root application layout with sidebar navigation and content area.
-component App() {
-    let auth = use_auth();
-    let current_route = use_route();
+/// Navigate to a path and update the route signal.
+fn go(route: &Signal<String>, path: &str) {
+    navigate(path);
+    route.set(path.to_string());
+}
+
+/// Root application layout with sidebar navigation and client-side SPA router.
+///
+/// Uses `use_route()` to read the initial URL pathname, stores it in a
+/// reactive `Signal<String>`, and renders the matching feature landing page.
+/// Navigation links call `navigate()` (History.pushState) and update the
+/// signal so the content area re-renders without a full page reload.
+component AppShell() {
+    let _auth = use_auth();
+    let route = signal(use_route());
+
+    // --- helper clones for each nav on:click closure ---
+    let r_dashboard    = route.clone();
+    let r_projects     = route.clone();
+    let r_scans        = route.clone();
+    let r_violations   = route.clone();
+    let r_scaffold     = route.clone();
+    let r_templates    = route.clone();
+    let r_reports      = route.clone();
+    let r_ai           = route.clone();
+    let r_editor       = route.clone();
+    let r_specs        = route.clone();
+    let r_struct       = route.clone();
+
+    // Clone for route matching in the content area.
+    let r_view = route.clone();
 
     style {
         .app {
@@ -51,6 +89,12 @@ component App() {
             text-decoration: none;
             font-size: var(--font-size-sm);
             transition: background 0.15s, color 0.15s;
+            cursor: pointer;
+            background: none;
+            border: none;
+            width: 100%;
+            text-align: left;
+            font-family: inherit;
         }
 
         .app__nav-item:hover {
@@ -86,69 +130,91 @@ component App() {
                     "swe-compliance"
                 </div>
                 <div class="app__nav">
-                    <a href="/dashboard"
-                       class="app__nav-item"
-                       class:app__nav-item--active={current_route.starts_with("/dashboard")}
+                    <a class="app__nav-item"
+                       class:app__nav-item--active={route.get().starts_with("/dashboard") || route.get() == "/"}
+                       on:click={move || go(&r_dashboard, "/dashboard")}
+                       role="link"
+                       tabindex="0"
                        data-testid="nav-dashboard">
                         "Dashboard"
                     </a>
-                    <a href="/projects"
-                       class="app__nav-item"
-                       class:app__nav-item--active={current_route.starts_with("/projects")}
+                    <a class="app__nav-item"
+                       class:app__nav-item--active={route.get().starts_with("/projects")}
+                       on:click={move || go(&r_projects, "/projects")}
+                       role="link"
+                       tabindex="0"
                        data-testid="nav-projects">
                         "Projects"
                     </a>
-                    <a href="/scans"
-                       class="app__nav-item"
-                       class:app__nav-item--active={current_route.starts_with("/scans")}
+                    <a class="app__nav-item"
+                       class:app__nav-item--active={route.get().starts_with("/scans")}
+                       on:click={move || go(&r_scans, "/scans")}
+                       role="link"
+                       tabindex="0"
                        data-testid="nav-scans">
                         "Scans"
                     </a>
-                    <a href="/violations"
-                       class="app__nav-item"
-                       class:app__nav-item--active={current_route.starts_with("/violations")}
+                    <a class="app__nav-item"
+                       class:app__nav-item--active={route.get().starts_with("/violations")}
+                       on:click={move || go(&r_violations, "/violations")}
+                       role="link"
+                       tabindex="0"
                        data-testid="nav-violations">
                         "Violations"
                     </a>
-                    <a href="/scaffold"
-                       class="app__nav-item"
-                       class:app__nav-item--active={current_route.starts_with("/scaffold")}
+                    <a class="app__nav-item"
+                       class:app__nav-item--active={route.get().starts_with("/scaffold")}
+                       on:click={move || go(&r_scaffold, "/scaffold")}
+                       role="link"
+                       tabindex="0"
                        data-testid="nav-scaffold">
                         "Scaffold"
                     </a>
-                    <a href="/templates"
-                       class="app__nav-item"
-                       class:app__nav-item--active={current_route.starts_with("/templates")}
+                    <a class="app__nav-item"
+                       class:app__nav-item--active={route.get().starts_with("/templates")}
+                       on:click={move || go(&r_templates, "/templates")}
+                       role="link"
+                       tabindex="0"
                        data-testid="nav-templates">
                         "Templates"
                     </a>
-                    <a href="/reports"
-                       class="app__nav-item"
-                       class:app__nav-item--active={current_route.starts_with("/reports")}
+                    <a class="app__nav-item"
+                       class:app__nav-item--active={route.get().starts_with("/reports")}
+                       on:click={move || go(&r_reports, "/reports")}
+                       role="link"
+                       tabindex="0"
                        data-testid="nav-reports">
                         "Reports"
                     </a>
-                    <a href="/ai"
-                       class="app__nav-item"
-                       class:app__nav-item--active={current_route.starts_with("/ai")}
+                    <a class="app__nav-item"
+                       class:app__nav-item--active={route.get().starts_with("/ai")}
+                       on:click={move || go(&r_ai, "/ai")}
+                       role="link"
+                       tabindex="0"
                        data-testid="nav-ai">
                         "AI Features"
                     </a>
-                    <a href="/editor"
-                       class="app__nav-item"
-                       class:app__nav-item--active={current_route.starts_with("/editor")}
+                    <a class="app__nav-item"
+                       class:app__nav-item--active={route.get().starts_with("/editor")}
+                       on:click={move || go(&r_editor, "/editor")}
+                       role="link"
+                       tabindex="0"
                        data-testid="nav-editor">
                         "SRS Editor"
                     </a>
-                    <a href="/specs"
-                       class="app__nav-item"
-                       class:app__nav-item--active={current_route.starts_with("/specs")}
+                    <a class="app__nav-item"
+                       class:app__nav-item--active={route.get().starts_with("/specs")}
+                       on:click={move || go(&r_specs, "/specs")}
+                       role="link"
+                       tabindex="0"
                        data-testid="nav-specs">
                         "Spec Viewer"
                     </a>
-                    <a href="/struct-engine"
-                       class="app__nav-item"
-                       class:app__nav-item--active={current_route.starts_with("/struct-engine")}
+                    <a class="app__nav-item"
+                       class:app__nav-item--active={route.get().starts_with("/struct-engine")}
+                       on:click={move || go(&r_struct, "/struct-engine")}
+                       role="link"
+                       tabindex="0"
                        data-testid="nav-struct-engine">
                         "Struct Engine"
                     </a>
@@ -158,7 +224,20 @@ component App() {
                 </div>
             </nav>
             <main id="main-content" class="app__content" data-testid="main-content" role="main">
-                <slot />
+                {match r_view.get().as_str() {
+                    "/" | "/dashboard" => view! { <DashboardLanding /> },
+                    "/projects"       => view! { <ProjectsLanding /> },
+                    "/scans"          => view! { <ScansLanding /> },
+                    "/editor"         => view! { <EditorLanding /> },
+                    "/specs"          => view! { <SpecsLanding /> },
+                    "/violations"     => view! { <ViolationsLanding /> },
+                    "/reports"        => view! { <ReportsLanding /> },
+                    "/scaffold"       => view! { <ScaffoldLanding /> },
+                    "/templates"      => view! { <TemplatesLanding /> },
+                    "/ai"             => view! { <AiLanding /> },
+                    "/struct-engine"  => view! { <StructEngineLanding /> },
+                    _                 => view! { <DashboardLanding /> },
+                }}
             </main>
         </div>
     }
