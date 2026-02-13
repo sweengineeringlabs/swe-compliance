@@ -3,7 +3,8 @@ use std::process;
 
 use clap::{Parser, Subcommand};
 
-use struct_engine::{scan_with_config, format_report_text, format_report_json, ScanConfig, ProjectKind};
+use struct_engine::{scan_with_config, ScanConfig, ProjectKind, StdoutSink, ReportFormat};
+use struct_engine::api::traits::ReportSink;
 
 #[derive(Parser)]
 #[command(name = "struct-engine", version, about = "Rust package structure compliance engine")]
@@ -152,12 +153,12 @@ fn main() {
 
             match scan_with_config(&root, &config) {
                 Ok(report) => {
-                    let output = if json {
-                        format_report_json(&report)
-                    } else {
-                        format_report_text(&report)
-                    };
-                    print!("{}", output);
+                    let format = if json { ReportFormat::Json } else { ReportFormat::Text };
+                    let stdout_sink = StdoutSink { format };
+                    if let Err(e) = stdout_sink.emit(&report) {
+                        eprintln!("Error: {}", e);
+                        process::exit(2);
+                    }
 
                     if report.summary.failed > 0 {
                         process::exit(1);

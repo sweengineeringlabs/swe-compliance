@@ -7,8 +7,11 @@ use crate::core::reporter::{TextReporter, JsonReporter};
 // Re-export all public types from API
 pub use crate::api::types::{
     CheckId, CheckResult, ProjectScope, ProjectType, Severity, Violation, ScanContext, ScanError,
-    ScanConfig, ScanReport, ScanSummary, CheckEntry, RuleSet, RuleDef, RuleType,
+    ScanConfig, ScanReport, ScanSummary, CheckEntry, RuleSet, RuleDef, RuleType, ReportFormat,
 };
+
+// Re-export sink implementations
+pub use crate::core::sink::{StdoutSink, FileSink};
 
 // Re-export detect_project_type for library consumers
 pub use crate::core::engine::detect_project_type;

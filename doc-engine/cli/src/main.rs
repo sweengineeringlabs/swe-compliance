@@ -5,7 +5,8 @@ use std::process;
 
 use clap::{Parser, Subcommand};
 
-use doc_engine_scan::{scan_with_config, format_report_text, format_report_json, ScanConfig, ProjectScope, ProjectType};
+use doc_engine_scan::{scan_with_config, ScanConfig, ProjectScope, ProjectType, StdoutSink, FileSink, ReportFormat};
+use doc_engine_scan::api::traits::ReportSink;
 use doc_engine_scaffold::{scaffold_from_srs, ScaffoldConfig};
 
 #[cfg(feature = "ai")]
@@ -417,12 +418,12 @@ fn main() {
 
             match scan_with_config(&root, &config) {
                 Ok(report) => {
-                    let formatted = if json {
-                        format_report_json(&report)
-                    } else {
-                        format_report_text(&report)
-                    };
-                    print!("{}", formatted);
+                    let format = if json { ReportFormat::Json } else { ReportFormat::Text };
+                    let stdout_sink = StdoutSink { format };
+                    if let Err(e) = stdout_sink.emit(&report) {
+                        eprintln!("Error: {}", e);
+                        process::exit(2);
+                    }
 
                     // Persist report: use --output if provided, otherwise default to
                     // docs/7-operations/compliance/documentation_audit_report_v{version}.json
@@ -432,23 +433,12 @@ fn main() {
                             report.tool_version
                         ))
                     });
-                    let json_report = serde_json::to_string_pretty(&report).unwrap_or_else(|e| {
-                        eprintln!("Error: JSON serialization failed: {}", e);
-                        process::exit(2);
-                    });
-                    if let Some(parent) = out_path.parent() {
-                        if !parent.exists() {
-                            if let Err(e) = std::fs::create_dir_all(parent) {
-                                eprintln!("Error: cannot create directory '{}': {}", parent.display(), e);
-                                process::exit(2);
-                            }
-                        }
-                    }
-                    if let Err(e) = std::fs::write(&out_path, &json_report) {
-                        eprintln!("Error: cannot write report to '{}': {}", out_path.display(), e);
+                    let file_sink = FileSink { path: out_path };
+                    if let Err(e) = file_sink.emit(&report) {
+                        eprintln!("Error: {}", e);
                         process::exit(2);
                     }
-                    eprintln!("Report saved to {}", out_path.display());
+                    eprintln!("Report saved to {}", file_sink.path.display());
 
                     if report.summary.failed > 0 {
                         process::exit(1);

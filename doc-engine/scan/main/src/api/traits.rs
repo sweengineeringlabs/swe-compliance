@@ -40,6 +40,17 @@ pub trait ComplianceEngine {
     fn scan_with_config(&self, root: &Path, config: &ScanConfig) -> Result<ScanReport, ScanError>;
 }
 
+/// Writes a completed scan report to an external destination.
+///
+/// Implementations persist or transmit the report without modifying its
+/// content. Built-in sinks include [`StdoutSink`](crate::StdoutSink) and
+/// [`FileSink`](crate::FileSink); custom implementations can target HTTP
+/// endpoints, databases, message queues, etc.
+pub trait ReportSink {
+    /// Emit the scan report to this sink's destination.
+    fn emit(&self, report: &ScanReport) -> Result<(), ScanError>;
+}
+
 /// Formats scan reports for output.
 ///
 /// Implementations convert a [`ScanReport`] into a display string

@@ -19,6 +19,15 @@ impl fmt::Display for CheckId {
     }
 }
 
+/// Report output format selection for sinks that support multiple formats.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ReportFormat {
+    /// Human-readable plain text grouped by category.
+    Text,
+    /// Pretty-printed JSON (serde_json).
+    Json,
+}
+
 /// Severity level of a check violation.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]

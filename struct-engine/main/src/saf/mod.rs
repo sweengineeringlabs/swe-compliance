@@ -9,8 +9,11 @@ pub use crate::api::types::{
     CheckId, CheckResult, ProjectKind, Severity, Violation, ScanContext, ScanError,
     ScanConfig, ScanReport, ScanSummary, CheckEntry, RuleSet, RuleDef, RuleType,
     CargoManifest, BinTarget, TestTarget, BenchTarget, ExampleTarget,
-    MemberReport, FileIndex,
+    MemberReport, FileIndex, ReportFormat,
 };
+
+// Re-export sink implementations
+pub use crate::core::sink::{StdoutSink, FileSink};
 
 // Re-export detect_project_kind for library consumers
 pub use crate::core::engine::detect_project_kind;

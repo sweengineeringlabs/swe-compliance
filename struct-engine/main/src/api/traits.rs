@@ -40,6 +40,17 @@ pub trait Reporter {
     fn report(&self, report: &ScanReport) -> String;
 }
 
+/// Writes a completed scan report to an external destination.
+///
+/// Implementations persist or transmit the report without modifying its
+/// content. Built-in sinks include [`StdoutSink`](crate::StdoutSink) and
+/// [`FileSink`](crate::FileSink); custom implementations can target HTTP
+/// endpoints, databases, message queues, etc.
+pub trait ReportSink {
+    /// Emit the scan report to this sink's destination.
+    fn emit(&self, report: &ScanReport) -> Result<(), ScanError>;
+}
+
 /// Engine for running Rust package structure compliance scans.
 ///
 /// Implementors walk a project directory, execute compliance checks, and
